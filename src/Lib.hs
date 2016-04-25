@@ -13,8 +13,11 @@ import qualified Language.Haskell.Exts as H
 patterns :: IO ()
 patterns = do
     ast <- fromParseResult <$> parseFile "data/redundant.hs"
-    print $ getTypes ast
-    print $ getFunctions ast
+    let types = getTypes ast
+    print types
+    let functions = getFunctions ast
+    print functions
+    print $ map (analyse types) functions
 
 
 getTypes :: Module -> [DataType]
@@ -154,6 +157,36 @@ data Pattern
     | WildcardPattern
   deriving (Show, Eq)
 
+
+-- There can be functions with both nonexhaustive patterns and redundant patterns
+data CoverageResult
+    = CoverageResult
+        [Pattern] -- ^ Missing patterns
+        [Pattern] -- ^ Redundant patterns
+  deriving (Show, Eq)
+
+data EvaluatednessResult
+    = EvaluatednessResult
+      [ArgumentEvaluatedness]
+  deriving (Show, Eq)
+
+data ArgumentEvaluatedness
+    = ArgumentEvaluatedness
+      [([Pattern], [EvaluatednessPattern])]
+  deriving (Show, Eq)
+
+data EvaluatednessPattern
+    = NotEvaluated
+    | EvaluatedConstructor Name [EvaluatednessPattern]
+    | EvaluatedListCons EvaluatednessPattern [EvaluatednessPattern]
+    | EvaluatedTuple [EvaluatednessPattern]
+    | EvaluatedLiteral Sign Literal
+  deriving (Show, Eq)
+
+analyse :: [DataType] -- ^ DataTypes 'in scope'
+        -> Function
+        -> (CoverageResult, EvaluatednessResult)
+analyse = error "This is where the magic happens"
 
 
 
