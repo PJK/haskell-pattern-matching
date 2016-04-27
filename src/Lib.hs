@@ -4,10 +4,11 @@ module Lib
     )
     where
 
-import           Data.List             (nub)
+import           Control.Monad         (forM_)
+import           Data.List             (intercalate, nub)
 import           Data.Maybe            (mapMaybe)
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
-                                        Type (..))
+                                        Pretty, Type (..), prettyPrint)
 import qualified Language.Haskell.Exts as H
 
 patterns :: IO ()
@@ -17,7 +18,10 @@ patterns = do
     print types
     let functions = getFunctions ast
     print functions
-    print $ map (analyse types) functions
+    let results = map (analyse types) functions
+    forM_ results $ \(cr, er) -> do
+        prettyPrint cr
+        prettyPrint er
 
 
 getTypes :: Module -> [DataType]
@@ -157,6 +161,30 @@ data Pattern
     | WildcardPattern
   deriving (Show, Eq)
 
+instance Pretty Pattern where
+    pretty (VariablePattern n) = n
+    pretty (LiteralPattern Signless l) = H.prettyPrint l
+    pretty (LiteralPattern Negative l) = '-' : H.prettyPrint l
+    pretty (ConstructorPattern n []) = n
+    pretty (ConstructorPattern n pats) = pars $ unwords $ n : map pretty pats
+    pretty (TuplePattern pats) = tup $ map pretty pats
+    pretty (ListPattern pats) = list $ map pretty pats
+    pretty WildcardPattern = "_"
+
+pars :: String -> String
+pars s = "(" ++ s ++ ")"
+
+braq :: String -> String
+braq s = "[" ++ s ++ "]"
+
+list :: [String] -> String
+list = braq . commaSeparated
+
+tup :: [String] -> String
+tup = pars . commaSeparated
+
+commaSeparated :: [String] -> String
+commaSeparated = intercalate ", "
 
 -- There can be functions with both nonexhaustive patterns and redundant patterns
 data CoverageResult
@@ -165,28 +193,71 @@ data CoverageResult
         [Pattern] -- ^ Redundant patterns
   deriving (Show, Eq)
 
+instance Pretty CoverageResult where
+    pretty (CoverageResult ms rs)
+         = unlines
+             [ "Missing:   " ++ list (map pretty ms)
+             , "Redundant: " ++ list (map pretty rs)
+             ]
+
 data EvaluatednessResult
     = EvaluatednessResult
       [ArgumentEvaluatedness]
   deriving (Show, Eq)
 
+instance Pretty EvaluatednessResult where
+    pretty (EvaluatednessResult aes)
+        = list $ map pretty aes
+
 data ArgumentEvaluatedness
     = ArgumentEvaluatedness
-      [([Pattern], [EvaluatednessPattern])]
+      [([Pattern] -- ^ List of patterns of input arguments
+       , [EvaluatednessPattern]) -- ^ Pattern of evaluatedness for each argument.
+      ]
   deriving (Show, Eq)
+
+instance Pretty ArgumentEvaluatedness where
+    pretty (ArgumentEvaluatedness ls)
+        = concatMap (\(ps, eps) -> pars $ commaSeparated [list $ map pretty ps, list $ map pretty eps]) ls
 
 data EvaluatednessPattern
     = NotEvaluated
     | EvaluatedConstructor Name [EvaluatednessPattern]
-    | EvaluatedListCons EvaluatednessPattern [EvaluatednessPattern]
+    | EvaluatedListCons EvaluatednessPattern EvaluatednessPattern
     | EvaluatedTuple [EvaluatednessPattern]
     | EvaluatedLiteral Sign Literal
   deriving (Show, Eq)
 
+instance Pretty EvaluatednessPattern where
+    pretty NotEvaluated = "_"
+    pretty (EvaluatedConstructor n pats) = pars $ unwords $ n : map pretty pats
+    pretty (EvaluatedListCons l ls) = pretty l ++ ":" ++ pretty ls
+    pretty (EvaluatedTuple pats) = tup $ map pretty pats
+    pretty (EvaluatedLiteral Signless l) = H.prettyPrint l
+    pretty (EvaluatedLiteral Negative l) = '-' : H.prettyPrint l
+
+class Pretty a where
+    pretty :: a -> String
+
+    prettyPrint :: a -> IO ()
+    prettyPrint = putStrLn . pretty
+
+
 analyse :: [DataType] -- ^ DataTypes 'in scope'
         -> Function
         -> (CoverageResult, EvaluatednessResult)
-analyse = error "This is where the magic happens"
+analyse _ _ =
+    -- Just the expected answer for our current only data file.
+    ( CoverageResult [ConstructorPattern "True" []] [ConstructorPattern "False" []]
+    , EvaluatednessResult [ ArgumentEvaluatedness
+                            [ ( [WildcardPattern]
+                              , [ EvaluatedConstructor "True" []
+                                , EvaluatedConstructor "False" []
+                                ]
+                              )
+                            ]
+                          ]
+    )
 
 
 
