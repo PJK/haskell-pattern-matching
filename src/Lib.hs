@@ -1,27 +1,36 @@
-module Lib
-    (
-      patterns
-    )
-    where
+{-# LANGUAGE DeriveGeneric #-}
+module Lib where
 
-import           Control.Monad         (forM_)
-import           Data.List             (intercalate, nub)
-import           Data.Maybe            (mapMaybe)
-import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
-                                        Pretty, Type (..), prettyPrint)
-import qualified Language.Haskell.Exts as H
+
+import           Control.Monad            (forM_)
+import           Data.Aeson               (FromJSON, ToJSON)
+import           Data.Aeson.Encode.Pretty (encodePretty)
+import qualified Data.ByteString.Lazy     as LB
+import           Data.List                (intercalate, nub)
+import           Data.Maybe               (mapMaybe)
+import           GHC.Generics             (Generic)
+import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
+                                           Pretty, Type (..), prettyPrint)
+import qualified Language.Haskell.Exts    as H
+
 
 patterns :: IO ()
 patterns = do
-    ast <- fromParseResult <$> parseFile "data/redundant.hs"
-    let types = getTypes ast
-    print types
-    let functions = getFunctions ast
-    print functions
-    let results = map (analyse types) functions
+    results <- doItAll "data/redundant.hs"
     forM_ results $ \(cr, er) -> do
         prettyPrint cr
         prettyPrint er
+    LB.putStr $ encodePretty results
+
+doItAll :: FilePath -> IO [(CoverageResult, EvaluatednessResult)]
+doItAll fp = do
+    -- FIXME do some actual error handling here.
+    ast <- fromParseResult <$> parseFile fp
+    -- FIXME make sure these are total
+    let types = getTypes ast
+        functions = getFunctions ast
+        results = map (analyse types) functions
+    return results
 
 
 getTypes :: Module -> [DataType]
@@ -159,7 +168,16 @@ data Pattern
     | TuplePattern [Pattern] -- ^ Tuple: (a, b, ..., z)
     | ListPattern [Pattern] -- ^ List: [a, b, ..., z]
     | WildcardPattern
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON   Pattern
+instance FromJSON Pattern
+
+instance ToJSON   Sign
+instance FromJSON Sign
+
+instance ToJSON   Literal
+instance FromJSON Literal
 
 instance Pretty Pattern where
     pretty (VariablePattern n) = n
@@ -191,7 +209,10 @@ data CoverageResult
     = CoverageResult
         [Pattern] -- ^ Missing patterns
         [Pattern] -- ^ Redundant patterns
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON   CoverageResult
+instance FromJSON CoverageResult
 
 instance Pretty CoverageResult where
     pretty (CoverageResult ms rs)
@@ -203,7 +224,10 @@ instance Pretty CoverageResult where
 data EvaluatednessResult
     = EvaluatednessResult
       [ArgumentEvaluatedness]
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON   EvaluatednessResult
+instance FromJSON EvaluatednessResult
 
 instance Pretty EvaluatednessResult where
     pretty (EvaluatednessResult aes)
@@ -214,7 +238,10 @@ data ArgumentEvaluatedness
       [([Pattern] -- ^ List of patterns of input arguments
        , [EvaluatednessPattern]) -- ^ Pattern of evaluatedness for each argument.
       ]
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON   ArgumentEvaluatedness
+instance FromJSON ArgumentEvaluatedness
 
 instance Pretty ArgumentEvaluatedness where
     pretty (ArgumentEvaluatedness ls)
@@ -226,7 +253,10 @@ data EvaluatednessPattern
     | EvaluatedListCons EvaluatednessPattern EvaluatednessPattern
     | EvaluatedTuple [EvaluatednessPattern]
     | EvaluatedLiteral Sign Literal
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON   EvaluatednessPattern
+instance FromJSON EvaluatednessPattern
 
 instance Pretty EvaluatednessPattern where
     pretty NotEvaluated = "_"
