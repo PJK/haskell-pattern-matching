@@ -235,8 +235,8 @@ instance Pretty EvaluatednessResult where
 
 data ArgumentEvaluatedness
     = ArgumentEvaluatedness
-      [([Pattern] -- ^ List of patterns of input arguments
-       , [EvaluatednessPattern]) -- ^ Pattern of evaluatedness for each argument.
+      [ ( [Pattern] -- ^ List of patterns of input arguments
+        , [EvaluatednessPattern]) -- ^ Pattern of evaluatedness for each argument.
       ]
   deriving (Show, Eq, Generic)
 
@@ -278,15 +278,19 @@ analyse :: [DataType] -- ^ DataTypes 'in scope'
         -> (CoverageResult, EvaluatednessResult)
 analyse _ _ =
     -- Just the expected answer for our current only data file.
-    ( CoverageResult [ConstructorPattern "True" []] [ConstructorPattern "False" []]
-    , EvaluatednessResult [ ArgumentEvaluatedness
-                            [ ( [WildcardPattern]
-                              , [ EvaluatedConstructor "True" []
-                                , EvaluatedConstructor "False" []
-                                ]
-                              )
-                            ]
-                          ]
+    -- See assignment.pdf for another example of this format.
+    ( CoverageResult
+        [ConstructorPattern "True" []] -- Missing patterns
+        [ConstructorPattern "False" []] -- Redundant patterns (exact patterns that we find)
+    , EvaluatednessResult
+        [ ArgumentEvaluatedness -- Length = number of arguments to the function
+          [ ( [WildcardPattern] -- Length = number of arguments to the function
+            , [ EvaluatedConstructor "True" []
+              , EvaluatedConstructor "False" []
+              ]
+            )
+          ]
+        ]
     )
 
 
