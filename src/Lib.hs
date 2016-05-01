@@ -30,6 +30,8 @@ process inputFile = do
     ast <- fromParseResult <$> parseFile inputFile
     putStrLn $ show (getFunctions ast)
     putStrLn $ show $ coveredValues (head $ getPatternVectors (head $ getFunctions ast)) [VariablePattern "x1", VariablePattern "x2"]
+    -- Mock passing the previous U
+    putStrLn $ show $ coveredValues (head $ tail $ getPatternVectors (head $ getFunctions ast)) [ConstructorPattern "False" [], VariablePattern "x2"]
 --     forM_ results $ \(cr, er) -> do
 --         prettyPrint cr
 --         prettyPrint er
