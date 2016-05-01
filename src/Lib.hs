@@ -21,9 +21,7 @@ patterns :: IO ()
 patterns = do
     args <- Env.getArgs
     print args
-    mapM process args
-    -- Syd: is this right?
-    return ()
+    mapM_ process args
 
 
 process :: String -> IO ()
