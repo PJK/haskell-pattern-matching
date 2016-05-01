@@ -1,6 +1,6 @@
 module ClauseProcessing where
 
-import Lib
+import DataDefs
 
 type ValueAbstractionVector = [Pattern]
 type ValueAbstractionSet = [ValueAbstractionVector]
