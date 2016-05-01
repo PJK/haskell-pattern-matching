@@ -59,6 +59,7 @@ prettyIteratedVecProc _ [] vas = do
 prettyIteratedVecProc i (ps:pss) s = do
     putStrLn $ "Iteration: " ++ show i
     putStrLn $ "Value abstractions to consider as inputs: " ++ show s
+    putStrLn $ "Pattern: " ++ show ps
     putStrLn $ "U: " ++ show (capU res)
     putStrLn $ "C: " ++ show (capC res)
     putStrLn $ "D: " ++ show (capD res)
