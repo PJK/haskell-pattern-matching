@@ -10,7 +10,7 @@ data ClauseCoverage = ClauseCoverage { c :: ValueAbstractionSet, u :: ValueAbstr
 coveredValues :: [Pattern] -> ValueAbstractionVector -> ValueAbstractionSet
 -- CNil
 -- todo this probably wrong and should be maybe
-coveredValues [] [] = []
+coveredValues [] [] = [[]]
 -- CVar
 coveredValues (VariablePattern p:ps) (u:us) = map (ucon u) (coveredValues ps us)
 

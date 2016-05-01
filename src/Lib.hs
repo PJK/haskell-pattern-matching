@@ -30,10 +30,10 @@ process inputFile = do
     ast <- fromParseResult <$> parseFile inputFile
     putStrLn $ show (getFunctions ast)
     putStrLn $ show $ coveredValues (head $ getPatternVectors (head $ getFunctions ast)) [VariablePattern "x1", VariablePattern "x2"]
-    forM_ results $ \(cr, er) -> do
-        prettyPrint cr
-        prettyPrint er
-    LB.putStr $ encodePretty results
+--     forM_ results $ \(cr, er) -> do
+--         prettyPrint cr
+--         prettyPrint er
+--     LB.putStr $ encodePretty results
 
 
 getPatternVectors :: Function -> [[Pattern]]
