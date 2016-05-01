@@ -17,10 +17,17 @@ import qualified Language.Haskell.Exts    as H
 patterns :: IO ()
 patterns = do
     results <- doItAll "data/redundant.hs"
+    ast <- fromParseResult <$> parseFile "data/redundant.hs"
+    putStrLn $ show (getFunctions ast)
+    putStrLn $ show (getFunctions ast)
     forM_ results $ \(cr, er) -> do
         prettyPrint cr
         prettyPrint er
     LB.putStr $ encodePretty results
+
+
+getPatternVectors :: Function -> [[Pattern]]
+getPatternVectors Function _ _ = map (case xs of Clause patterns -> patterns)
 
 doItAll :: FilePath -> IO [(CoverageResult, EvaluatednessResult)]
 doItAll fp = do
@@ -276,6 +283,7 @@ class Pretty a where
 analyse :: [DataType] -- ^ DataTypes 'in scope'
         -> Function
         -> (CoverageResult, EvaluatednessResult)
+-- analyse _ (Function _ _ clauses) =
 analyse _ _ =
     -- Just the expected answer for our current only data file.
     ( CoverageResult [ConstructorPattern "True" []] [ConstructorPattern "False" []]
