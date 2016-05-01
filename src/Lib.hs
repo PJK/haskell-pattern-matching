@@ -32,6 +32,7 @@ process inputFile = do
     putStrLn $ show $ coveredValues (head $ getPatternVectors (head $ getFunctions ast)) [VariablePattern "x1", VariablePattern "x2"]
     -- Mock passing the previous U
     putStrLn $ show $ coveredValues (head $ tail $ getPatternVectors (head $ getFunctions ast)) [ConstructorPattern "False" [], VariablePattern "x2"]
+    prettyIteratedVecProc 0 (getPatternVectors (head $ getFunctions ast)) [[VariablePattern "x1", VariablePattern "x2"]]
 --     forM_ results $ \(cr, er) -> do
 --         prettyPrint cr
 --         prettyPrint er
