@@ -23,6 +23,8 @@ coveredValues (k@(ConstructorPattern _ _):ps) (VariablePattern _:us) = coveredVa
 -- CVar
 coveredValues (VariablePattern _:ps) (u:us) = map (ucon u) (coveredValues ps us)
 
+-- FIXME we need real data
+allConstructorsForTheGivenType = [ConstructorPattern "False" [], ConstructorPattern "True" []]
 
 uncoveredValues :: [Pattern] -> ValueAbstractionVector -> ValueAbstractionSet
 -- UNil
@@ -33,9 +35,11 @@ uncoveredValues (k@(ConstructorPattern pname args):ps) (kv@(ConstructorPattern v
         | pname == vname = map (kcon k) (uncoveredValues ps us)
         | otherwise      = [kv:us]
 -- UConVar
-uncoveredValues _ _ = error "asdfasdf"
+uncoveredValues (p@(ConstructorPattern pname args):ps) (VariablePattern _:us) =
+        concatMap (\constructor ->  uncoveredValues (p:ps) (constructor:us)) allConstructorsForTheGivenType
 -- UVar
 uncoveredValues (VariablePattern _:ps) (u:us) = map (ucon u) (uncoveredValues ps us)
+
 
 -- |Refines the VA of viable inputs using the pattern vector
 patVecProc :: [Pattern] -> ValueAbstractionSet -> ClauseCoverage
