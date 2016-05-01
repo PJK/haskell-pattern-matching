@@ -28,16 +28,16 @@ process :: String -> IO ()
 process inputFile = do
     results <- doItAll inputFile
     ast <- fromParseResult <$> parseFile inputFile
-    putStrLn $ show (getFunctions ast)
-    putStrLn $ show $ coveredValues (head $ getPatternVectors (head $ getFunctions ast)) [VariablePattern "x1", VariablePattern "x2"]
     -- Mock passing the previous U
-    putStrLn $ show $ coveredValues (head $ tail $ getPatternVectors (head $ getFunctions ast)) [ConstructorPattern "False" [], VariablePattern "x2"]
-    prettyIteratedVecProc 0 (getPatternVectors (head $ getFunctions ast)) [[VariablePattern "x1", VariablePattern "x2"]]
+    mapM_ (\func@(Function name _ _) -> do
+            putStrLn $ "Processing " ++ name
+            prettyIteratedVecProc 0 (getPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]])
+            (getFunctions ast)
+
 --     forM_ results $ \(cr, er) -> do
 --         prettyPrint cr
 --         prettyPrint er
 --     LB.putStr $ encodePretty results
-
 
 getPatternVectors :: Function -> [[Pattern]]
 getPatternVectors (Function _ _ patterns) = map (\xs -> case xs of Clause patterns -> patterns) patterns
