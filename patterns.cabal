@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Lib
                      , ClauseProcessing
+                     , DataDefs
   build-depends:       base >= 4.7 && < 5
                      , haskell-src-exts       >= 1.17  && < 1.18
                      , aeson-pretty           >= 0.7   && < 0.8
