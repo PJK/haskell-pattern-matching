@@ -2,8 +2,10 @@ module ClauseProcessing where
 
 import Lib
 
+data ValueAbstractionVector = VAV [Pattern] deriving Show
 data ValueAbstractionSet = VAS [[Pattern]] deriving Show
-data ClauseCoverage = {  }
+data ClauseCoverage = ClauseCoverage { c :: ValueAbstractionSet, u :: ValueAbstractionSet, d :: ValueAbstractionSet } deriving Show
 
-patVecProc :: [Pattern] -> [[Pattern]] -> ([[Pattern]], )
-
+-- |Computes covered values for the pattern vector and a set of va
+coveredValues :: [Pattern] -> ValueAbstractionSet -> ValueAbstractionVector
+coveredValues [] [] = []
