@@ -6,6 +6,8 @@ type ValueAbstractionVector = [Pattern]
 type ValueAbstractionSet = [ValueAbstractionVector]
 data ClauseCoverage = ClauseCoverage { capC :: ValueAbstractionSet, capU :: ValueAbstractionSet, capD :: ValueAbstractionSet } deriving Show
 
+
+
 -- |Computes covered values for the pattern vector and a set of VAs
 coveredValues :: [Pattern] -> ValueAbstractionVector -> ValueAbstractionSet
 -- CNil
@@ -22,13 +24,39 @@ coveredValues (k@(ConstructorPattern _ _):ps) (VariablePattern _:us) = coveredVa
 coveredValues (VariablePattern _:ps) (u:us) = map (ucon u) (coveredValues ps us)
 
 
+uncoveredValues :: [Pattern] -> ValueAbstractionVector -> ValueAbstractionSet
+-- UNil
+uncoveredValues [] [] = [] -- Important! This is different than coveredValues
+-- UConCon
+-- TODO expansion and recovery
+uncoveredValues (k@(ConstructorPattern pname args):ps) (kv@(ConstructorPattern vname _):us)
+        | pname == vname = map (kcon k) (uncoveredValues ps us)
+        | otherwise      = [kv:us]
+-- UConVar
+uncoveredValues _ _ = error "asdfasdf"
+-- UVar
+uncoveredValues (VariablePattern _:ps) (u:us) = map (ucon u) (uncoveredValues ps us)
+
 -- |Refines the VA of viable inputs using the pattern vector
 patVecProc :: [Pattern] -> ValueAbstractionSet -> ClauseCoverage
 patVecProc ps s = ClauseCoverage c u d
     where
         c = concatMap (coveredValues ps) s
-        u = []
+        u = concatMap (uncoveredValues ps) s
         d = []
+
+
+prettyIteratedVecProc :: Integer -> [[Pattern]] -> ValueAbstractionSet -> IO ()
+
+prettyIteratedVecProc _ [] vas = do
+    print "Final iteration. Uncovered set:"
+    print vas
+
+prettyIteratedVecProc i (ps:pss) s = do
+    putStrLn $ "Iteration: " ++ show i
+    prettyIteratedVecProc (i + 1) pss (capU res)
+    where
+        res = patVecProc ps s
 
 -- |Coverage vector concatenation
 -- TODO: Add the term constraints merging
