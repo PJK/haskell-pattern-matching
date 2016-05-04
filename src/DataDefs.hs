@@ -9,6 +9,7 @@ import           Data.Aeson.Encode.Pretty (encodePretty)
 import qualified Data.ByteString.Lazy     as LB
 import           Data.List                (intercalate, nub)
 import           Data.Maybe               (mapMaybe)
+import qualified Data.Map                 as Map
 import           GHC.Generics             (Generic)
 import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
                                            Pretty, Type (..), prettyPrint)
@@ -63,6 +64,8 @@ data Pattern
     | ListPattern [Pattern] -- ^ List: [a, b, ..., z]
     | WildcardPattern
   deriving (Show, Eq, Generic)
+
+type TypeMap = Map.Map String [Pattern]
 
 instance ToJSON   Pattern
 instance FromJSON Pattern

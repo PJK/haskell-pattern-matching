@@ -11,3 +11,9 @@ f x y = 3
 incompleteF :: MyBool -> MyBool -> Integer
 incompleteF True y = 4
 incompleteF x False = 3
+
+data MyTrinary = A | B | C
+
+incompleteFT :: MyTrinary -> MyTrinary -> Integer
+incompleteFT A y = 4
+incompleteFT x B = 3

@@ -8,6 +8,7 @@ import           Data.Aeson.Encode.Pretty (encodePretty)
 import qualified Data.ByteString.Lazy     as LB
 import           Data.List                (intercalate, nub)
 import           Data.Maybe               (mapMaybe)
+import qualified Data.Map                 as Map
 import           GHC.Generics             (Generic)
 import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
                                            Pretty, Type (..), prettyPrint)
@@ -29,9 +30,11 @@ process inputFile = do
     results <- doItAll inputFile
     ast <- fromParseResult <$> parseFile inputFile
     -- Mock passing the previous U
+    print $ getTypes ast
+    print $ getTypeConstructorsMap ast
     mapM_ (\func@(Function name _ _) -> do
             putStrLn $ "Processing " ++ name
-            prettyIteratedVecProc 0 (getPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]])
+            prettyIteratedVecProc 0 (getPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]] (getTypeConstructorsMap ast))
             (getFunctions ast)
 
 --     forM_ results $ \(cr, er) -> do
@@ -51,6 +54,15 @@ doItAll fp = do
         functions = getFunctions ast
         results = map (analyse types) functions
     return results
+
+getTypesMap :: Module -> Map.Map String [Constructor]
+getTypesMap mod = Map.fromList $ map (\t -> case t of DataType name _ constructors -> (name, constructors)) (getTypes mod)
+
+getTypeConstructorsMap :: Module -> TypeMap
+getTypeConstructorsMap mod = Map.map (map constructorToPattern) (getTypesMap mod)
+    where
+        -- TODO handle params
+        constructorToPattern (Constructor name args) = ConstructorPattern name []
 
 
 getTypes :: Module -> [DataType]
