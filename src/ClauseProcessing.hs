@@ -1,6 +1,6 @@
 module ClauseProcessing where
 
-import DataDefs
+import           DataDefs
 
 type ValueAbstractionVector = [Pattern]
 type ValueAbstractionSet = [ValueAbstractionVector]
@@ -22,8 +22,10 @@ coveredValues (ConstructorPattern pname args:ps) (ConstructorPattern vname _:us)
 coveredValues (k@(ConstructorPattern _ _):ps) (VariablePattern _:us) = coveredValues (k:ps) (k:us)
 -- CVar
 coveredValues (VariablePattern _:ps) (u:us) = map (ucon u) (coveredValues ps us)
+coveredValues _ _ = error "unsupported pattern"
 
 -- FIXME we need real data
+allConstructorsForTheGivenType :: [Pattern]
 allConstructorsForTheGivenType = [ConstructorPattern "False" [], ConstructorPattern "True" []]
 
 uncoveredValues :: [Pattern] -> ValueAbstractionVector -> ValueAbstractionSet
@@ -31,14 +33,15 @@ uncoveredValues :: [Pattern] -> ValueAbstractionVector -> ValueAbstractionSet
 uncoveredValues [] [] = [] -- Important! This is different than coveredValues
 -- UConCon
 -- TODO expansion and recovery
-uncoveredValues (k@(ConstructorPattern pname args):ps) (kv@(ConstructorPattern vname _):us)
+uncoveredValues (k@(ConstructorPattern pname _):ps) (kv@(ConstructorPattern vname _):us)
         | pname == vname = map (kcon k) (uncoveredValues ps us)
         | otherwise      = [kv:us]
 -- UConVar
-uncoveredValues (p@(ConstructorPattern pname args):ps) (VariablePattern _:us) =
+uncoveredValues (p@(ConstructorPattern _ _):ps) (VariablePattern _:us) =
         concatMap (\constructor ->  uncoveredValues (p:ps) (constructor:us)) allConstructorsForTheGivenType
 -- UVar
 uncoveredValues (VariablePattern _:ps) (u:us) = map (ucon u) (uncoveredValues ps us)
+uncoveredValues _ _ = error "unsupported pattern"
 
 
 -- |Refines the VA of viable inputs using the pattern vector
@@ -75,3 +78,4 @@ ucon x xs = x:xs
 -- TODO pattern expansion
 kcon :: Pattern -> ValueAbstractionVector -> ValueAbstractionVector
 kcon pat@(ConstructorPattern _ _) ws = pat:ws
+kcon _ _ = error "Only constructor patterns"

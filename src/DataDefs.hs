@@ -2,17 +2,12 @@
 
 module DataDefs where
 
--- FIXME i just copied these over
-import           Control.Monad            (forM_)
-import           Data.Aeson               (FromJSON, ToJSON)
-import           Data.Aeson.Encode.Pretty (encodePretty)
-import qualified Data.ByteString.Lazy     as LB
-import           Data.List                (intercalate, nub)
-import           Data.Maybe               (mapMaybe)
-import           GHC.Generics             (Generic)
-import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
-                                           Pretty, Type (..), prettyPrint)
-import qualified Language.Haskell.Exts    as H
+import           Data.Aeson            (FromJSON, ToJSON)
+import           Data.List             (intercalate)
+import           GHC.Generics          (Generic)
+import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
+                                        Pretty, Type (..), prettyPrint)
+import qualified Language.Haskell.Exts as H
 
 -- Input:
 --   - Context of datatypes (but not other functions)

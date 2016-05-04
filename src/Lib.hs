@@ -1,20 +1,15 @@
-{-# LANGUAGE DeriveGeneric #-}
 module Lib where
 
 
-import           Control.Monad            (forM_)
-import           Data.Aeson               (FromJSON, ToJSON)
-import           Data.Aeson.Encode.Pretty (encodePretty)
-import qualified Data.ByteString.Lazy     as LB
-import           Data.List                (intercalate, nub)
-import           Data.Maybe               (mapMaybe)
-import           GHC.Generics             (Generic)
-import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
-                                           Pretty, Type (..), prettyPrint)
-import qualified Language.Haskell.Exts    as H
-import qualified System.Environment       as Env
-import DataDefs
-import ClauseProcessing
+import           ClauseProcessing
+import           Control.Monad         (forM_)
+import           Data.List             (nub)
+import           Data.Maybe            (mapMaybe)
+import           DataDefs
+import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
+                                        Pretty, Type (..), prettyPrint)
+import qualified Language.Haskell.Exts as H
+import qualified System.Environment    as Env
 
 
 patterns :: IO ()
@@ -24,20 +19,15 @@ patterns = do
     mapM_ process args
 
 
-process :: String -> IO ()
+process :: String -> IO [(CoverageResult, EvaluatednessResult)]
 process inputFile = do
     results <- doItAll inputFile
     ast <- fromParseResult <$> parseFile inputFile
     -- Mock passing the previous U
-    mapM_ (\func@(Function name _ _) -> do
-            putStrLn $ "Processing " ++ name
-            prettyIteratedVecProc 0 (getPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]])
-            (getFunctions ast)
-
---     forM_ results $ \(cr, er) -> do
---         prettyPrint cr
---         prettyPrint er
---     LB.putStr $ encodePretty results
+    forM_ (getFunctions ast) $ \func@(Function name _ _) -> do
+        putStrLn $ "Processing " ++ name
+        prettyIteratedVecProc 0 (getPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]]
+    return results
 
 getPatternVectors :: Function -> [[Pattern]]
 getPatternVectors (Function _ _ patterns) = map (\xs -> case xs of Clause patterns -> patterns) patterns
