@@ -23,7 +23,7 @@ coveredValues (ConstructorPattern pname args:ps) (ConstructorPattern vname _:us)
 coveredValues (k@(ConstructorPattern _ _):ps) (VariablePattern _:us) = coveredValues (k:ps) (k:us)
 -- CVar
 coveredValues (VariablePattern _:ps) (u:us) = map (ucon u) (coveredValues ps us)
-
+coveredValues _ _ = error "unsupported pattern"
 
 uncoveredValues :: [Pattern] -> TypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
 -- UNil
@@ -80,3 +80,4 @@ ucon x xs = x:xs
 -- TODO pattern expansion
 kcon :: Pattern -> ValueAbstractionVector -> ValueAbstractionVector
 kcon pat@(ConstructorPattern _ _) ws = pat:ws
+kcon _ _ = error "Only constructor patterns"
