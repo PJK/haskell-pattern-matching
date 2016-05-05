@@ -4,7 +4,7 @@ module Lib where
 import           ClauseProcessing
 import           Control.Monad         (forM_)
 import           Data.List             (nub)
-import qualified Data.Map                 as Map
+import qualified Data.Map              as Map
 import           Data.Maybe            (catMaybes)
 import           DataDefs
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
@@ -50,6 +50,7 @@ getTypedPatternVectors (Function _ functionType patterns) =
         extractType t = case t of
                         FunctionType t1 t2 -> extractType t1 ++ extractType t2
                         TypeConstructor t  -> [TypeConstructor t]
+                        _ -> error "no way to extract a type from this"
 
         patternsList = map (\xs -> case xs of Clause patterns -> patterns) patterns
 
@@ -80,7 +81,7 @@ getTypeConstructorsMap :: Module -> TypeMap
 getTypeConstructorsMap mod = Map.map (map constructorToPattern) (getTypesMap mod)
     where
         -- TODO handle params
-        constructorToPattern (Constructor name args) = ConstructorPattern name []
+        constructorToPattern (Constructor name _) = ConstructorPattern name []
 
 err :: String -> MayFail a
 err = Left
@@ -179,6 +180,7 @@ mkPattern (PList pats) = ListPattern <$> mapM mkPattern pats
 mkPattern (PAsPat _ pat) = mkPattern pat
 mkPattern PWildCard = return WildcardPattern
 mkPattern (PBangPat pat) = mkPattern pat
+mkPattern (PParen pat) = mkPattern pat
 mkPattern a = err $ "Unsupported pattern: " ++ show a
 
 

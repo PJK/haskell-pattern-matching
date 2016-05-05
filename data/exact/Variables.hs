@@ -20,5 +20,5 @@ incompleteFT x B = 3
 
 data MyMaybe = Sum MyTrinary | Nope
 
--- extract :: MyMaybe -> MyTrinary
--- extract (Sum x) = x
+extract :: MyMaybe -> MyTrinary
+extract (Sum x) = x

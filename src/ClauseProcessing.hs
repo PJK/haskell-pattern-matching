@@ -1,7 +1,9 @@
 module ClauseProcessing where
 
-import DataDefs
-import qualified Data.Map as Map
+import qualified Data.Map   as Map
+import           DataDefs
+
+import           Data.Maybe (fromMaybe)
 
 type ValueAbstractionVector = [Pattern]
 type ValueAbstractionSet = [ValueAbstractionVector]
@@ -18,7 +20,7 @@ coveredValues :: PatternVector -> ValueAbstractionVector -> ValueAbstractionSet
 coveredValues [] [] = [[]]
 -- CConCon
 -- TODO implement the inner pattern expansion and recovery
-coveredValues (((ConstructorPattern pname args), _):ps) (ConstructorPattern vname _:us)
+coveredValues ((ConstructorPattern pname args, _):ps) (ConstructorPattern vname _:us)
         | pname == vname = map (kcon (ConstructorPattern pname args)) (coveredValues ps us)
         | otherwise      = []
 -- CConVar
@@ -36,18 +38,17 @@ uncoveredValues :: PatternVector -> TypeMap  -> ValueAbstractionVector -> ValueA
 uncoveredValues [] _ []  = [] -- Important! This is different than coveredValues
 -- UConCon
 -- TODO expansion and recovery
-uncoveredValues ((k@(ConstructorPattern pname args), _):ps) tmap (kv@(ConstructorPattern vname _):us)
+uncoveredValues ((k@(ConstructorPattern pname _), _):ps) tmap (kv@(ConstructorPattern vname _):us)
         | pname == vname = map (kcon k) (uncoveredValues ps tmap us)
         | otherwise      = [kv:us]
 -- UConVar
-uncoveredValues (p@(ConstructorPattern pname args, typeName):ps) tmap (VariablePattern _:us) =
+uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (VariablePattern _:us) =
         concatMap (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us)) allConstructors
     where
-        allConstructors = case Map.lookup typeName tmap of
-                                Just p -> p
-                                Nothing -> error $ "Lookup for type " ++ typeName ++ " failed"
+        allConstructors = fromMaybe (error $ "Lookup for type " ++ typeName ++ " failed") (Map.lookup typeName tmap)
 -- UVar
 uncoveredValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (uncoveredValues ps tmap us)
+uncoveredValues _ _ _ = error "non exhaustive patterns in uncoveredValues"
 
 
 
