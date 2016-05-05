@@ -27,14 +27,35 @@ process inputFile = do
     case getFunctions ast of
         Left err -> return $ Left err
         Right fs   -> do
-            -- Mock passing the previous U
             forM_ fs $ \func@(Function name _ _) -> do
                 putStrLn $ "Processing " ++ name
-                prettyIteratedVecProc 0 (getPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]] (getTypeConstructorsMap ast)
+                print func
+                print $ getTypedPatternVectors func
+                -- TODO introduce new variables
+                prettyIteratedVecProc 0 (getTypedPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]] (getTypeConstructorsMap ast)
             return results
 
+-- (Patter, type name)
 getPatternVectors :: Function -> [[Pattern]]
 getPatternVectors (Function _ _ patterns) = map (\xs -> case xs of Clause patterns -> patterns) patterns
+
+getTypedPatternVectors :: Function -> [PatternVector]
+getTypedPatternVectors (Function _ functionType patterns) =
+    map (`zip` typesList) patternsList
+    where
+        typeName :: Type -> String
+        typeName (TypeConstructor name) = name
+        typeName _                      = error "FIXME: we can only handle simple nominal types"
+
+        extractType :: Type -> [Type]
+        extractType t = case t of
+                        FunctionType t1 t2 -> extractType t1 ++ extractType t2
+                        TypeConstructor t  -> [TypeConstructor t]
+
+        patternsList = map (\xs -> case xs of Clause patterns -> patterns) patterns
+
+        typesList = map typeName (extractType functionType)
+
 
 type Error = String
 type MayFail = Either Error

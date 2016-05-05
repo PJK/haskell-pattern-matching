@@ -10,19 +10,19 @@ data ClauseCoverage = ClauseCoverage { capC :: ValueAbstractionSet, capU :: Valu
 
 
 -- |Computes covered values for the pattern vector and a set of VAs
-coveredValues :: [Pattern] -> ValueAbstractionVector -> ValueAbstractionSet
+coveredValues :: PatternVector -> ValueAbstractionVector -> ValueAbstractionSet
 -- CNil
 -- todo this probably wrong and should be maybe
 coveredValues [] [] = [[]]
 -- CConCon
 -- TODO implement the inner pattern expansion and recovery
-coveredValues (ConstructorPattern pname args:ps) (ConstructorPattern vname _:us)
+coveredValues (((ConstructorPattern pname args), _):ps) (ConstructorPattern vname _:us)
         | pname == vname = map (kcon (ConstructorPattern pname args)) (coveredValues ps us)
         | otherwise      = []
 -- CConVar
-coveredValues (k@(ConstructorPattern _ _):ps) (VariablePattern _:us) = coveredValues (k:ps) (k:us)
+coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) = coveredValues (kk:ps) (k:us)
 -- CVar
-coveredValues (VariablePattern _:ps) (u:us) = map (ucon u) (coveredValues ps us)
+coveredValues ((VariablePattern _, _):ps) (u:us) = map (ucon u) (coveredValues ps us)
 coveredValues _ _ = error "unsupported pattern"
 
 uncoveredValues :: [Pattern] -> TypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
@@ -46,15 +46,16 @@ uncoveredValues (VariablePattern _:ps) tmap (u:us) = map (ucon u) (uncoveredValu
 
 
 -- |Refines the VA of viable inputs using the pattern vector
-patVecProc :: [Pattern] -> ValueAbstractionSet -> TypeMap -> ClauseCoverage
+patVecProc :: PatternVector -> ValueAbstractionSet -> TypeMap -> ClauseCoverage
 patVecProc ps s tmap = ClauseCoverage c u d
     where
         c = concatMap (coveredValues ps) s
-        u = concatMap (uncoveredValues ps tmap) s
+        -- u = concatMap (uncoveredValues ps tmap) s
+        u = []
         d = []
 
 
-prettyIteratedVecProc :: Integer -> [[Pattern]] -> ValueAbstractionSet -> TypeMap -> IO ()
+prettyIteratedVecProc :: Integer -> [PatternVector] -> ValueAbstractionSet -> TypeMap -> IO ()
 
 prettyIteratedVecProc _ [] vas _ = do
     print "Final iteration. Uncovered set:"

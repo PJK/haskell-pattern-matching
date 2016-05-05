@@ -62,6 +62,9 @@ data Pattern
 
 type TypeMap = Map.Map String [Pattern]
 
+-- |(Pattern, name of type)
+type PatternVector = [(Pattern, String)]
+
 instance ToJSON   Pattern
 instance FromJSON Pattern
 
