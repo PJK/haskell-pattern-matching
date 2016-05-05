@@ -8,7 +8,9 @@ type ValueAbstractionSet = [ValueAbstractionVector]
 data ClauseCoverage = ClauseCoverage { capC :: ValueAbstractionSet, capU :: ValueAbstractionSet, capD :: ValueAbstractionSet } deriving Show
 
 
-
+--
+-- Implements the 'C' helper function
+--
 -- |Computes covered values for the pattern vector and a set of VAs
 coveredValues :: PatternVector -> ValueAbstractionVector -> ValueAbstractionSet
 -- CNil
@@ -25,24 +27,29 @@ coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) = c
 coveredValues ((VariablePattern _, _):ps) (u:us) = map (ucon u) (coveredValues ps us)
 coveredValues _ _ = error "unsupported pattern"
 
-uncoveredValues :: [Pattern] -> TypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
+
+--
+-- Implements the 'U' helper function
+--
+uncoveredValues :: PatternVector -> TypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
 -- UNil
 uncoveredValues [] _ []  = [] -- Important! This is different than coveredValues
 -- UConCon
 -- TODO expansion and recovery
-uncoveredValues (k@(ConstructorPattern pname args):ps) tmap (kv@(ConstructorPattern vname _):us)
+uncoveredValues ((k@(ConstructorPattern pname args), _):ps) tmap (kv@(ConstructorPattern vname _):us)
         | pname == vname = map (kcon k) (uncoveredValues ps tmap us)
         | otherwise      = [kv:us]
 -- UConVar
-uncoveredValues (p@(ConstructorPattern pname args):ps) tmap (VariablePattern _:us) =
+uncoveredValues (p@(ConstructorPattern pname args, typeName):ps) tmap (VariablePattern _:us) =
         concatMap (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us)) allConstructors
     where
-        -- TODO type names from context
-        allConstructors = case Map.lookup "MyBool" tmap of
+        allConstructors = case Map.lookup typeName tmap of
                                 Just p -> p
-                                Nothing -> error $ "Lookup for type " ++ "TODO" ++ " failed"
+                                Nothing -> error $ "Lookup for type " ++ typeName ++ " failed"
 -- UVar
-uncoveredValues (VariablePattern _:ps) tmap (u:us) = map (ucon u) (uncoveredValues ps tmap us)
+uncoveredValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (uncoveredValues ps tmap us)
+
+
 
 
 -- |Refines the VA of viable inputs using the pattern vector
@@ -50,8 +57,8 @@ patVecProc :: PatternVector -> ValueAbstractionSet -> TypeMap -> ClauseCoverage
 patVecProc ps s tmap = ClauseCoverage c u d
     where
         c = concatMap (coveredValues ps) s
-        -- u = concatMap (uncoveredValues ps tmap) s
-        u = []
+        u = concatMap (uncoveredValues ps tmap) s
+--         u = []
         d = []
 
 
