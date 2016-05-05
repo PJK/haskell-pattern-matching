@@ -25,7 +25,9 @@ process inputFile = do
     results <- doItAll inputFile
     ast <- fromParseResult <$> parseFile inputFile
     case getFunctions ast of
-        Left err -> return $ Left err
+        Left err -> do
+            print err
+            return $ Left err
         Right fs   -> do
             forM_ fs $ \func@(Function name _ _) -> do
                 putStrLn $ "Processing " ++ name
@@ -35,9 +37,6 @@ process inputFile = do
                 prettyIteratedVecProc 0 (getTypedPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]] (getTypeConstructorsMap ast)
             return results
 
--- (Patter, type name)
-getPatternVectors :: Function -> [[Pattern]]
-getPatternVectors (Function _ _ patterns) = map (\xs -> case xs of Clause patterns -> patterns) patterns
 
 getTypedPatternVectors :: Function -> [PatternVector]
 getTypedPatternVectors (Function _ functionType patterns) =

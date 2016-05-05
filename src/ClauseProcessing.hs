@@ -58,7 +58,6 @@ patVecProc ps s tmap = ClauseCoverage c u d
     where
         c = concatMap (coveredValues ps) s
         u = concatMap (uncoveredValues ps tmap) s
---         u = []
         d = []
 
 
