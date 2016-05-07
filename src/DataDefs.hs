@@ -58,7 +58,7 @@ data Pattern
     | TuplePattern [Pattern] -- ^ Tuple: (a, b, ..., z)
     | ListPattern [Pattern] -- ^ List: [a, b, ..., z]
     | WildcardPattern
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Ord)
 
 type TypeMap = Map.Map String [Pattern]
 

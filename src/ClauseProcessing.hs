@@ -38,8 +38,8 @@ uncoveredValues :: PatternVector -> TypeMap  -> ValueAbstractionVector -> ValueA
 uncoveredValues [] _ []  = [] -- Important! This is different than coveredValues
 -- UConCon
 -- TODO expansion and recovery
-uncoveredValues ((k@(ConstructorPattern pname _), _):ps) tmap (kv@(ConstructorPattern vname _):us)
-        | pname == vname = map (kcon k) (uncoveredValues ps tmap us)
+uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(ConstructorPattern vname uParams):us)
+        | pname == vname = map (kcon k) (uncoveredValues ([] ++ ps) tmap ([] ++ us))
         | otherwise      = [kv:us]
 -- UConVar
 uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (VariablePattern _:us) =

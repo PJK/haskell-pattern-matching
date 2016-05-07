@@ -32,10 +32,13 @@ process inputFile = do
             forM_ fs $ \func@(Function name _ _) -> do
                 putStrLn $ "Processing " ++ name
                 print func
+                print $ getTypeConstructorsMap ast
                 print $ getTypedPatternVectors func
+                print $ invertMap (getTypeConstructorsMap ast)
                 -- TODO introduce new variables
                 prettyIteratedVecProc 0 (getTypedPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]] (getTypeConstructorsMap ast)
             return results
+
 
 -- TODO wildcard desugaring
 
@@ -56,6 +59,12 @@ getTypedPatternVectors (Function _ functionType patterns) =
         patternsList = map (\xs -> case xs of Clause patterns -> patterns) patterns
 
         typesList = map typeName (extractType functionType)
+
+
+-- | Invert mapping. Used to construct inverse of getTypeConstructorsMap that will be used
+-- | to annotate ConstructorPattern arguments to be compatible with PatternVector
+invertMap :: (Ord b) => Map.Map a [b] -> Map.Map b a
+invertMap map = Map.fromList $ concatMap (\(k, vs) -> [(v, k) | v <- vs]) (Map.toList map)
 
 
 type Error = String
