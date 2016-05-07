@@ -2,6 +2,7 @@ module Lib where
 
 
 import           ClauseProcessing
+import           Util
 import           Control.Monad         (forM_)
 import           Data.List             (nub)
 import qualified Data.Map              as Map

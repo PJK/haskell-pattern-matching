@@ -39,11 +39,14 @@ uncoveredValues [] _ []  = [] -- Important! This is different than coveredValues
 -- UConCon
 -- TODO expansion and recovery
 uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(ConstructorPattern vname uParams):us)
-        | pname == vname = map (kcon k) (uncoveredValues (pParams ++ ps) tmap ([] ++ us))
+        | pname == vname = map (kcon k) (uncoveredValues (annotatedPParams ++ ps) tmap (uParams ++ us))
         | otherwise      = [kv:us]
     where
-        constructorToType = Lib.invertMap tmap
-        annotatedPParams = map (\p -> (p, (fromMaybe (error $ "Lookup for type " ++ typeName ++ " failed") (Map.lookup p constructorToType)))) pParams
+        constructorToType = invertMap tmap
+        fetchType constructor = fromMaybe (error $ "Lookup for type " ++ (show constructor) ++ " failed") (Map.lookup constructor constructorToType)
+        annotatePatterns = map (\p -> (p, (fetchType p)))
+        annotatedPParams = annotatePatterns pParams
+        annotatedUParams = annotatePatterns uParams
 -- UConVar
 uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (VariablePattern _:us) =
         concatMap (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us)) allConstructors
@@ -51,7 +54,7 @@ uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (VariablePattern 
         allConstructors = fromMaybe (error $ "Lookup for type " ++ typeName ++ " failed") (Map.lookup typeName tmap)
 -- UVar
 uncoveredValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (uncoveredValues ps tmap us)
-uncoveredValues _ _ _ = error "non exhaustive patterns in uncoveredValues"
+uncoveredValues a _ b = error $ "non exhaustive patterns in uncoveredValues" ++ (show a) ++ " and " ++ (show b)
 
 
 
