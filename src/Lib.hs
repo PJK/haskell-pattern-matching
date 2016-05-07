@@ -6,6 +6,7 @@ import           Control.Monad         (forM_)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
 import           Data.Maybe            (catMaybes)
+import           Data.SBV
 import           DataDefs
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
@@ -15,10 +16,30 @@ import qualified System.Environment    as Env
 
 patterns :: IO ()
 patterns = do
+    svbTest
     args <- Env.getArgs
     print args
     mapM_ process args
 
+-- Just testing out some svb
+svbTest :: IO ()
+svbTest = do
+    let pprove a = prove a >>= print
+    pprove $ do
+        x <- sInteger "x"
+        return $ x .> 5 ||| x .< 5 ||| x .== 5
+    pprove $ do
+        x <- sInteger "x"
+        return $ x .> 5 ||| x .< 5
+
+    pprove $ do
+        x <- sInteger "x"
+        y <- sInteger "y"
+        z <- sInteger "z"
+        return $ x .> 1
+            ||| (y .< 2 &&& x .<= 1)
+            ||| (y .> 2 &&& z .<= 4)
+            ||| (y .== 2 &&& z .> 4)
 
 process :: String -> IO (MayFail [(CoverageResult, EvaluatednessResult)])
 process inputFile = do
