@@ -60,7 +60,8 @@ data Pattern
     | WildcardPattern
   deriving (Show, Eq, Generic, Ord)
 
-type TypeMap = Map.Map String [Pattern]
+type SimpleTypeMap = Map.Map String [Pattern]
+type TypeMap = Map.Map String [(Pattern, String)]
 
 -- |(Pattern, name of type)
 type PatternVector = [(Pattern, String)]

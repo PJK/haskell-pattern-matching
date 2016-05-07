@@ -32,11 +32,11 @@ process inputFile = do
             forM_ fs $ \func@(Function name _ _) -> do
                 putStrLn $ "Processing " ++ name
                 print func
-                print $ getTypeConstructorsMap ast
+                print $ getPlainTypeConstructorsMap ast
                 print $ getTypedPatternVectors func
-                print $ invertMap (getTypeConstructorsMap ast)
+                print $ invertMap (getPlainTypeConstructorsMap ast)
                 -- TODO introduce new variables
-                prettyIteratedVecProc 0 (getTypedPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]] (getTypeConstructorsMap ast)
+                prettyIteratedVecProc 0 (getTypedPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]] (getPlainTypeConstructorsMap ast)
             return results
 
 
@@ -87,8 +87,8 @@ getTypesMap mod =
         Left _ -> error "How is this better than having the function just fail?"
         Right types -> Map.fromList $ map (\t -> case t of DataType name _ constructors -> (name, constructors)) types
 
-getTypeConstructorsMap :: Module -> TypeMap
-getTypeConstructorsMap mod = Map.map (map constructorToPattern) (getTypesMap mod)
+getPlainTypeConstructorsMap :: Module -> SimpleTypeMap
+getPlainTypeConstructorsMap mod = Map.map (map constructorToPattern) (getTypesMap mod)
     where
         -- TODO handle params
         constructorToPattern (Constructor name _) = ConstructorPattern name []

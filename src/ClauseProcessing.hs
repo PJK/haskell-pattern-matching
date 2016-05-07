@@ -33,7 +33,7 @@ coveredValues _ _ = error "unsupported pattern"
 --
 -- Implements the 'U' helper function
 --
-uncoveredValues :: PatternVector -> TypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
+uncoveredValues :: PatternVector -> SimpleTypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
 -- UNil
 uncoveredValues [] _ []  = [] -- Important! This is different than coveredValues
 -- UConCon
@@ -54,7 +54,7 @@ uncoveredValues _ _ _ = error "non exhaustive patterns in uncoveredValues"
 
 
 -- |Refines the VA of viable inputs using the pattern vector
-patVecProc :: PatternVector -> ValueAbstractionSet -> TypeMap -> ClauseCoverage
+patVecProc :: PatternVector -> ValueAbstractionSet -> SimpleTypeMap -> ClauseCoverage
 patVecProc ps s tmap = ClauseCoverage c u d
     where
         c = concatMap (coveredValues ps) s
@@ -62,7 +62,7 @@ patVecProc ps s tmap = ClauseCoverage c u d
         d = []
 
 
-prettyIteratedVecProc :: Integer -> [PatternVector] -> ValueAbstractionSet -> TypeMap -> IO ()
+prettyIteratedVecProc :: Integer -> [PatternVector] -> ValueAbstractionSet -> SimpleTypeMap -> IO ()
 
 prettyIteratedVecProc _ [] vas _ = do
     print "Final iteration. Uncovered set:"
