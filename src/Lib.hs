@@ -37,6 +37,7 @@ process inputFile = do
                 prettyIteratedVecProc 0 (getTypedPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]] (getTypeConstructorsMap ast)
             return results
 
+-- TODO wildcard desugaring
 
 getTypedPatternVectors :: Function -> [PatternVector]
 getTypedPatternVectors (Function _ functionType patterns) =
