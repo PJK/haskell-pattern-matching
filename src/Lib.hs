@@ -61,12 +61,6 @@ getTypedPatternVectors (Function _ functionType patterns) =
         typesList = map typeName (extractType functionType)
 
 
--- | Invert mapping. Used to construct inverse of getTypeConstructorsMap that will be used
--- | to annotate ConstructorPattern arguments to be compatible with PatternVector
-invertMap :: (Ord b) => Map.Map a [b] -> Map.Map b a
-invertMap map = Map.fromList $ concatMap (\(k, vs) -> [(v, k) | v <- vs]) (Map.toList map)
-
-
 type Error = String
 type MayFail = Either Error
 

@@ -2,7 +2,7 @@ module ClauseProcessing where
 
 import qualified Data.Map   as Map
 import           DataDefs
-
+import           Util
 import           Data.Maybe (fromMaybe)
 
 type ValueAbstractionVector = [Pattern]
@@ -39,8 +39,11 @@ uncoveredValues [] _ []  = [] -- Important! This is different than coveredValues
 -- UConCon
 -- TODO expansion and recovery
 uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(ConstructorPattern vname uParams):us)
-        | pname == vname = map (kcon k) (uncoveredValues ([] ++ ps) tmap ([] ++ us))
+        | pname == vname = map (kcon k) (uncoveredValues (pParams ++ ps) tmap ([] ++ us))
         | otherwise      = [kv:us]
+    where
+        constructorToType = Lib.invertMap tmap
+        annotatedPParams = map (\p -> (p, (fromMaybe (error $ "Lookup for type " ++ typeName ++ " failed") (Map.lookup p constructorToType)))) pParams
 -- UConVar
 uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (VariablePattern _:us) =
         concatMap (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us)) allConstructors
