@@ -10,15 +10,16 @@ type ValueAbstractionVector = [Pattern]
 type ValueAbstractionSet = [ValueAbstractionVector]
 data ClauseCoverage = ClauseCoverage { capC :: ValueAbstractionSet, capU :: ValueAbstractionSet, capD :: ValueAbstractionSet } deriving Show
 
+-- Based on Figure 3 of 'GADTs meet their match'
 
 --
 -- Implements the 'C' helper function
 --
--- |Computes covered values for the pattern vector and a set of VAs
 coveredValues :: PatternVector -> SimpleTypeMap -> ValueAbstractionVector -> ValueAbstractionSet
+
 -- CNil
--- todo this probably wrong and should be maybe
-coveredValues [] _ [] = [[]]
+coveredValues [] _ [] = [[]] -- Important: one empty set to start with
+
 -- CConCon
 coveredValues ((ConstructorPattern pname args, _):ps) tmap (ConstructorPattern vname up:us)
         | pname == vname =
@@ -27,10 +28,17 @@ coveredValues ((ConstructorPattern pname args, _):ps) tmap (ConstructorPattern v
         | otherwise      = []
         where
             annotatedArguments = annotatePatterns tmap args
+
 -- CConVarx
-coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) tmap (VariablePattern _:us) = coveredValues (kk:ps) tmap (k:us)
+coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) tmap (VariablePattern _:us) =
+    coveredValues (kk:ps) tmap (k:us)
+
 -- CVar
-coveredValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (coveredValues ps tmap us)
+coveredValues ((VariablePattern _, _):ps) tmap (u:us) =
+    map (ucon u) (coveredValues ps tmap us)
+
+-- TODO CGuard
+
 coveredValues _ _ _ = error "unsupported pattern"
 
 
@@ -38,32 +46,43 @@ coveredValues _ _ _ = error "unsupported pattern"
 -- Implements the 'U' helper function
 --
 uncoveredValues :: PatternVector -> SimpleTypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
+
 -- UNil
 uncoveredValues [] _ []  = [] -- Important! This is different than coveredValues
+
 -- UConCon
 uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(ConstructorPattern vname uParams):us)
-        | traceStack ("UConCon: " ++ show (k, kv)) False = error "just debugging"
-        | pname == vname = map (kcon k) (uncoveredValues (annotatedPParams ++ ps) tmap (uParams ++ us))
-        | otherwise      = [substituteFreshParameters kv:us]
+    | pname == vname =
+        map (kcon k) (uncoveredValues (annotatedPParams ++ ps) tmap (uParams ++ us))
+    | otherwise      =
+        [substituteFreshParameters kv:us]
     where
         annotatedPParams = annotatePatterns tmap pParams
+
 -- UConVar
-uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (u@(VariablePattern _):us)
-    | traceStack ("UConVar:" ++ show (p:ps, u:us)) True =
-        concatMap (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us)) allConstructorsWithFreshParameters
+uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (VariablePattern _:us) =
+    concatMap
+        (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us))
+        allConstructorsWithFreshParameters
     where
-        allConstructors = fromMaybe (error $ "Lookup for type " ++ typeName ++ " failed") (Map.lookup typeName tmap)
+        allConstructors = fromMaybe
+                            (error $ "Lookup for type " ++ typeName ++ " failed")
+                            (Map.lookup typeName tmap)
         allConstructorsWithFreshParameters = map substituteFreshParameters allConstructors
+
 -- UVar
 uncoveredValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (uncoveredValues ps tmap us)
+
+-- TODO UGuard
+
 uncoveredValues a _ b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
 
 
 
-
--- |Refines the VA of viable inputs using the pattern vector
+-- | Refines the VA of viable inputs using the pattern vector
 patVecProc :: PatternVector -> ValueAbstractionSet -> SimpleTypeMap -> ClauseCoverage
-patVecProc ps s tmap = ClauseCoverage c u d
+patVecProc ps s tmap =
+    ClauseCoverage c u d
     where
         c = concatMap (coveredValues ps tmap) s
         u = concatMap (uncoveredValues ps tmap) s
@@ -101,14 +120,14 @@ kcon (ConstructorPattern name parameters) ws =
 kcon _ _ = error "Only constructor patterns"
 
 -- |Get fresh variables
--- TODO make this count new occurrences. This is only relevant for the solver.
+-- TODO make this count new occurrences. (It is only relevant for the solver)
 freshVars :: Int -> [Pattern]
 freshVars 0 = []
 freshVars k = VariablePattern ("__fresh" ++ show k):freshVars (k - 1)
 
 -- | Replace PlaceHolderPatterns with appropriate fresh variables
 substituteFreshParameters :: Pattern -> Pattern
-substituteFreshParameters (ConstructorPattern name placeholders) = -- HLint wont parse pattern@...
+substituteFreshParameters (ConstructorPattern name placeholders) =
         ConstructorPattern name (substitutePatterns placeholders)
 -- TODO add lists and tuples
 substituteFreshParameters _ = error "No substitution available"
