@@ -49,7 +49,7 @@ uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(Constru
         annotatedPParams = annotatePatterns pParams
         annotatedUParams = annotatePatterns uParams
 -- UConVar
-uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (VariablePattern _:us) =
+uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap u@(VariablePattern _:us) | traceStack (show (p, u)) True =
         concatMap (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us)) allConstructors
     where
         allConstructors = fromMaybe (error $ "Lookup for type " ++ typeName ++ " failed") (Map.lookup typeName tmap)
@@ -76,13 +76,13 @@ prettyIteratedVecProc _ [] vas _ = do
     print vas
 
 prettyIteratedVecProc i (ps:pss) s tmap = do
-    putStrLn $ "Iteration: " ++ show i
-    putStrLn $ "Value abstractions to consider as inputs: " ++ show s
-    putStrLn $ "Pattern: " ++ show ps
-    putStrLn $ "U: " ++ show (capU res)
-    putStrLn $ "C: " ++ show (capC res)
-    putStrLn $ "D: " ++ show (capD res)
-    prettyIteratedVecProc (i + 1) pss (capU res) tmap
+        putStrLn $ "Iteration: " ++ show i
+        putStrLn $ "Value abstractions to consider as inputs: " ++ show s
+        putStrLn $ "Pattern: " ++ show ps
+        putStrLn $ "U: " ++ show (capU res)
+        putStrLn $ "C: " ++ show (capC res)
+        putStrLn $ "D: " ++ show (capD res)
+        prettyIteratedVecProc (i + 1) pss (capU res) tmap
     where
         res = patVecProc ps s tmap
 
@@ -98,3 +98,10 @@ kcon (ConstructorPattern name parameters) ws =
     where
         arity = length parameters
 kcon _ _ = error "Only constructor patterns"
+
+-- |Get fresh variables
+-- TODO make this count new occurrences.
+
+freshVars :: Integer -> [Pattern]
+freshVars 0 = []
+freshVars k = VariablePattern "__fresh":freshVars (k - 1)

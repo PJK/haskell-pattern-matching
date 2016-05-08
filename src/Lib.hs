@@ -62,6 +62,12 @@ getTypedPatternVectors (Function _ functionType patterns) =
         typesList = map typeName (extractType functionType)
 
 
+-- | How many arguments does the pattern take?
+arity :: Pattern -> Integer
+arity (ContructorPattern _ ps) = length ps
+arity (ListPattern ps) = length ps
+arity _ = 0
+
 type Error = String
 type MayFail = Either Error
 
