@@ -85,6 +85,7 @@ instance Pretty Pattern where
     pretty (TuplePattern pats) = tup $ map pretty pats
     pretty (ListPattern pats) = list $ map pretty pats
     pretty WildcardPattern = "_"
+    pretty PlaceHolderPattern = "<placeholder>"
 
 pars :: String -> String
 pars s = "(" ++ s ++ ")"

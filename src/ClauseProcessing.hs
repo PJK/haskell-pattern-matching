@@ -44,15 +44,16 @@ uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(Constru
         | otherwise      = [kv:us]
     where
         constructorToType = invertMap tmap
-        fetchType constructor = fromMaybe (error $ "Lookup for type " ++ (show constructor) ++ " failed") (Map.lookup constructor constructorToType)
-        annotatePatterns = map (\p -> (p, (fetchType p)))
+        fetchType constructor = fromMaybe (error $ "Lookup for type " ++ show constructor ++ " failed") (Map.lookup constructor constructorToType)
+        annotatePatterns = map (\p -> (p, fetchType p))
         annotatedPParams = annotatePatterns pParams
-        annotatedUParams = annotatePatterns uParams
+
 -- UConVar
 uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap u@(VariablePattern _:us) | traceStack (show (p, u)) True =
-        concatMap (\constructor ->  uncoveredValues (p: ps) tmap (constructor:us)) allConstructors
+        concatMap (\constructor ->  uncoveredValues (p: ps) tmap (constructor:us)) allConstructorsWithFreshParameters
     where
         allConstructors = fromMaybe (error $ "Lookup for type " ++ typeName ++ " failed") (Map.lookup typeName tmap)
+        allConstructorsWithFreshParameters = map substituteFreshParameters allConstructors
 -- UVar
 uncoveredValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (uncoveredValues ps tmap us)
 uncoveredValues a _ b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
@@ -105,8 +106,9 @@ freshVars :: Int -> [Pattern]
 freshVars 0 = []
 freshVars k = VariablePattern "__fresh":freshVars (k - 1)
 
--- | How many arguments does the pattern take?
-arity :: Pattern -> Int
-arity (ConstructorPattern _ ps) = length ps
-arity (ListPattern ps) = length ps
-arity _ = 0
+-- | Replace PlaceHolderPatterns with appropriate fresh variables
+substituteFreshParameters :: Pattern -> Pattern
+substituteFreshParameters (ConstructorPattern name placeholders) = -- HLint wont parse pattern@...
+        ConstructorPattern name (freshVars (length placeholders))
+-- TODO add lists and tuples
+substituteFreshParameters _ = error "No substitution available"
