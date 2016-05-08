@@ -8,7 +8,7 @@ data MyBool
 
 data MyMaybe = Sum MyTrinary | Nope
 
-extract :: MyMaybe -> MyBool -> MyTrinary
-extract (Sum x) False = x
-extract (Sum C) True = x
+extract :: MyMaybe -> MyTrinary
+extract (Sum C) = A
+extract (Sum A) = B
 

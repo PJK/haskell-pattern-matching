@@ -37,7 +37,7 @@ process inputFile = do
                 print $ getTypedPatternVectors func
                 print $ invertMap (getPlainTypeConstructorsMap ast)
                 -- TODO introduce new variables
-                prettyIteratedVecProc 0 (getTypedPatternVectors func) [[VariablePattern "x1", VariablePattern "x2"]] (getPlainTypeConstructorsMap ast)
+                prettyIteratedVecProc 0 (getTypedPatternVectors func) [[VariablePattern "x1"]] (getPlainTypeConstructorsMap ast)
             return results
 
 

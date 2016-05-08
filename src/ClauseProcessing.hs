@@ -4,6 +4,7 @@ import qualified Data.Map   as Map
 import           DataDefs
 import           Util
 import           Data.Maybe (fromMaybe)
+import           Debug.Trace
 
 type ValueAbstractionVector = [Pattern]
 type ValueAbstractionSet = [ValueAbstractionVector]
@@ -23,7 +24,7 @@ coveredValues [] [] = [[]]
 coveredValues ((ConstructorPattern pname args, _):ps) (ConstructorPattern vname _:us)
         | pname == vname = map (kcon (ConstructorPattern pname args)) (coveredValues ps us)
         | otherwise      = []
--- CConVar
+-- CConVarx
 coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) = coveredValues (kk:ps) (k:us)
 -- CVar
 coveredValues ((VariablePattern _, _):ps) (u:us) = map (ucon u) (coveredValues ps us)
@@ -54,7 +55,7 @@ uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (VariablePattern 
         allConstructors = fromMaybe (error $ "Lookup for type " ++ typeName ++ " failed") (Map.lookup typeName tmap)
 -- UVar
 uncoveredValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (uncoveredValues ps tmap us)
-uncoveredValues a _ b = error $ "non exhaustive patterns in uncoveredValues" ++ (show a) ++ " and " ++ (show b)
+uncoveredValues a _ b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
 
 
 
@@ -91,7 +92,9 @@ ucon :: Pattern -> ValueAbstractionVector -> ValueAbstractionVector
 ucon x xs = x:xs
 
 -- Syd: I basicall want kcon :: ConstructorPattern -> ValueAbstractionVector -> ValueAbstractionVector
--- TODO pattern expansion
 kcon :: Pattern -> ValueAbstractionVector -> ValueAbstractionVector
-kcon pat@(ConstructorPattern _ _) ws = pat:ws
+kcon (ConstructorPattern name parameters) ws =
+        ConstructorPattern name (take arity ws):drop arity ws
+    where
+        arity = length parameters
 kcon _ _ = error "Only constructor patterns"
