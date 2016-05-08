@@ -31,7 +31,10 @@ coveredValues ((ConstructorPattern pname args, _):ps) tmap (ConstructorPattern v
 
 -- CConVarx
 coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) tmap (VariablePattern _:us) =
-    coveredValues (kk:ps) tmap (k:us)
+    -- Now this fresh variable substitution has no effect as there are are free
+    -- variables in the pattern vector. Once we start using solver, we need separate
+    -- names for them
+    coveredValues (kk:ps) tmap (substituteFreshParameters k:us)
 
 -- CVar
 coveredValues ((VariablePattern _, _):ps) tmap (u:us) =
