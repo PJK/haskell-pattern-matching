@@ -15,21 +15,23 @@ data ClauseCoverage = ClauseCoverage { capC :: ValueAbstractionSet, capU :: Valu
 -- Implements the 'C' helper function
 --
 -- |Computes covered values for the pattern vector and a set of VAs
-coveredValues :: PatternVector -> ValueAbstractionVector -> ValueAbstractionSet
+coveredValues :: PatternVector -> SimpleTypeMap -> ValueAbstractionVector -> ValueAbstractionSet
 -- CNil
 -- todo this probably wrong and should be maybe
-coveredValues [] [] = [[]]
+coveredValues [] _ [] = [[]]
 -- CConCon
-coveredValues ((ConstructorPattern pname args, _):ps) (kv@(ConstructorPattern vname up):us)
+coveredValues ((ConstructorPattern pname args, _):ps) tmap (ConstructorPattern vname up:us)
         | pname == vname =
             map (kcon (ConstructorPattern pname args))
-                (coveredValues (args ++ ps) (substitutePatterns up ++ us))
+                (coveredValues (annotatedArguments ++ ps) tmap (substitutePatterns up ++ us))
         | otherwise      = []
+        where
+            annotatedArguments = annotatePatterns tmap args
 -- CConVarx
-coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) = coveredValues (kk:ps) (k:us)
+coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) tmap (VariablePattern _:us) = coveredValues (kk:ps) tmap (k:us)
 -- CVar
-coveredValues ((VariablePattern _, _):ps) (u:us) = map (ucon u) (coveredValues ps us)
-coveredValues _ _ = error "unsupported pattern"
+coveredValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (coveredValues ps tmap us)
+coveredValues _ _ _ = error "unsupported pattern"
 
 
 --
@@ -44,11 +46,7 @@ uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(Constru
         | pname == vname = traceStack (show (k, kv)) $ map (kcon k) (uncoveredValues (annotatedPParams ++ ps) tmap (uParams ++ us))
         | otherwise      = [kv:us]
     where
-        constructorToType = invertMap tmap
-        fetchType constructor = fromMaybe (error $ "Lookup for type " ++ show constructor ++ " failed") (Map.lookup constructor constructorToType)
-        annotatePatterns = map (\p -> (p, fetchType p))
-        annotatedPParams = annotatePatterns pParams
-
+        annotatedPParams = annotatePatterns tmap pParams
 -- UConVar
 uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap u@(VariablePattern _:us) | traceStack (show (p, u)) True =
         concatMap (\constructor ->  uncoveredValues (p: ps) tmap (constructor:us)) allConstructorsWithFreshParameters
@@ -66,7 +64,7 @@ uncoveredValues a _ b = traceStack (show (a, b)) $ error "non-exhaustive pattern
 patVecProc :: PatternVector -> ValueAbstractionSet -> SimpleTypeMap -> ClauseCoverage
 patVecProc ps s tmap = ClauseCoverage c u d
     where
-        c = concatMap (coveredValues ps) s
+        c = concatMap (coveredValues ps tmap) s
         u = concatMap (uncoveredValues ps tmap) s
         d = []
 
@@ -116,4 +114,15 @@ substituteFreshParameters _ = error "No substitution available"
 
 -- TODO check these are PlaceHolderPatterns only
 substitutePatterns :: [Pattern] -> [Pattern]
-substitutePatterns xs = freshVars $ freshVars (length xs)
+substitutePatterns xs = freshVars $ length xs
+
+annotatePatterns :: SimpleTypeMap -> [Pattern] -> PatternVector
+annotatePatterns tmap =
+    map (\p -> (p, fetchType p))
+    where
+        constructorToType = invertMap tmap
+        fetchType constructor =
+            fromMaybe
+                (error $ "Lookup for type " ++ show constructor ++ " failed")
+                (Map.lookup constructor constructorToType)
+
