@@ -33,14 +33,14 @@ process inputFile = do
             forM_ fs $ \func@(Function name _ _) ->
                 let
                     patterns = getTypedPatternVectors func
-                    initialVariables = map (:[]) (freshVars (length patterns))
+                    initialVariables = freshVars $ length patterns - 1
                 in do
                 putStrLn $ "Processing " ++ name
                 print func
                 print $ getPlainTypeConstructorsMap ast
                 print $ getTypedPatternVectors func
                 print $ invertMap (getPlainTypeConstructorsMap ast)
-                prettyIteratedVecProc 0 patterns initialVariables (getPlainTypeConstructorsMap ast)
+                prettyIteratedVecProc 0 patterns [initialVariables] (getPlainTypeConstructorsMap ast)
             return results
 
 

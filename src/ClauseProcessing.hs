@@ -41,15 +41,16 @@ uncoveredValues :: PatternVector -> SimpleTypeMap  -> ValueAbstractionVector -> 
 -- UNil
 uncoveredValues [] _ []  = [] -- Important! This is different than coveredValues
 -- UConCon
--- TODO expansion and recovery
 uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(ConstructorPattern vname uParams):us)
-        | pname == vname = traceStack (show (k, kv)) $ map (kcon k) (uncoveredValues (annotatedPParams ++ ps) tmap (uParams ++ us))
-        | otherwise      = [kv:us]
+        | traceStack ("UConCon: " ++ show (k, kv)) False = error "just debugging"
+        | pname == vname = map (kcon k) (uncoveredValues (annotatedPParams ++ ps) tmap (uParams ++ us))
+        | otherwise      = [substituteFreshParameters kv:us]
     where
         annotatedPParams = annotatePatterns tmap pParams
 -- UConVar
-uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap u@(VariablePattern _:us) | traceStack (show (p, u)) True =
-        concatMap (\constructor ->  uncoveredValues (p: ps) tmap (constructor:us)) allConstructorsWithFreshParameters
+uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (u@(VariablePattern _):us)
+    | traceStack ("UConVar:" ++ show (p:ps, u:us)) True =
+        concatMap (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us)) allConstructorsWithFreshParameters
     where
         allConstructors = fromMaybe (error $ "Lookup for type " ++ typeName ++ " failed") (Map.lookup typeName tmap)
         allConstructorsWithFreshParameters = map substituteFreshParameters allConstructors
@@ -103,7 +104,7 @@ kcon _ _ = error "Only constructor patterns"
 -- TODO make this count new occurrences. This is only relevant for the solver.
 freshVars :: Int -> [Pattern]
 freshVars 0 = []
-freshVars k = VariablePattern "__fresh":freshVars (k - 1)
+freshVars k = VariablePattern ("__fresh" ++ show k):freshVars (k - 1)
 
 -- | Replace PlaceHolderPatterns with appropriate fresh variables
 substituteFreshParameters :: Pattern -> Pattern
