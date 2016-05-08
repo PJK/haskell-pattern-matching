@@ -30,14 +30,17 @@ process inputFile = do
             print err
             return $ Left err
         Right fs   -> do
-            forM_ fs $ \func@(Function name _ _) -> do
+            forM_ fs $ \func@(Function name _ _) ->
+                let
+                    patterns = getTypedPatternVectors func
+                    initialVariables = map (:[]) (freshVars (length patterns))
+                in do
                 putStrLn $ "Processing " ++ name
                 print func
                 print $ getPlainTypeConstructorsMap ast
                 print $ getTypedPatternVectors func
                 print $ invertMap (getPlainTypeConstructorsMap ast)
-                -- TODO introduce new variables
-                prettyIteratedVecProc 0 (getTypedPatternVectors func) [[VariablePattern "x1"]] (getPlainTypeConstructorsMap ast)
+                prettyIteratedVecProc 0 patterns initialVariables (getPlainTypeConstructorsMap ast)
             return results
 
 
