@@ -40,7 +40,7 @@ uncoveredValues [] _ []  = [] -- Important! This is different than coveredValues
 -- UConCon
 -- TODO expansion and recovery
 uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(ConstructorPattern vname uParams):us)
-        | pname == vname = map (kcon k) (uncoveredValues (annotatedPParams ++ ps) tmap (uParams ++ us))
+        | pname == vname = traceStack (show (k, kv)) $ map (kcon k) (uncoveredValues (annotatedPParams ++ ps) tmap (uParams ++ us))
         | otherwise      = [kv:us]
     where
         constructorToType = invertMap tmap
@@ -50,7 +50,7 @@ uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(Constru
         annotatedUParams = annotatePatterns uParams
 -- UConVar
 uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap u@(VariablePattern _:us) | traceStack (show (p, u)) True =
-        concatMap (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us)) allConstructors
+        concatMap (\constructor ->  uncoveredValues (p: ps) tmap (constructor:us)) allConstructors
     where
         allConstructors = fromMaybe (error $ "Lookup for type " ++ typeName ++ " failed") (Map.lookup typeName tmap)
 -- UVar
@@ -100,8 +100,13 @@ kcon (ConstructorPattern name parameters) ws =
 kcon _ _ = error "Only constructor patterns"
 
 -- |Get fresh variables
--- TODO make this count new occurrences.
-
-freshVars :: Integer -> [Pattern]
+-- TODO make this count new occurrences. This is only relevant for the solver.
+freshVars :: Int -> [Pattern]
 freshVars 0 = []
 freshVars k = VariablePattern "__fresh":freshVars (k - 1)
+
+-- | How many arguments does the pattern take?
+arity :: Pattern -> Int
+arity (ConstructorPattern _ ps) = length ps
+arity (ListPattern ps) = length ps
+arity _ = 0

@@ -58,6 +58,7 @@ data Pattern
     | TuplePattern [Pattern] -- ^ Tuple: (a, b, ..., z)
     | ListPattern [Pattern] -- ^ List: [a, b, ..., z]
     | WildcardPattern
+    | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
   deriving (Show, Eq, Generic, Ord)
 
 type SimpleTypeMap = Map.Map String [Pattern]
