@@ -20,9 +20,10 @@ coveredValues :: PatternVector -> ValueAbstractionVector -> ValueAbstractionSet
 -- todo this probably wrong and should be maybe
 coveredValues [] [] = [[]]
 -- CConCon
--- TODO implement the inner pattern expansion and recovery
-coveredValues ((ConstructorPattern pname args, _):ps) (ConstructorPattern vname _:us)
-        | pname == vname = map (kcon (ConstructorPattern pname args)) (coveredValues ps us)
+coveredValues ((ConstructorPattern pname args, _):ps) (kv@(ConstructorPattern vname up):us)
+        | pname == vname =
+            map (kcon (ConstructorPattern pname args))
+                (coveredValues (args ++ ps) (substitutePatterns up ++ us))
         | otherwise      = []
 -- CConVarx
 coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) = coveredValues (kk:ps) (k:us)
@@ -109,6 +110,10 @@ freshVars k = VariablePattern "__fresh":freshVars (k - 1)
 -- | Replace PlaceHolderPatterns with appropriate fresh variables
 substituteFreshParameters :: Pattern -> Pattern
 substituteFreshParameters (ConstructorPattern name placeholders) = -- HLint wont parse pattern@...
-        ConstructorPattern name (freshVars (length placeholders))
+        ConstructorPattern name (substitutePatterns placeholders)
 -- TODO add lists and tuples
 substituteFreshParameters _ = error "No substitution available"
+
+-- TODO check these are PlaceHolderPatterns only
+substitutePatterns :: [Pattern] -> [Pattern]
+substitutePatterns xs = freshVars $ freshVars (length xs)
