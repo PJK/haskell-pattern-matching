@@ -90,7 +90,7 @@ divergentValues :: PatternVector -> SimpleTypeMap  -> ValueAbstractionVector -> 
 divergentValues [] _ []  = [] -- Important! This is different than coveredValues
 
 -- DConCon
-divergentValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(ConstructorPattern vname uParams):us)
+divergentValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (ConstructorPattern vname uParams:us)
     | pname == vname =
         map (kcon k) (divergentValues (annotatedPParams ++ ps) tmap (uParams ++ us))
     | otherwise      = []
@@ -98,7 +98,7 @@ divergentValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(Constru
         annotatedPParams = annotatePatterns tmap pParams
 
 -- DConVar
-divergentValues (p@(pc@(ConstructorPattern _ _), typeName):ps) tmap (u@(VariablePattern _):us) =
+divergentValues (p@(pc@(ConstructorPattern _ _), _):ps) tmap (VariablePattern _:us) =
     (pc:us) : divergentValues (p:ps) tmap (substituteFreshParameters pc:us)
 
 -- DVar
