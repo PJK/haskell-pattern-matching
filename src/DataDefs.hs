@@ -67,6 +67,9 @@ type TypeMap = Map.Map String [(Pattern, String)]
 -- |(Pattern, name of type)
 type PatternVector = [(Pattern, String)]
 
+type ValueAbstractionVector = [Pattern]
+type ValueAbstractionSet = [ValueAbstractionVector]
+
 instance ToJSON   Pattern
 instance FromJSON Pattern
 

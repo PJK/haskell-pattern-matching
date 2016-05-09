@@ -6,8 +6,7 @@ import           Util
 import           Data.Maybe (fromMaybe)
 import           Debug.Trace
 
-type ValueAbstractionVector = [Pattern]
-type ValueAbstractionSet = [ValueAbstractionVector]
+
 data ClauseCoverage = ClauseCoverage { capC :: ValueAbstractionSet, capU :: ValueAbstractionSet, capD :: ValueAbstractionSet } deriving Show
 
 -- Based on Figure 3 of 'GADTs meet their match'
@@ -79,6 +78,35 @@ uncoveredValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (uncovere
 -- TODO UGuard
 
 uncoveredValues a _ b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
+
+
+
+--
+-- Implements the 'D' helper function
+--
+divergentValues :: PatternVector -> SimpleTypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
+
+-- DNil
+divergentValues [] _ []  = [] -- Important! This is different than coveredValues
+
+-- DConCon
+divergentValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(ConstructorPattern vname uParams):us)
+    | pname == vname =
+        map (kcon k) (divergentValues (annotatedPParams ++ ps) tmap (uParams ++ us))
+    | otherwise      = []
+    where
+        annotatedPParams = annotatePatterns tmap pParams
+
+-- DConVar
+divergentValues (p@(pc@(ConstructorPattern _ _), typeName):ps) tmap (u@(VariablePattern _):us) =
+    [pc:us] ++ divergentValues (p:ps) (substituteFreshParameters p:us)
+
+-- DVar
+divergentValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (divergentValues ps tmap us)
+
+-- TODO DGuard
+
+divergentValues a _ b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
 
 
 
