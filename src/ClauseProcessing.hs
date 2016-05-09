@@ -99,7 +99,7 @@ divergentValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(Constru
 
 -- DConVar
 divergentValues (p@(pc@(ConstructorPattern _ _), typeName):ps) tmap (u@(VariablePattern _):us) =
-    [pc:us] ++ divergentValues (p:ps) (substituteFreshParameters p:us)
+    (pc:us) : divergentValues (p:ps) tmap (substituteFreshParameters pc:us)
 
 -- DVar
 divergentValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (divergentValues ps tmap us)
@@ -176,4 +176,3 @@ annotatePatterns tmap =
             fromMaybe
                 (error $ "Lookup for type " ++ show constructor ++ " failed")
                 (Map.lookup constructor constructorToType)
-
