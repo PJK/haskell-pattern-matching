@@ -17,7 +17,7 @@ import qualified System.Environment    as Env
 
 patterns :: IO ()
 patterns = do
-    svbTest
+    -- svbTest
     args <- Env.getArgs
     print args
     mapM_ process args
