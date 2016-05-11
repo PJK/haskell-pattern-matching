@@ -25,9 +25,16 @@ patterns = do
 svbTest :: IO ()
 svbTest = do
     let pprove a = prove a >>= print
+    let ssat a = sat a >>= print
     pprove $ do
         x <- sInteger "x"
         return $ x .> 5 ||| x .< 5 ||| x .== 5
+    ssat $ do
+        x <- sInteger "x"
+        return $ x.> 5
+    ssat $ do
+        x <- sInteger "x"
+        return $ x.> 5 &&& x.< 5
     pprove $ do
         x <- sInteger "x"
         return $ x .> 5 ||| x .< 5
