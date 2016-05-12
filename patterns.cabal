@@ -21,6 +21,7 @@ library
                      , DataDefs
                      , OptParse
                      , OptParse.Types
+                     , Types
   build-depends:       base >= 4.7 && < 5
                      , containers             >= 0.5   && < 0.6
                      , haskell-src-exts       >= 1.17  && < 1.18

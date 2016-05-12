@@ -6,7 +6,7 @@ import           Control.Monad         (forM_)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
 import           Data.Maybe            (catMaybes)
-import           Data.SBV
+-- import           Data.SBV
 import           DataDefs
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
@@ -15,6 +15,7 @@ import           Util
 
 import           OptParse
 import           OptParse.Types
+import           Types
 
 
 patterns :: IO ()
@@ -22,63 +23,48 @@ patterns = do
     -- svbTest
     sets <- getSettings
     print sets
-    result <- process $ setsTargetFile sets
-    print result
+    processTarget $ setsTargetFile sets
 
--- Just testing out some svb
-svbTest :: IO ()
-svbTest = do
-    let pprove a = prove a >>= print
-    let ssat a = sat a >>= print
-    pprove $ do
-        x <- sInteger "x"
-        return $ x .> 5 ||| x .< 5 ||| x .== 5
-    ssat $ do
-        x <- sInteger "x"
-        return $ x.> 5
-    ssat $ do
-        x <- sInteger "x"
-        return $ x.> 5 &&& x.< 5
-    pprove $ do
-        x <- sInteger "x"
-        return $ x .> 5 ||| x .< 5
-
-    pprove $ do
-        x <- sInteger "x"
-        y <- sInteger "y"
-        z <- sInteger "z"
-        return $ x .> 1
-            ||| (y .< 2 &&& x .<= 1)
-            ||| (y .> 2 &&& z .<= 4)
-            ||| (y .== 2 &&& z .> 4)
-
-process :: String -> IO (MayFail [(CoverageResult, EvaluatednessResult)])
-process inputFile = do
-    results <- doItAll inputFile
+processTarget :: FilePath -> IO ()
+processTarget inputFile = do
     ast <- fromParseResult <$> parseFile inputFile
+    -- let ass = AnalysisAssigment inputFile ast
+    --     res = processAssignment ass
+    -- print res
+
     case getFunctions ast of
-        Left err -> do
-            print err
-            return $ Left err
-        Right fs   -> do
+        Left err -> print err
+        Right fs   ->
             forM_ fs $ \func@(Function name _ _) ->
                 let
-                    patterns = getTypedPatternVectors func
+                    Right patterns = getTypedPatternVectors func
                     initialVariables = freshVars $ length patterns - 1
+                    Right plainTypeConstructorMap = getPlainTypeConstructorsMap ast
                 in do
                 putStrLn $ "Processing " ++ name
                 print func
-                print $ getPlainTypeConstructorsMap ast
-                print $ getTypedPatternVectors func
-                print $ invertMap (getPlainTypeConstructorsMap ast)
-                prettyIteratedVecProc 0 patterns [initialVariables] (getPlainTypeConstructorsMap ast)
-            return results
+                print plainTypeConstructorMap
+                print patterns
+                print $ invertMap plainTypeConstructorMap
 
+                prettyIteratedVecProc 0 patterns [initialVariables] plainTypeConstructorMap
+
+
+processAssignment :: AnalysisAssigment -> AnalysisResult
+processAssignment _ = undefined
+  -- where
+    -- case (,) <$> getFunctions <*>
+
+buildFunctionTargets :: AnalysisAssigment -> Either AnalysisError [FunctionTarget]
+buildFunctionTargets _ = undefined
+
+analyzeFunction :: FunctionTarget -> FunctionResult
+analyzeFunction _ = undefined
 
 -- TODO wildcard desugaring
 
-getTypedPatternVectors :: Function -> [PatternVector]
-getTypedPatternVectors (Function _ functionType patterns) =
+getTypedPatternVectors :: Function -> MayFail [PatternVector]
+getTypedPatternVectors (Function _ functionType patterns) = Right $
     map (`zip` typesList) patternsList
     where
         typeName :: Type -> String
@@ -99,25 +85,15 @@ getTypedPatternVectors (Function _ functionType patterns) =
 type Error = String
 type MayFail = Either Error
 
-doItAll :: FilePath -> IO (MayFail [(CoverageResult, EvaluatednessResult)])
-doItAll fp = do
-    -- FIXME do some actual error handling here.
-    ast <- fromParseResult <$> parseFile fp
-    -- FIXME make sure these are total
-    let results = do
-            types <- getTypes ast
-            functions <- getFunctions ast
-            return $ map (analyse types) functions
-    return results
+getTypesMap :: Module -> MayFail (Map.Map String [Constructor])
+getTypesMap mod = do
+    types <- getTypes mod
+    return $ Map.fromList $ map (\t -> case t of DataType name _ constructors -> (name, constructors)) types
 
-getTypesMap :: Module -> Map.Map String [Constructor]
-getTypesMap mod =
-    case getTypes mod of
-        Left _ -> error "How is this better than having the function just fail?"
-        Right types -> Map.fromList $ map (\t -> case t of DataType name _ constructors -> (name, constructors)) types
-
-getPlainTypeConstructorsMap :: Module -> SimpleTypeMap
-getPlainTypeConstructorsMap mod = Map.map (map constructorToPattern) (getTypesMap mod)
+getPlainTypeConstructorsMap :: Module -> MayFail SimpleTypeMap
+getPlainTypeConstructorsMap mod = do
+    typesMap <- getTypesMap mod
+    return $ Map.map (map constructorToPattern) typesMap
     where
         substitutionPatterns parameters = replicate (length parameters) PlaceHolderPattern
         constructorToPattern (Constructor name parameters) = ConstructorPattern name (substitutionPatterns  parameters)
@@ -222,28 +198,3 @@ mkPattern PWildCard = return WildcardPattern
 mkPattern (PBangPat pat) = mkPattern pat
 mkPattern (PParen pat) = mkPattern pat
 mkPattern a = err $ "Unsupported pattern: " ++ show a
-
-
-analyse :: [DataType] -- ^ DataTypes 'in scope'
-        -> Function
-        -> (CoverageResult, EvaluatednessResult)
--- analyse _ (Function _ _ clauses) =
-analyse _ _ =
-    -- Just the expected answer for our current only data file.
-    -- See assignment.pdf for another example of this format.
-    ( CoverageResult
-        [ConstructorPattern "True" []] -- Missing patterns
-        [ConstructorPattern "False" []] -- Redundant patterns (exact patterns that we find)
-    , EvaluatednessResult
-        [ ArgumentEvaluatedness -- Length = number of arguments to the function
-          [ ( [WildcardPattern] -- Length = number of arguments to the function
-            , [ EvaluatedConstructor "True" []
-              , EvaluatedConstructor "False" []
-              ]
-            )
-          ]
-        ]
-    )
-
-
-

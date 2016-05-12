@@ -4,8 +4,8 @@ module DataDefs where
 
 import           Data.Aeson            (FromJSON, ToJSON)
 import           Data.List             (intercalate)
+import qualified Data.Map              as Map
 import           GHC.Generics          (Generic)
-import qualified Data.Map                 as Map
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
 import qualified Language.Haskell.Exts as H
