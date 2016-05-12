@@ -3,6 +3,7 @@ module Lib where
 
 import           ClauseProcessing
 import           Control.Monad         (forM_)
+import           Control.Monad.Reader  (runReader)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
 import           Data.Maybe            (catMaybes)
@@ -47,19 +48,23 @@ processTarget inputFile = do
                 print patterns
                 print $ invertMap plainTypeConstructorMap
 
-                prettyIteratedVecProc 0 patterns [initialVariables] plainTypeConstructorMap
+                print $ iteratedVecProc patterns [initialVariables] plainTypeConstructorMap
 
 
 processAssignment :: AnalysisAssigment -> AnalysisResult
-processAssignment _ = undefined
-  -- where
-    -- case (,) <$> getFunctions <*>
+processAssignment (AnalysisAssigment fp ast)
+    = case (,) <$> (getFunctions ast) <*> (getPlainTypeConstructorsMap ast) of
+        Left err -> AnalysisError $ GatherError err
+        Right (fs, ptcm) -> let
+                targets = map FunctionTarget fs
+            in flip runReader ptcm $ AnalysisSuccess <$> mapM analyzeFunction targets
 
-buildFunctionTargets :: AnalysisAssigment -> Either AnalysisError [FunctionTarget]
-buildFunctionTargets _ = undefined
 
-analyzeFunction :: FunctionTarget -> FunctionResult
-analyzeFunction _ = undefined
+analyzeFunction :: FunctionTarget -> Analyzer ExecutionTrace
+analyzeFunction (FunctionTarget fun) = iteratedVecProc paterns [initialVariables]
+  where
+    Right patterns = getTypedPatternVectors fun
+    initialVariables = freshVars $ length patterns - 1
 
 -- TODO wildcard desugaring
 
@@ -82,8 +87,7 @@ getTypedPatternVectors (Function _ functionType patterns) = Right $
         typesList = map typeName (extractType functionType)
 
 
-type Error = String
-type MayFail = Either Error
+type MayFail = Either GatherError
 
 getTypesMap :: Module -> MayFail (Map.Map String [Constructor])
 getTypesMap mod = do

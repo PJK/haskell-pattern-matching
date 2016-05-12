@@ -1,47 +1,55 @@
 module ClauseProcessing where
 
-import qualified Data.Map   as Map
+import           Control.Monad.Reader
+
+import qualified Data.Map             as Map
+import           Data.Maybe           (fromMaybe)
 import           DataDefs
-import           Util
-import           Data.Maybe (fromMaybe)
 import           Debug.Trace
+import           Util
 
+type ExecutionTrace = [ClauseCoverage]
+type Analyzer = Reader SimpleTypeMap
 
-data ClauseCoverage = ClauseCoverage { capC :: ValueAbstractionSet, capU :: ValueAbstractionSet, capD :: ValueAbstractionSet } deriving Show
+data ClauseCoverage = ClauseCoverage
+    { capC :: ValueAbstractionSet
+    , capU :: ValueAbstractionSet
+    , capD :: ValueAbstractionSet
+    } deriving (Show, Eq)
 
 -- Based on Figure 3 of 'GADTs meet their match'
 
 --
 -- Implements the 'C' helper function
 --
-coveredValues :: PatternVector -> SimpleTypeMap -> ValueAbstractionVector -> ValueAbstractionSet
+coveredValues :: PatternVector -> ValueAbstractionVector -> Analyzer ValueAbstractionSet
 
 -- CNil
-coveredValues [] _ [] = [[]] -- Important: one empty set to start with
+coveredValues [] [] = return [[]] -- Important: one empty set to start with
 
 -- CConCon
-coveredValues ((ConstructorPattern pname args, _):ps) tmap (ConstructorPattern vname up:us)
+coveredValues ((ConstructorPattern pname args, _):ps) (ConstructorPattern vname up:us)
         | pname == vname =
             map (kcon (ConstructorPattern pname args))
-                (coveredValues (annotatedArguments ++ ps) tmap (substitutePatterns up ++ us))
-        | otherwise      = []
+                (coveredValues (annotatedArguments ++ ps) (substitutePatterns up ++ us))
+        | otherwise      = return []
         where
-            annotatedArguments = annotatePatterns tmap args
+            annotatedArguments = annotatePatterns args
 
 -- CConVarx
-coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) tmap (VariablePattern _:us) =
+coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) =
     -- Now this fresh variable substitution has no effect as there are are free
     -- variables in the pattern vector. Once we start using solver, we need separate
     -- names for them
-    coveredValues (kk:ps) tmap (substituteFreshParameters k:us)
+    coveredValues (kk:ps) (substituteFreshParameters k:us)
 
 -- CVar
-coveredValues ((VariablePattern _, _):ps) tmap (u:us) =
-    map (ucon u) (coveredValues ps tmap us)
+coveredValues ((VariablePattern _, _):ps) (u:us) =
+    map (ucon u) (coveredValues ps us)
 
 -- TODO CGuard
 
-coveredValues _ _ _ = error "unsupported pattern"
+coveredValues _ _ = error "unsupported pattern"
 
 
 --
@@ -111,31 +119,41 @@ divergentValues a _ b = traceStack (show (a, b)) $ error "non-exhaustive pattern
 
 
 -- | Refines the VA of viable inputs using the pattern vector
-patVecProc :: PatternVector -> ValueAbstractionSet -> SimpleTypeMap -> ClauseCoverage
-patVecProc ps s tmap =
+patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
+patVecProc ps s = do
     ClauseCoverage c u d
     where
-        c = concatMap (coveredValues ps tmap) s
-        u = concatMap (uncoveredValues ps tmap) s
+        c = concatMap (coveredValues ps) s
+        u = concatMap (uncoveredValues ps) s
         d = []
 
 
-prettyIteratedVecProc :: Integer -> [PatternVector] -> ValueAbstractionSet -> SimpleTypeMap -> IO ()
 
-prettyIteratedVecProc _ [] vas _ = do
-    print "Final iteration. Uncovered set:"
-    print vas
+iteratedVecProc :: [PatternVector] -> ValueAbstractionSet -> Analyzer ExecutionTrace
+iteratedVecProc [] _ = return []
+iteratedVecProc (ps:pss) s = do
+    res <- patVecProc ps s
+    rest <- iteratedVecProc pss (capU res)
+    return $ res : rest
 
-prettyIteratedVecProc i (ps:pss) s tmap = do
-        putStrLn $ "Iteration: " ++ show i
-        putStrLn $ "Value abstractions to consider as inputs: " ++ show s
-        putStrLn $ "Pattern: " ++ show ps
-        putStrLn $ "U: " ++ show (capU res)
-        putStrLn $ "C: " ++ show (capC res)
-        putStrLn $ "D: " ++ show (capD res)
-        prettyIteratedVecProc (i + 1) pss (capU res) tmap
-    where
-        res = patVecProc ps s tmap
+
+
+-- prettyIteratedVecProc :: Integer -> [PatternVector] -> ValueAbstractionSet -> SimpleTypeMap -> IO ()
+--
+-- prettyIteratedVecProc _ [] vas _ = do
+--     print "Final iteration. Uncovered set:"
+--     print vas
+--
+-- prettyIteratedVecProc i (ps:pss) s tmap = do
+--         putStrLn $ "Iteration: " ++ show i
+--         putStrLn $ "Value abstractions to consider as inputs: " ++ show s
+--         putStrLn $ "Pattern: " ++ show ps
+--         putStrLn $ "U: " ++ show (capU res)
+--         putStrLn $ "C: " ++ show (capC res)
+--         putStrLn $ "D: " ++ show (capD res)
+--         prettyIteratedVecProc (i + 1) pss (capU res) tmap
+--     where
+--         res = patVecProc ps s tmap
 
 -- |Coverage vector concatenation
 -- TODO: Add the term constraints merging

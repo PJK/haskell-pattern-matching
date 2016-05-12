@@ -1,5 +1,6 @@
 module Types where
 
+import           ClauseProcessing
 import           DataDefs
 import qualified Language.Haskell.Exts as H
 
@@ -11,19 +12,16 @@ data AnalysisAssigment
 
 data AnalysisResult
     = AnalysisError AnalysisError
-    | AnalysisSuccess
+    | AnalysisSuccess [ExecutionTrace] -- TODO replace with recommendations instead
     deriving (Show, Eq)
 
 data AnalysisError
-    = GatherError -- ^ Something went wrong while scraping the information
+    = GatherError GatherError -- ^ Something went wrong while scraping functions
     deriving (Show, Eq)
+
+type GatherError = String
 
 data FunctionTarget
-    = FunctionTarget H.SrcLoc Function
+    = FunctionTarget Function
+    -- TODO add SrcLoc for printing later
     deriving (Show, Eq)
-
-data FunctionResult
-    = FunctionResult
-        FunctionTarget
-    deriving (Show, Eq)
-

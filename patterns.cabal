@@ -30,6 +30,7 @@ library
                      , bytestring             >= 0.10  && < 0.11
                      , sbv                    >= 5.11  && < 5.12
                      , optparse-applicative   >= 0.12  && < 0.13
+                     , mtl                    >= 2.2   && < 2.3
   default-language:    Haskell2010
 
 executable patterns
