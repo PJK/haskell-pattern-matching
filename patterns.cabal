@@ -19,6 +19,8 @@ library
                      , Util
                      , ClauseProcessing
                      , DataDefs
+                     , OptParse
+                     , OptParse.Types
   build-depends:       base >= 4.7 && < 5
                      , containers             >= 0.5   && < 0.6
                      , haskell-src-exts       >= 1.17  && < 1.18
@@ -26,6 +28,7 @@ library
                      , aeson                  >= 0.11  && < 0.12
                      , bytestring             >= 0.10  && < 0.11
                      , sbv                    >= 5.11  && < 5.12
+                     , optparse-applicative   >= 0.12  && < 0.13
   default-language:    Haskell2010
 
 executable patterns

@@ -2,7 +2,6 @@ module Lib where
 
 
 import           ClauseProcessing
-import           Util
 import           Control.Monad         (forM_)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
@@ -12,15 +11,19 @@ import           DataDefs
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
 import qualified Language.Haskell.Exts as H
-import qualified System.Environment    as Env
+import           Util
+
+import           OptParse
+import           OptParse.Types
 
 
 patterns :: IO ()
 patterns = do
     -- svbTest
-    args <- Env.getArgs
-    print args
-    mapM_ process args
+    sets <- getSettings
+    print sets
+    result <- process $ setsTargetFile sets
+    print result
 
 -- Just testing out some svb
 svbTest :: IO ()
