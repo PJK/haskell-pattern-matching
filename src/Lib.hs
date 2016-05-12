@@ -2,18 +2,20 @@ module Lib where
 
 
 import           ClauseProcessing
-import           Control.Monad         (replicateM)
-import           Control.Monad.Except  (runExceptT)
-import           Control.Monad.Reader  (runReader)
-import           Control.Monad.State   (evalStateT)
-import           Data.List             (nub)
-import qualified Data.Map              as Map
-import           Data.Maybe            (catMaybes)
+import           Control.Monad            (replicateM)
+import           Control.Monad.Except     (runExceptT)
+import           Control.Monad.Reader     (runReader)
+import           Control.Monad.State      (evalStateT)
+import           Data.List                (nub)
+import qualified Data.Map                 as Map
+import           Data.Maybe               (catMaybes)
 -- import           Data.SBV
+import           Data.Aeson.Encode.Pretty (encodePretty)
+import qualified Data.ByteString.Lazy     as LB
 import           DataDefs
-import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
-                                        Pretty, Type (..), prettyPrint)
-import qualified Language.Haskell.Exts as H
+import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
+                                           Pretty, Type (..), prettyPrint)
+import qualified Language.Haskell.Exts    as H
 
 import           OptParse
 import           OptParse.Types
@@ -25,7 +27,9 @@ patterns = do
     -- svbTest
     sets <- getSettings
     print sets
-    processTarget (setsTargetFile sets) >>= print
+    res <- processTarget (setsTargetFile sets)
+    print res
+    LB.putStr $ encodePretty res
 
 processTarget :: FilePath -> IO AnalysisResult
 processTarget inputFile = do
