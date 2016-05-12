@@ -1,6 +1,14 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Types where
 
-import           ClauseProcessing
+import           Control.Monad.Except
+import           Control.Monad.Reader
+import           Control.Monad.State
+
+import           Data.Aeson            (FromJSON, ToJSON)
+import           GHC.Generics          (Generic)
+
 import           DataDefs
 import qualified Language.Haskell.Exts as H
 
@@ -13,11 +21,18 @@ data AnalysisAssigment
 data AnalysisResult
     = AnalysisError AnalysisError
     | AnalysisSuccess [FunctionResult] -- TODO replace with recommendations instead
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic)
+
+instance ToJSON AnalysisResult
+instance FromJSON AnalysisResult
 
 data AnalysisError
     = GatherError GatherError -- ^ Something went wrong while scraping functions
-    deriving (Show, Eq)
+    | ProcessError AnalyzerError -- ^ Something went wrong during clause processing
+    deriving (Show, Eq, Generic)
+
+instance ToJSON AnalysisError
+instance FromJSON AnalysisError
 
 type GatherError = String
 
@@ -28,4 +43,36 @@ data FunctionTarget
 
 data FunctionResult
     = FunctionResult ExecutionTrace
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   FunctionResult
+instance FromJSON FunctionResult
+
+type ExecutionTrace = [ClauseCoverage]
+
+data ClauseCoverage = ClauseCoverage
+    { capC :: ValueAbstractionSet
+    , capU :: ValueAbstractionSet
+    , capD :: ValueAbstractionSet
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON   ClauseCoverage
+instance FromJSON ClauseCoverage
+
+
+type Analyzer = ExceptT AnalyzerError (StateT AnalyzerState (Reader AnalyzerContext))
+
+data AnalyzerError
+    = TypeNotFound String
+    | UnpredictedError String
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   AnalyzerError
+instance FromJSON AnalyzerError
+
+data AnalyzerState
+    = AnalyzerState
+    { nextFreshVarName :: Int -- ^ To generate fresh variable names
+    }
+
+type AnalyzerContext = SimpleTypeMap

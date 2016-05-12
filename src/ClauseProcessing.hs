@@ -1,21 +1,14 @@
 module ClauseProcessing where
 
+import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.State
 
 import qualified Data.Map             as Map
 import           Data.Maybe           (fromMaybe)
 import           DataDefs
-import           Debug.Trace
+import           Types
 import           Util
-
-type ExecutionTrace = [ClauseCoverage]
-type Analyzer = Reader SimpleTypeMap
-
-data ClauseCoverage = ClauseCoverage
-    { capC :: ValueAbstractionSet
-    , capU :: ValueAbstractionSet
-    , capD :: ValueAbstractionSet
-    } deriving (Show, Eq)
 
 -- Based on Figure 3 of 'GADTs meet their match'
 
@@ -32,16 +25,18 @@ coveredValues [] []
 coveredValues ((ConstructorPattern pname args, _):ps) (ConstructorPattern vname up:us)
         | pname == vname = do
             annArgs <- annotatePatterns args
-            cvs <- coveredValues (annArgs ++ ps) (substitutePatterns up ++ us)
+            subs <- substitutePatterns up
+            cvs <- coveredValues (annArgs ++ ps) (subs ++ us)
             return $ map (kcon (ConstructorPattern pname args)) cvs
         | otherwise      = return []
 
 -- CConVarx
-coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) =
+coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) = do
     -- Now this fresh variable substitution has no effect as there are are free
     -- variables in the pattern vector. Once we start using solver, we need separate
     -- names for them
-    coveredValues (kk:ps) (substituteFreshParameters k:us)
+    substituted <- substituteFreshParameters k
+    coveredValues (kk:ps) (substituted:us)
 
 -- CVar
 coveredValues ((VariablePattern _, _):ps) (u:us) = do
@@ -49,9 +44,10 @@ coveredValues ((VariablePattern _, _):ps) (u:us) = do
     return $ map (ucon u) cvs
 
 -- TODO CGuard
-
-coveredValues _ _ = error "unsupported pattern"
-
+coveredValues pat values
+    = throwError
+    $ UnpredictedError
+    $ "coveredValues: unsupported pattern " ++ show pat ++ " with values " ++ show values
 
 --
 -- Implements the 'U' helper function
@@ -68,23 +64,23 @@ uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) (kv@(ConstructorP
         annArgs <- annotatePatterns pParams
         uvs <- uncoveredValues (annArgs ++ ps) (uParams ++ us)
         return $ map (kcon k) uvs
-    | otherwise      = return [substituteFreshParameters kv:us]
+    | otherwise      = do
+        substitute <- substituteFreshParameters kv
+        return [substitute:us]
 
 -- UConVar
 uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) (VariablePattern _:us)
     = do
     tmap <- ask
+    -- TODO do this in the monad
     let allConstructors = fromMaybe
                             (error $ "Lookup for type " ++ typeName ++ " failed")
                             (Map.lookup typeName tmap)
-        allConstructorsWithFreshParameters = map substituteFreshParameters allConstructors
+    allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
 
     uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
         uncoveredValues (p:ps) (constructor:us)
     return $ concat uvs
-    -- concatMap
-    --     (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us))
-    --     allConstructorsWithFreshParameters
 
 -- UVar
 uncoveredValues ((VariablePattern _, _):ps) (u:us)
@@ -93,8 +89,10 @@ uncoveredValues ((VariablePattern _, _):ps) (u:us)
     return $ map (ucon u) uvs
 
 -- TODO UGuard
-
-uncoveredValues a b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
+uncoveredValues pat values
+    = throwError
+    $ UnpredictedError
+    $ "uncoveredValues: unsupported pattern " ++ show pat ++ " with values " ++ show values
 
 
 
@@ -118,7 +116,8 @@ divergentValues ((k@(ConstructorPattern pname pParams), _):ps) (ConstructorPatte
 -- DConVar
 divergentValues (p@(pc@(ConstructorPattern _ _), _):ps) (VariablePattern _:us)
     = do
-    dvs <- divergentValues (p:ps) (substituteFreshParameters pc:us)
+    subs <- substituteFreshParameters pc
+    dvs <- divergentValues (p:ps) (subs:us)
     return $ (pc:us) : dvs
 
 -- DVar
@@ -128,8 +127,10 @@ divergentValues ((VariablePattern _, _):ps) (u:us)
     return $ map (ucon u) dvs
 
 -- TODO DGuard
-
-divergentValues a b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
+divergentValues pat values
+    = throwError
+    $ UnpredictedError
+    $ "divergentValues: unsupported pattern " ++ show pat ++ " with values " ++ show values
 
 
 
@@ -138,7 +139,7 @@ patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
 patVecProc ps s = do
     cvs <- concat <$> mapM (coveredValues ps) s
     uvs <- concat <$> mapM (uncoveredValues ps) s
-    let dvs = []
+    dvs <- concat <$> mapM (divergentValues ps) s
     return $ ClauseCoverage cvs uvs dvs
 
 
@@ -148,25 +149,6 @@ iteratedVecProc (ps:pss) s = do
     res <- patVecProc ps s
     rest <- iteratedVecProc pss (capU res)
     return $ res : rest
-
-
-
--- prettyIteratedVecProc :: Integer -> [PatternVector] -> ValueAbstractionSet -> SimpleTypeMap -> IO ()
---
--- prettyIteratedVecProc _ [] vas _ = do
---     print "Final iteration. Uncovered set:"
---     print vas
---
--- prettyIteratedVecProc i (ps:pss) s tmap = do
---         putStrLn $ "Iteration: " ++ show i
---         putStrLn $ "Value abstractions to consider as inputs: " ++ show s
---         putStrLn $ "Pattern: " ++ show ps
---         putStrLn $ "U: " ++ show (capU res)
---         putStrLn $ "C: " ++ show (capC res)
---         putStrLn $ "D: " ++ show (capD res)
---         prettyIteratedVecProc (i + 1) pss (capU res) tmap
---     where
---         res = patVecProc ps s tmap
 
 -- |Coverage vector concatenation
 -- TODO: Add the term constraints merging
@@ -181,22 +163,28 @@ kcon (ConstructorPattern name parameters) ws =
         arity = length parameters
 kcon _ _ = error "Only constructor patterns"
 
--- |Get fresh variables
 -- TODO make this count new occurrences. (It is only relevant for the solver)
-freshVars :: Int -> [Pattern]
-freshVars 0 = []
-freshVars k = VariablePattern ("__fresh" ++ show k):freshVars (k - 1)
+-- freshVars :: Int -> [Pattern]
+-- freshVars 0 = []
+-- freshVars k = VariablePattern ("__fresh" ++ show k):freshVars (k - 1)
+
+freshVar :: Analyzer Pattern
+freshVar = do
+    i <- gets nextFreshVarName
+    modify (\s -> s { nextFreshVarName = i + 1} )
+    return $ VariablePattern $ show i
 
 -- | Replace PlaceHolderPatterns with appropriate fresh variables
-substituteFreshParameters :: Pattern -> Pattern
-substituteFreshParameters (ConstructorPattern name placeholders) =
-        ConstructorPattern name (substitutePatterns placeholders)
+substituteFreshParameters :: Pattern -> Analyzer Pattern
+substituteFreshParameters (ConstructorPattern name placeholders) = do
+    subs <- substitutePatterns placeholders
+    return $ ConstructorPattern name subs
 -- TODO add lists and tuples
 substituteFreshParameters _ = error "No substitution available"
 
 -- TODO check these are PlaceHolderPatterns only
-substitutePatterns :: [Pattern] -> [Pattern]
-substitutePatterns xs = freshVars $ length xs
+substitutePatterns :: [Pattern] -> Analyzer [Pattern]
+substitutePatterns xs = replicateM (length xs) freshVar
 
 annotatePatterns :: [Pattern] -> Analyzer PatternVector
 annotatePatterns ps = do

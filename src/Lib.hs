@@ -2,8 +2,10 @@ module Lib where
 
 
 import           ClauseProcessing
-import           Control.Monad         (forM_)
+import           Control.Monad         (replicateM)
+import           Control.Monad.Except  (runExceptT)
 import           Control.Monad.Reader  (runReader)
+import           Control.Monad.State   (evalStateT)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
 import           Data.Maybe            (catMaybes)
@@ -12,7 +14,6 @@ import           DataDefs
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
 import qualified Language.Haskell.Exts as H
-import           Util
 
 import           OptParse
 import           OptParse.Types
@@ -24,32 +25,14 @@ patterns = do
     -- svbTest
     sets <- getSettings
     print sets
-    processTarget $ setsTargetFile sets
+    processTarget (setsTargetFile sets) >>= print
 
-processTarget :: FilePath -> IO ()
+processTarget :: FilePath -> IO AnalysisResult
 processTarget inputFile = do
     ast <- fromParseResult <$> parseFile inputFile
-    -- let ass = AnalysisAssigment inputFile ast
-    --     res = processAssignment ass
-    -- print res
-
-    case getFunctions ast of
-        Left err -> print err
-        Right fs   ->
-            forM_ fs $ \func@(Function name _ _) ->
-                let
-                    Right patterns = getTypedPatternVectors func
-                    initialVariables = freshVars $ length patterns - 1
-                    Right plainTypeConstructorMap = getPlainTypeConstructorsMap ast
-                in do
-                putStrLn $ "Processing " ++ name
-                print func
-                print plainTypeConstructorMap
-                print patterns
-                print $ invertMap plainTypeConstructorMap
-
-                print $ flip runReader plainTypeConstructorMap $ iteratedVecProc patterns [initialVariables]
-
+    let ass = AnalysisAssigment inputFile ast
+        res = processAssignment ass
+    return res
 
 processAssignment :: AnalysisAssigment -> AnalysisResult
 processAssignment (AnalysisAssigment _ ast)
@@ -57,14 +40,18 @@ processAssignment (AnalysisAssigment _ ast)
         Left err -> AnalysisError $ GatherError err
         Right (fs, ptcm) -> let
                 targets = map FunctionTarget fs
-            in flip runReader ptcm $ AnalysisSuccess <$> mapM analyzeFunction targets
+                initState = AnalyzerState 0
+            in case flip runReader ptcm $ flip evalStateT initState $ runExceptT $ mapM analyzeFunction targets of
+                Left err -> AnalysisError $ ProcessError err
+                Right res -> AnalysisSuccess res
 
 
 analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
-analyzeFunction (FunctionTarget fun) = FunctionResult <$> iteratedVecProc patterns [initialVariables]
+analyzeFunction (FunctionTarget fun) = do
+    freshVars <- replicateM (length patterns - 1) freshVar -- Why -1?
+    FunctionResult <$> iteratedVecProc patterns [freshVars]
   where
     Right patterns = getTypedPatternVectors fun
-    initialVariables = freshVars $ length patterns - 1
 
 -- TODO wildcard desugaring
 
