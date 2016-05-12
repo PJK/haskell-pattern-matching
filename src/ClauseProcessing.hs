@@ -25,16 +25,16 @@ data ClauseCoverage = ClauseCoverage
 coveredValues :: PatternVector -> ValueAbstractionVector -> Analyzer ValueAbstractionSet
 
 -- CNil
-coveredValues [] [] = return [[]] -- Important: one empty set to start with
+coveredValues [] []
+    = return [[]] -- Important: one empty set to start with
 
 -- CConCon
 coveredValues ((ConstructorPattern pname args, _):ps) (ConstructorPattern vname up:us)
-        | pname == vname =
-            map (kcon (ConstructorPattern pname args))
-                (coveredValues (annotatedArguments ++ ps) (substitutePatterns up ++ us))
+        | pname == vname = do
+            annArgs <- annotatePatterns args
+            cvs <- coveredValues (annArgs ++ ps) (substitutePatterns up ++ us)
+            return $ map (kcon (ConstructorPattern pname args)) cvs
         | otherwise      = return []
-        where
-            annotatedArguments = annotatePatterns args
 
 -- CConVarx
 coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) =
@@ -44,8 +44,9 @@ coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) =
     coveredValues (kk:ps) (substituteFreshParameters k:us)
 
 -- CVar
-coveredValues ((VariablePattern _, _):ps) (u:us) =
-    map (ucon u) (coveredValues ps us)
+coveredValues ((VariablePattern _, _):ps) (u:us) = do
+    cvs <- coveredValues ps us
+    return $ map (ucon u) cvs
 
 -- TODO CGuard
 
@@ -55,78 +56,90 @@ coveredValues _ _ = error "unsupported pattern"
 --
 -- Implements the 'U' helper function
 --
-uncoveredValues :: PatternVector -> SimpleTypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
+uncoveredValues :: PatternVector -> ValueAbstractionVector -> Analyzer ValueAbstractionSet
 
 -- UNil
-uncoveredValues [] _ []  = [] -- Important! This is different than coveredValues
+uncoveredValues [] []
+    = return [] -- Important! This is different than coveredValues
 
 -- UConCon
-uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(ConstructorPattern vname uParams):us)
-    | pname == vname =
-        map (kcon k) (uncoveredValues (annotatedPParams ++ ps) tmap (uParams ++ us))
-    | otherwise      =
-        [substituteFreshParameters kv:us]
-    where
-        annotatedPParams = annotatePatterns tmap pParams
+uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) (kv@(ConstructorPattern vname uParams):us)
+    | pname == vname = do
+        annArgs <- annotatePatterns pParams
+        uvs <- uncoveredValues (annArgs ++ ps) (uParams ++ us)
+        return $ map (kcon k) uvs
+    | otherwise      = return [substituteFreshParameters kv:us]
 
 -- UConVar
-uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (VariablePattern _:us) =
-    concatMap
-        (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us))
-        allConstructorsWithFreshParameters
-    where
-        allConstructors = fromMaybe
+uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) (VariablePattern _:us)
+    = do
+    tmap <- ask
+    let allConstructors = fromMaybe
                             (error $ "Lookup for type " ++ typeName ++ " failed")
                             (Map.lookup typeName tmap)
         allConstructorsWithFreshParameters = map substituteFreshParameters allConstructors
 
+    uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
+        uncoveredValues (p:ps) (constructor:us)
+    return $ concat uvs
+    -- concatMap
+    --     (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us))
+    --     allConstructorsWithFreshParameters
+
 -- UVar
-uncoveredValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (uncoveredValues ps tmap us)
+uncoveredValues ((VariablePattern _, _):ps) (u:us)
+    = do
+    uvs <- uncoveredValues ps us
+    return $ map (ucon u) uvs
 
 -- TODO UGuard
 
-uncoveredValues a _ b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
+uncoveredValues a b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
 
 
 
 --
 -- Implements the 'D' helper function
 --
-divergentValues :: PatternVector -> SimpleTypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
+divergentValues :: PatternVector -> ValueAbstractionVector -> Analyzer ValueAbstractionSet
 
 -- DNil
-divergentValues [] _ []  = [] -- Important! This is different than coveredValues
+divergentValues [] []
+    = return [] -- Important! This is different than coveredValues
 
 -- DConCon
-divergentValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (ConstructorPattern vname uParams:us)
-    | pname == vname =
-        map (kcon k) (divergentValues (annotatedPParams ++ ps) tmap (uParams ++ us))
-    | otherwise      = []
-    where
-        annotatedPParams = annotatePatterns tmap pParams
+divergentValues ((k@(ConstructorPattern pname pParams), _):ps) (ConstructorPattern vname uParams:us)
+    | pname == vname = do
+        annPs <- annotatePatterns pParams
+        dvs <- divergentValues (annPs ++ ps) (uParams ++ us)
+        return $ map (kcon k) dvs
+    | otherwise      = return []
 
 -- DConVar
-divergentValues (p@(pc@(ConstructorPattern _ _), _):ps) tmap (VariablePattern _:us) =
-    (pc:us) : divergentValues (p:ps) tmap (substituteFreshParameters pc:us)
+divergentValues (p@(pc@(ConstructorPattern _ _), _):ps) (VariablePattern _:us)
+    = do
+    dvs <- divergentValues (p:ps) (substituteFreshParameters pc:us)
+    return $ (pc:us) : dvs
 
 -- DVar
-divergentValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (divergentValues ps tmap us)
+divergentValues ((VariablePattern _, _):ps) (u:us)
+    = do
+    dvs <- divergentValues ps us
+    return $ map (ucon u) dvs
 
 -- TODO DGuard
 
-divergentValues a _ b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
+divergentValues a b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
 
 
 
 -- | Refines the VA of viable inputs using the pattern vector
 patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
 patVecProc ps s = do
-    ClauseCoverage c u d
-    where
-        c = concatMap (coveredValues ps) s
-        u = concatMap (uncoveredValues ps) s
-        d = []
-
+    cvs <- concat <$> mapM (coveredValues ps) s
+    uvs <- concat <$> mapM (uncoveredValues ps) s
+    let dvs = []
+    return $ ClauseCoverage cvs uvs dvs
 
 
 iteratedVecProc :: [PatternVector] -> ValueAbstractionSet -> Analyzer ExecutionTrace
@@ -185,12 +198,12 @@ substituteFreshParameters _ = error "No substitution available"
 substitutePatterns :: [Pattern] -> [Pattern]
 substitutePatterns xs = freshVars $ length xs
 
-annotatePatterns :: SimpleTypeMap -> [Pattern] -> PatternVector
-annotatePatterns tmap =
-    map (\p -> (p, fetchType p))
-    where
-        constructorToType = invertMap tmap
+annotatePatterns :: [Pattern] -> Analyzer PatternVector
+annotatePatterns ps = do
+    tmap <- ask
+    let constructorToType = invertMap tmap
         fetchType constructor =
             fromMaybe
                 (error $ "Lookup for type " ++ show constructor ++ " failed")
                 (Map.lookup constructor constructorToType)
+    return $ map (\p -> (p, fetchType p)) ps

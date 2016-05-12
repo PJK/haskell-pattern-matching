@@ -48,20 +48,20 @@ processTarget inputFile = do
                 print patterns
                 print $ invertMap plainTypeConstructorMap
 
-                print $ iteratedVecProc patterns [initialVariables] plainTypeConstructorMap
+                print $ flip runReader plainTypeConstructorMap $ iteratedVecProc patterns [initialVariables]
 
 
 processAssignment :: AnalysisAssigment -> AnalysisResult
-processAssignment (AnalysisAssigment fp ast)
-    = case (,) <$> (getFunctions ast) <*> (getPlainTypeConstructorsMap ast) of
+processAssignment (AnalysisAssigment _ ast)
+    = case (,) <$> getFunctions ast <*> getPlainTypeConstructorsMap ast of
         Left err -> AnalysisError $ GatherError err
         Right (fs, ptcm) -> let
                 targets = map FunctionTarget fs
             in flip runReader ptcm $ AnalysisSuccess <$> mapM analyzeFunction targets
 
 
-analyzeFunction :: FunctionTarget -> Analyzer ExecutionTrace
-analyzeFunction (FunctionTarget fun) = iteratedVecProc paterns [initialVariables]
+analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
+analyzeFunction (FunctionTarget fun) = FunctionResult <$> iteratedVecProc patterns [initialVariables]
   where
     Right patterns = getTypedPatternVectors fun
     initialVariables = freshVars $ length patterns - 1

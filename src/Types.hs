@@ -12,7 +12,7 @@ data AnalysisAssigment
 
 data AnalysisResult
     = AnalysisError AnalysisError
-    | AnalysisSuccess [ExecutionTrace] -- TODO replace with recommendations instead
+    | AnalysisSuccess [FunctionResult] -- TODO replace with recommendations instead
     deriving (Show, Eq)
 
 data AnalysisError
@@ -24,4 +24,8 @@ type GatherError = String
 data FunctionTarget
     = FunctionTarget Function
     -- TODO add SrcLoc for printing later
+    deriving (Show, Eq)
+
+data FunctionResult
+    = FunctionResult ExecutionTrace
     deriving (Show, Eq)
