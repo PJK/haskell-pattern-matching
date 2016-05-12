@@ -1,0 +1,57 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            {
+                "capD": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "False",
+                                []
+                            ]
+                        }
+                    ]
+                ],
+                "capU": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "True",
+                                []
+                            ]
+                        }
+                    ]
+                ],
+                "capC": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "False",
+                                []
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "capD": [],
+                "capU": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "True",
+                                []
+                            ]
+                        }
+                    ]
+                ],
+                "capC": []
+            }
+        ]
+    ]
+}

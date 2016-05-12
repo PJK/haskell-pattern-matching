@@ -5,7 +5,6 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 
 import qualified Data.Map             as Map
-import           Data.Maybe           (fromMaybe)
 import           DataDefs
 import           Types
 import           Util
@@ -32,9 +31,6 @@ coveredValues ((ConstructorPattern pname args, _):ps) (ConstructorPattern vname 
 
 -- CConVarx
 coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) = do
-    -- Now this fresh variable substitution has no effect as there are are free
-    -- variables in the pattern vector. Once we start using solver, we need separate
-    -- names for them
     substituted <- substituteFreshParameters k
     coveredValues (kk:ps) (substituted:us)
 
@@ -71,13 +67,8 @@ uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) (kv@(ConstructorP
 -- UConVar
 uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) (VariablePattern _:us)
     = do
-    tmap <- ask
-    -- TODO do this in the monad
-    let allConstructors = fromMaybe
-                            (error $ "Lookup for type " ++ typeName ++ " failed")
-                            (Map.lookup typeName tmap)
+    allConstructors <- lookupConstructors typeName
     allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
-
     uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
         uncoveredValues (p:ps) (constructor:us)
     return $ concat uvs
@@ -133,7 +124,6 @@ divergentValues pat values
     $ "divergentValues: unsupported pattern " ++ show pat ++ " with values " ++ show values
 
 
-
 -- | Refines the VA of viable inputs using the pattern vector
 patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
 patVecProc ps s = do
@@ -163,11 +153,6 @@ kcon (ConstructorPattern name parameters) ws =
         arity = length parameters
 kcon _ _ = error "Only constructor patterns"
 
--- TODO make this count new occurrences. (It is only relevant for the solver)
--- freshVars :: Int -> [Pattern]
--- freshVars 0 = []
--- freshVars k = VariablePattern ("__fresh" ++ show k):freshVars (k - 1)
-
 freshVar :: Analyzer Pattern
 freshVar = do
     i <- gets nextFreshVarName
@@ -187,11 +172,21 @@ substitutePatterns :: [Pattern] -> Analyzer [Pattern]
 substitutePatterns xs = replicateM (length xs) freshVar
 
 annotatePatterns :: [Pattern] -> Analyzer PatternVector
-annotatePatterns ps = do
+annotatePatterns = mapM $ \p -> do
+    t <- lookupType p
+    return (p, t)
+
+lookupType :: Pattern -> Analyzer String
+lookupType constructor = do
     tmap <- ask
-    let constructorToType = invertMap tmap
-        fetchType constructor =
-            fromMaybe
-                (error $ "Lookup for type " ++ show constructor ++ " failed")
-                (Map.lookup constructor constructorToType)
-    return $ map (\p -> (p, fetchType p)) ps
+    let itmap = invertMap tmap
+    case Map.lookup constructor itmap of
+        Nothing -> throwError $ TypeNotFound $ "Type lookup for constructor " ++ show constructor ++ " failed"
+        Just r -> return r
+
+lookupConstructors :: String -> Analyzer [Pattern]
+lookupConstructors typeName = do
+    tmap <- ask
+    case Map.lookup typeName tmap of
+        Nothing -> throwError $ ConstructorNotFound $ "Constructor lookup for type " ++ show typeName ++ " failed"
+        Just cs -> return cs
