@@ -24,8 +24,8 @@ coveredValues [] []
     = return [[]] -- Important: one empty set to start with
 
 -- TODO remove this once we have access to global types
--- coveredValues x y | trace (show (x, y)) False = error "fail"
-coveredValues (p@(TruePattern, _):ps) (VariablePattern _:us) = do
+coveredValues x y | trace (show (x, y)) False = error "fail"
+coveredValues ((TruePattern, _):ps) (VariablePattern _:us) = do
     -- ConVar + ConCon
     subCovered <- coveredValues ps us
     return $ map (kcon (ConstructorPattern "True" [])) subCovered

@@ -1,4 +1,4 @@
-module PatternWithParamter where
+module PatternWithParameter where
 
 data MyTrinary = A | B | C
 

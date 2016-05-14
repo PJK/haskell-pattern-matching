@@ -53,7 +53,7 @@ processAssignment (AnalysisAssigment _ ast)
 
 analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
 analyzeFunction (FunctionTarget fun) = do
-    freshVars <- replicateM (length desugaredPatterns - 1) freshVar -- Why -1? We ignore the return type
+    freshVars <- replicateM (length (head desugaredPatterns)) freshVar -- Why -1? We ignore the return type
     FunctionResult <$> iteratedVecProc desugaredPatterns [freshVars]
   where
     Right patterns = getTypedPatternVectors fun
@@ -68,6 +68,8 @@ desugarPattern (LiteralPattern sign literal, _)
     = (VariablePattern "__x", "__guard_var"):desugarGuard (ConstraintGuard equality)
     where
         equality = "__x = " ++ show literal -- TODO sign
+desugarPattern (WildcardPattern, wildcardType)
+    = [(VariablePattern "_", wildcardType)] -- Replace with Variable of same type
 desugarPattern x = [x]
 
 desugarGuard :: Guard -> PatternVector
