@@ -8,6 +8,7 @@ import qualified Data.Map             as Map
 import           DataDefs
 import           Types
 import           Util
+import           Debug.Trace
 
 
 
@@ -21,6 +22,11 @@ coveredValues :: PatternVector -> ValueAbstractionVector -> Analyzer ValueAbstra
 -- CNil
 coveredValues [] []
     = return [[]] -- Important: one empty set to start with
+
+-- TODO remove this once we have access to global types
+-- coveredValues x y | trace (show (x, y)) False = error "fail"
+coveredValues ((TruePattern, _):ps) (VariablePattern _:us) =
+    coveredValues ps us
 
 -- CConCon
 coveredValues ((ConstructorPattern pname args, _):ps) (ConstructorPattern vname up:us)
@@ -60,6 +66,10 @@ uncoveredValues :: PatternVector -> ValueAbstractionVector -> Analyzer ValueAbst
 -- UNil
 uncoveredValues [] []
     = return [] -- Important! This is different than coveredValues
+
+-- TODO remove this once we have access to global types
+uncoveredValues ((TruePattern, _):ps) (VariablePattern _:us) =
+    uncoveredValues ps us
 
 -- UConCon
 uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) (kv@(ConstructorPattern vname uParams):us)
@@ -102,6 +112,10 @@ divergentValues :: PatternVector -> ValueAbstractionVector -> Analyzer ValueAbst
 -- DNil
 divergentValues [] []
     = return [] -- Important! This is different than coveredValues
+
+-- TODO remove this once we have access to global types
+divergentValues ((TruePattern, _):ps) (VariablePattern _:us) =
+    divergentValues ps us
 
 -- DConCon
 divergentValues ((k@(ConstructorPattern pname pParams), _):ps) (ConstructorPattern vname uParams:us)
@@ -164,7 +178,7 @@ freshVar :: Analyzer Pattern
 freshVar = do
     i <- gets nextFreshVarName
     modify (\s -> s { nextFreshVarName = i + 1} )
-    return $ VariablePattern $ show i
+    return $ VariablePattern $ "fresh" ++ show i
 
 -- | Replace PlaceHolderPatterns with appropriate fresh variables
 substituteFreshParameters :: Pattern -> Analyzer Pattern
@@ -187,6 +201,8 @@ annotatePatterns :: [Pattern] -> Analyzer PatternVector
 annotatePatterns = mapM annotatePattern
 
 lookupType :: Pattern -> Analyzer String
+-- TODO remove me after we have access to builtins
+lookupType TruePattern = return "DummyBuiltinBool"
 lookupType constructor = do
     tmap <- ask
     let itmap = invertMap tmap
