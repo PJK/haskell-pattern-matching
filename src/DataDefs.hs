@@ -114,6 +114,9 @@ instance Pretty Pattern where
     pretty (ListPattern pats) = list $ map pretty pats
     pretty WildcardPattern = "_"
     pretty PlaceHolderPattern = "<placeholder>"
+    pretty (GuardPattern _ const) = "Gbar(" ++ const ++ ")"
+    pretty TruePattern = "True(Guards only)" -- TODO remove me
+
 
 pars :: String -> String
 pars s = "(" ++ s ++ ")"
