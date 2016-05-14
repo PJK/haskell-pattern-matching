@@ -51,6 +51,14 @@ data Clause -- No need to include the right-hand side. We're only doing our anal
       [Pattern] -- ^ The patterns to match for this clause, one for each argument.
   deriving (Show, Eq)
 
+-- | TODO these should model constraints arising from guards.
+type Constraint = String
+
+data Guard
+    = ConstraintGuard Constraint
+    | PatternGuard Pattern Constraint
+    | LetGuard Pattern Constraint
+
 data Pattern
     = VariablePattern Name -- ^ Variable: a
     | LiteralPattern Sign Literal -- ^ Literal: -5
@@ -59,7 +67,23 @@ data Pattern
     | ListPattern [Pattern] -- ^ List: [a, b, ..., z]
     | WildcardPattern
     | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
+    | GuardPattern Pattern Constraint
+    | TruePattern
   deriving (Show, Eq, Generic, Ord)
+
+
+-- TODO should we introduce new type for these? seems laborious
+-- -- | Patterns that can be processed without desugaring
+-- data RestrictedPattern
+--     = VariablePattern Name -- ^ Variable: a
+--     | LiteralPattern Sign Literal -- ^ Literal: -5
+--     | ConstructorPattern Name [Pattern] -- ^ Data constructor: Node Leaf Leaf
+--     | TuplePattern [Pattern] -- ^ Tuple: (a, b, ..., z)
+--     | ListPattern [Pattern] -- ^ List: [a, b, ..., z]
+--     | WildcardPattern
+--     | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
+--   deriving (Show, Eq, Generic, Ord)
+
 
 type SimpleTypeMap = Map.Map String [Pattern]
 type TypeMap = Map.Map String [(Pattern, String)]

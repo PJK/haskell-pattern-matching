@@ -9,6 +9,23 @@ import           DataDefs
 import           Types
 import           Util
 
+
+-- | Transforms all patterns into the standard form (See figure 7)
+desugarPattern :: Pattern -> PatternVector
+desugarPattern (LiteralPattern sign literal)
+    = VariablePattern "__x":desugarGuard ConstraintGuard equality
+    where
+        equality = "__x" ++ show literal -- TODO sign
+
+
+
+desugarGuard :: Guard -> PatternVector
+desugarGuard (ConstraintGuard constraint) = GuardPattern TruePattern constraint
+
+
+GuardPattern (Some TruePattern)
+
+
 -- Based on Figure 3 of 'GADTs meet their match'
 
 --
