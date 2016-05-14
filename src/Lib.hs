@@ -20,6 +20,7 @@ import qualified Language.Haskell.Exts    as H
 import           OptParse
 import           OptParse.Types
 import           Types
+import           Debug.Trace
 
 
 patterns :: IO ()
@@ -52,12 +53,27 @@ processAssignment (AnalysisAssigment _ ast)
 
 analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
 analyzeFunction (FunctionTarget fun) = do
-    freshVars <- replicateM (length patterns - 1) freshVar -- Why -1?
-    FunctionResult <$> iteratedVecProc patterns [freshVars]
+    freshVars <- replicateM (length patterns - 1) freshVar -- Why -1? We ignore the return type
+    FunctionResult <$> iteratedVecProc desugaredPatterns [freshVars]
   where
     Right patterns = getTypedPatternVectors fun
+    desugaredPatterns = map desugarPatternVector patterns
+
+
 
 -- TODO wildcard desugaring
+-- | Transforms all patterns into the standard form (See figure 7)
+desugarPattern :: TypedPattern -> PatternVector
+desugarPattern (LiteralPattern sign literal, _)
+    = (VariablePattern "__x", "__guard_var"):desugarGuard (ConstraintGuard equality)
+    where
+        equality = "__x = " ++ show literal -- TODO sign
+desugarPattern x = [x]
+
+desugarGuard :: Guard -> PatternVector
+desugarGuard (ConstraintGuard constraint)
+    = [(GuardPattern TruePattern constraint, "__anonymous_guard_type")]
+
 
 getTypedPatternVectors :: Function -> MayFail [PatternVector]
 getTypedPatternVectors (Function _ functionType patterns) = Right $
@@ -77,6 +93,8 @@ getTypedPatternVectors (Function _ functionType patterns) = Right $
 
         typesList = map typeName (extractType functionType)
 
+desugarPatternVector :: PatternVector -> PatternVector
+desugarPatternVector = concatMap desugarPattern
 
 type MayFail = Either GatherError
 
