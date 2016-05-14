@@ -25,8 +25,10 @@ coveredValues [] []
 
 -- TODO remove this once we have access to global types
 -- coveredValues x y | trace (show (x, y)) False = error "fail"
-coveredValues ((TruePattern, _):ps) (VariablePattern _:us) =
-    coveredValues ps us
+coveredValues (p@(TruePattern, _):ps) (VariablePattern _:us) = do
+    -- ConVar + ConCon
+    subCovered <- coveredValues ps us
+    return $ map (kcon (ConstructorPattern "True" [])) subCovered
 
 -- CConCon
 coveredValues ((ConstructorPattern pname args, _):ps) (ConstructorPattern vname up:us)
@@ -37,7 +39,7 @@ coveredValues ((ConstructorPattern pname args, _):ps) (ConstructorPattern vname 
             return $ map (kcon (ConstructorPattern pname args)) cvs
         | otherwise      = return []
 
--- CConVarx
+-- CConVar
 coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) = do
     substituted <- substituteFreshParameters k
     coveredValues (kk:ps) (substituted:us)
@@ -47,6 +49,7 @@ coveredValues ((VariablePattern _, _):ps) (u:us) = do
     cvs <- coveredValues ps us
     return $ map (ucon u) cvs
 
+-- CGuard
 coveredValues ((GuardPattern p constraint, _):ps) us = do
     y <- freshVar
     pWithType <- annotatePattern p
@@ -68,8 +71,10 @@ uncoveredValues [] []
     = return [] -- Important! This is different than coveredValues
 
 -- TODO remove this once we have access to global types
-uncoveredValues ((TruePattern, _):ps) (VariablePattern _:us) =
-    uncoveredValues ps us
+uncoveredValues ((TruePattern, _):ps) (VariablePattern _:us) = do
+    subUncovered <- uncoveredValues ps us
+    return $ map (kcon (ConstructorPattern "True" [])) subUncovered
+
 
 -- UConCon
 uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) (kv@(ConstructorPattern vname uParams):us)
@@ -96,7 +101,14 @@ uncoveredValues ((VariablePattern _, _):ps) (u:us)
     uvs <- uncoveredValues ps us
     return $ map (ucon u) uvs
 
--- TODO UGuard
+-- UGuard
+uncoveredValues ((GuardPattern p constraint, _):ps) us = do
+    y <- freshVar
+    pWithType <- annotatePattern p
+    recursivelyUncovered <- uncoveredValues (pWithType:ps) (y:us)
+    -- return $ map tail recursivelyUncovered
+    return []
+
 uncoveredValues pat values
     = throwError
     $ UnpredictedError
@@ -114,8 +126,10 @@ divergentValues [] []
     = return [] -- Important! This is different than coveredValues
 
 -- TODO remove this once we have access to global types
-divergentValues ((TruePattern, _):ps) (VariablePattern _:us) =
-    divergentValues ps us
+divergentValues ((TruePattern, _):ps) (VariablePattern _:us) = do
+    subDivergent <- divergentValues ps us
+    return $ map (kcon (ConstructorPattern "True" [])) subDivergent
+
 
 -- DConCon
 divergentValues ((k@(ConstructorPattern pname pParams), _):ps) (ConstructorPattern vname uParams:us)
@@ -138,7 +152,14 @@ divergentValues ((VariablePattern _, _):ps) (u:us)
     dvs <- divergentValues ps us
     return $ map (ucon u) dvs
 
--- TODO DGuard
+-- DGuard
+divergentValues ((GuardPattern p constraint, _):ps) us = do
+    y <- freshVar
+    pWithType <- annotatePattern p
+    recursiveDivergent <- divergentValues (pWithType:ps) (y:us)
+    -- return $ map tail recursiveDivergent
+    return []
+
 divergentValues pat values
     = throwError
     $ UnpredictedError
