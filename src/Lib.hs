@@ -53,7 +53,7 @@ processAssignment (AnalysisAssigment _ ast)
 
 analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
 analyzeFunction (FunctionTarget fun) = do
-    freshVars <- replicateM (length patterns - 1) freshVar -- Why -1? We ignore the return type
+    freshVars <- replicateM (length desugaredPatterns - 1) freshVar -- Why -1? We ignore the return type
     FunctionResult <$> iteratedVecProc desugaredPatterns [freshVars]
   where
     Right patterns = getTypedPatternVectors fun

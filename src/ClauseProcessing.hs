@@ -41,7 +41,12 @@ coveredValues ((VariablePattern _, _):ps) (u:us) = do
     cvs <- coveredValues ps us
     return $ map (ucon u) cvs
 
--- TODO CGuard
+coveredValues ((GuardPattern p constraint, _):ps) us = do
+    y <- freshVar
+    pWithType <- annotatePattern p
+    recursivelyCovered <- coveredValues (pWithType:ps) (y:us)
+    return $ map tail recursivelyCovered
+
 coveredValues pat values
     = throwError
     $ UnpredictedError
@@ -173,10 +178,13 @@ substituteFreshParameters _ = error "No substitution available"
 substitutePatterns :: [Pattern] -> Analyzer [Pattern]
 substitutePatterns xs = replicateM (length xs) freshVar
 
-annotatePatterns :: [Pattern] -> Analyzer PatternVector
-annotatePatterns = mapM $ \p -> do
+annotatePattern :: Pattern -> Analyzer TypedPattern
+annotatePattern p = do
     t <- lookupType p
     return (p, t)
+
+annotatePatterns :: [Pattern] -> Analyzer PatternVector
+annotatePatterns = mapM annotatePattern
 
 lookupType :: Pattern -> Analyzer String
 lookupType constructor = do
