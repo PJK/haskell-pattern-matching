@@ -20,7 +20,6 @@ import qualified Language.Haskell.Exts    as H
 import           OptParse
 import           OptParse.Types
 import           Types
-import           Debug.Trace
 
 
 patterns :: IO ()
@@ -65,7 +64,9 @@ desugarPattern :: TypedPattern -> PatternVector
 desugarPattern (LiteralPattern sign literal, _)
     = (VariablePattern "__x", "__guard_var"):desugarGuard (ConstraintGuard equality)
     where
-        equality = "__x = " ++ show literal -- TODO sign
+        showSign Signless = []
+        showSign Negative = "-"
+        equality = "__x = " ++ showSign sign ++ show literal
 desugarPattern (WildcardPattern, wildcardType)
     = [(VariablePattern "_", wildcardType)] -- Replace with Variable of same type
 desugarPattern x = [x]
