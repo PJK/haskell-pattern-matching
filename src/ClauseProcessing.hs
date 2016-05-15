@@ -131,7 +131,7 @@ uncoveredValues
         allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
         uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
             let delta' = (varName ++ " ~~ " ++ show constructor):delta in
-                uncoveredValues (p:ps) CVAV {valueAbstraction=constructor:us, delta=delta}
+                uncoveredValues (p:ps) CVAV {valueAbstraction=constructor:us, delta=delta'}
         return $ concat uvs
 
 -- UVar
@@ -140,7 +140,7 @@ uncoveredValues
     CVAV {valueAbstraction=(u:us), delta=delta}
     = do
         let delta' = (varName ++ " ~~ " ++ show u):delta
-        cvs <- uncoveredValues ps CVAV {valueAbstraction=us, delta=delta}
+        cvs <- uncoveredValues ps CVAV {valueAbstraction=us, delta=delta'}
         return $ patMap (ucon u) cvs
 
 -- UGuard
@@ -251,7 +251,7 @@ withNoConstraints
 
 -- | SAT-check the constraints and return the abstractions
 extractValueAbstractions :: ConditionedValueAbstractionSet -> ValueAbstractionSet
-extractValueAbstractions (cvav:vs) | trace (show cvav) True
+extractValueAbstractions (cvav:vs) | trace ("Mock-SATing: " ++ show cvav) True
     = valueAbstraction cvav:extractValueAbstractions vs
 extractValueAbstractions [] = []
 
