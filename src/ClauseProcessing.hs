@@ -198,7 +198,7 @@ divergentValues
 -- DConVar
 divergentValues
     (p@(pc@(ConstructorPattern _ _), _):ps)
-    CVAV {valueAbstraction=var@(VariablePattern varName:us), delta=delta}
+    CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta}
         = do
             substituted <- substituteFreshParameters pc
             let delta' = (varName ++ " ~~ " ++ show substituted):delta
@@ -207,18 +207,25 @@ divergentValues
             return $ CVAV {valueAbstraction = var:us, delta = deltaBot}:dvs
 
 -- DVar
-divergentValues ((VariablePattern _, _):ps) (u:us)
+divergentValues
+    ((VariablePattern varName, _):ps)
+    CVAV {valueAbstraction=(u:us), delta=delta}
     = do
-    dvs <- divergentValues ps us
-    return $ map (ucon u) dvs
+        let delta' = (varName ++ " ~~ " ++ show u):delta
+        cvs <- divergentValues ps CVAV {valueAbstraction=us, delta=delta}
+        return $ patMap (ucon u) cvs
 
 -- DGuard
-divergentValues ((GuardPattern p constraint, _):ps) us = do
-    y <- freshVar
-    pWithType <- annotatePattern p
-    recursiveDivergent <- divergentValues (pWithType:ps) (y:us)
-    -- return $ map tail recursiveDivergent
-    return []
+divergentValues
+    ((GuardPattern p constraint, _):ps)
+    CVAV {valueAbstraction=us, delta=delta}
+    = do
+        y <- freshVar
+        let VariablePattern varName = y
+        let delta' = (varName ++ " ~~ " ++ show constraint):delta
+        pWithType <- annotatePattern p
+        recursivelyDivergent <- divergentValues (pWithType:ps) CVAV {valueAbstraction=y:us, delta=delta'}
+        return $ patMap tail recursivelyDivergent
 
 divergentValues pat values
     = throwError
@@ -231,8 +238,8 @@ patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
 patVecProc ps s = do
     cvs <- concat <$> mapM (coveredValues ps) initialCVAS
     uvs <- concat <$> mapM (uncoveredValues ps) initialCVAS
-    dvs <- concat <$> mapM (divergentValues ps) s
-    return $ ClauseCoverage (extractValueAbstractions cvs) (extractValueAbstractions uvs) dvs
+    dvs <- concat <$> mapM (divergentValues ps) initialCVAS
+    return $ ClauseCoverage (extractValueAbstractions cvs) (extractValueAbstractions uvs) (extractValueAbstractions dvs)
     where
         initialCVAS = withNoConstraints s
 
