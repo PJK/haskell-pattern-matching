@@ -100,6 +100,11 @@ desugarPatternVector = concatMap desugarPattern
 
 type MayFail = Either GatherError
 
+-- Provisional solution for providing True for the desugaring
+builtinTypes :: [DataType]
+builtinTypes
+    = [DataType "Boolean" [] [Constructor "True" [], Constructor "False" []]]
+
 getTypesMap :: Module -> MayFail (Map.Map String [Constructor])
 getTypesMap mod = do
     types <- getTypes mod
@@ -122,7 +127,9 @@ err = Left
 -- same question for @getFunctions@
 getTypes :: Module -> MayFail [DataType]
 getTypes (Module _ _ _ _ _ _ decls)
-    = catMaybes <$> mapM go decls
+    = do
+        gatheredDefs <- catMaybes <$> mapM go decls -- Add builtins
+        return $ builtinTypes ++ gatheredDefs
   where
     -- TODO make go total: use Either as a monad to collect why a datatype cannot be used.
     go :: Decl -> MayFail (Maybe DataType)
