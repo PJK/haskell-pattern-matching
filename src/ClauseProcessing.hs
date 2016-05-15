@@ -129,7 +129,8 @@ uncoveredValues
         allConstructors <- lookupConstructors typeName
         allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
         uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
-            uncoveredValues (p:ps) CVAV {valueAbstraction=constructor:us, delta=delta}
+            let delta' = (varName ++ " ~~ " ++ show constructor):delta in
+                uncoveredValues (p:ps) CVAV {valueAbstraction=constructor:us, delta=delta}
         return $ concat uvs
 
 -- UVar
