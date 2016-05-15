@@ -28,12 +28,14 @@ patMap f
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
+-- TODO remove this once we have access to global types
+coveredValues x y | trace (show (x, y)) False = error "fail"
+
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[], delta=delta}
     = return [vav] -- Important: one empty set to start with, keep constraints
 
 -- TODO remove this once we have access to global types
-coveredValues x y | trace (show (x, y)) False = error "fail"
 coveredValues
     ((TruePattern, _):ps)
     CVAV {valueAbstraction=(VariablePattern _:us), delta=delta}
@@ -75,9 +77,11 @@ coveredValues
     CVAV {valueAbstraction=us, delta=delta}
     = do
         y <- freshVar
+        let delta' = show y:delta
         pWithType <- annotatePattern p
-        recursivelyCovered <- coveredValues (pWithType:ps) CVAV {valueAbstraction=y:us, delta=delta}
+        recursivelyCovered <- coveredValues (pWithType:ps) CVAV {valueAbstraction=y:us, delta=delta'}
         return $ patMap tail recursivelyCovered
+
 
 coveredValues pat values
     = throwError
