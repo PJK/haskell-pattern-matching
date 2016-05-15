@@ -40,11 +40,10 @@ guardHandler func p constraint ps us delta
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
--- TODO remove this once we have access to global types
-coveredValues x y | trace (show (x, y)) False = error "fail"
+-- coveredValues x y | trace (show (x, y)) False = error "fail"
 
 -- CNil
-coveredValues [] vav@CVAV {valueAbstraction=[], delta=delta}
+coveredValues [] vav@CVAV {valueAbstraction=[], delta=_}
     = return [vav] -- Important: one empty set to start with, keep constraints
 
 -- CConCon
@@ -73,7 +72,7 @@ coveredValues
     CVAV {valueAbstraction=(u:us), delta=delta}
     = do
         let delta' = (varName ++ " ~~ " ++ show u):delta
-        cvs <- coveredValues ps CVAV {valueAbstraction=us, delta=delta}
+        cvs <- coveredValues ps CVAV {valueAbstraction=us, delta=delta'}
         return $ patMap (ucon u) cvs
 
 -- CGuard
@@ -92,6 +91,8 @@ coveredValues pat values
 --
 uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
+uncoveredValues x y | trace (show (x, y)) False = error "fail"
+
 -- UNil
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
     = return [] -- Important! This is different than coveredValues
@@ -99,10 +100,10 @@ uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
 
 -- UConCon
 uncoveredValues
-    ((k@(ConstructorPattern pname args), _):ps)
+    ((k@(ConstructorPattern pname pargs), _):ps)
     CVAV {valueAbstraction=(kv@(ConstructorPattern vname up):us), delta=delta}
         | pname == vname = do
-            annArgs <- annotatePatterns up
+            annArgs <- annotatePatterns pargs
             uvs <- uncoveredValues (annArgs ++ ps) CVAV {valueAbstraction=up ++ us, delta=delta}
             return $ patMap (kcon k) uvs
         | otherwise      = do
@@ -182,7 +183,7 @@ divergentValues
     CVAV {valueAbstraction=(u:us), delta=delta}
     = do
         let delta' = (varName ++ " ~~ " ++ show u):delta
-        cvs <- divergentValues ps CVAV {valueAbstraction=us, delta=delta}
+        cvs <- divergentValues ps CVAV {valueAbstraction=us, delta=delta'}
         return $ patMap (ucon u) cvs
 
 -- DGuard
