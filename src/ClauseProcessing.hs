@@ -20,6 +20,19 @@ patMap f
         extendedF :: ConditionedValueAbstractionVector -> ConditionedValueAbstractionVector
         extendedF CVAV {valueAbstraction=va, delta=delta} = CVAV {valueAbstraction = f va, delta = delta}
 
+-- | Creates CGuard, UGuard, DGuard implementations
+-- Syd: Can we do something about all the params?
+type AnalysisProcessor = PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
+
+guardHandler :: AnalysisProcessor -> Pattern -> Constraint -> PatternVector -> ValueAbstractionVector -> [Constraint]-> Analyzer ConditionedValueAbstractionSet
+guardHandler func p constraint ps us delta
+    = do
+        z <- freshVar
+        let delta' = addGuardConstraint z constraint delta
+        pWithType <- annotatePattern p
+        recurse <- func (pWithType:ps) CVAV {valueAbstraction=z:us, delta=delta'}
+        return $ patMap tail recurse
+
 -- Based on Figure 3 of 'GADTs meet their match'
 
 --
@@ -67,14 +80,7 @@ coveredValues
 coveredValues
     ((GuardPattern p constraint, _):ps)
     CVAV {valueAbstraction=us, delta=delta}
-    = do
-        y <- freshVar
-        let VariablePattern varName = y
-        let delta' = (varName ++ " ~~ " ++ show constraint):delta
-        pWithType <- annotatePattern p
-        recursivelyCovered <- coveredValues (pWithType:ps) CVAV {valueAbstraction=y:us, delta=delta'}
-        return $ patMap tail recursivelyCovered
-
+    = guardHandler coveredValues p constraint ps us delta
 
 coveredValues pat values
     = throwError
@@ -128,13 +134,7 @@ uncoveredValues
 uncoveredValues
     ((GuardPattern p constraint, _):ps)
     CVAV {valueAbstraction=us, delta=delta}
-    = do
-        y <- freshVar
-        let VariablePattern varName = y
-        let delta' = (varName ++ " ~~ " ++ show constraint):delta
-        pWithType <- annotatePattern p
-        recursivelyUncovered <- uncoveredValues (pWithType:ps) CVAV {valueAbstraction=y:us, delta=delta'}
-        return $ patMap tail recursivelyUncovered
+    = guardHandler uncoveredValues p constraint ps us delta
 
 
 uncoveredValues pat values
@@ -189,19 +189,16 @@ divergentValues
 divergentValues
     ((GuardPattern p constraint, _):ps)
     CVAV {valueAbstraction=us, delta=delta}
-    = do
-        y <- freshVar
-        let VariablePattern varName = y
-        let delta' = (varName ++ " ~~ " ++ show constraint):delta
-        pWithType <- annotatePattern p
-        recursivelyDivergent <- divergentValues (pWithType:ps) CVAV {valueAbstraction=y:us, delta=delta'}
-        return $ patMap tail recursivelyDivergent
+    = guardHandler divergentValues p constraint ps us delta
 
 divergentValues pat values
     = throwError
     $ UnpredictedError
     $ "divergentValues: unsupported pattern " ++ show pat ++ " with values " ++ show values
 
+
+addGuardConstraint :: Pattern -> Constraint -> [Constraint] -> [Constraint]
+addGuardConstraint (VariablePattern varName) constraint delta = (varName ++ " ~~ " ++ show constraint):delta
 
 -- | Refines the VA of viable inputs using the pattern vector
 patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
