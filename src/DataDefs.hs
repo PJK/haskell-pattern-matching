@@ -2,6 +2,7 @@
 
 module DataDefs where
 
+import           Bag
 import           Data.Aeson            (FromJSON, ToJSON)
 import           Data.List             (intercalate)
 import qualified Data.Map              as Map
@@ -94,6 +95,8 @@ type PatternVector = [TypedPattern]
 
 type ValueAbstractionVector = [Pattern]
 type ValueAbstractionSet = [ValueAbstractionVector]
+
+type ConditionedValueAbstractionVector = ([Pattern], Bag Constraint)
 
 instance ToJSON   Pattern
 instance FromJSON Pattern
