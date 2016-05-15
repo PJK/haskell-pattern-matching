@@ -32,7 +32,7 @@ setupNewResults = withCurrentDirectory "data/exact" $ do
         resultsExist <- doesFileExist rfp
         unless resultsExist $ do
             putStrLn $ "Setting up new expected results file for " ++ fp
-            results <- doItAll fp
+            results <- processTarget fp
             let resultsBS = encodePretty results
             LB.writeFile rfp resultsBS
 
@@ -44,7 +44,7 @@ blackBoxExactTests = describe "Black box tests" $ do
         let rfp = resultFileFor fp
         it fp $ do
             eC <- LB.readFile rfp
-            actual <- doItAll fp
+            actual <- processTarget fp
             eitherDecode eC `shouldBe` Right actual -- This implicitly checks that decoding succeeds.
 
 blackBoxParseTests :: Spec

@@ -1,0 +1,855 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            {
+                "capD": [
+                    [
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh0"
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "fresh6"
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ]
+                ],
+                "capU": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "B",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ]
+                ],
+                "capC": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "A",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ]
+                ]
+            },
+            {
+                "capD": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "fresh9"
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "fresh10"
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ]
+                ],
+                "capU": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ]
+                ],
+                "capC": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "B",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "B",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ]
+                ]
+            },
+            {
+                "capD": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "fresh18"
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "fresh20"
+                                    }
+                                ]
+                            ]
+                        }
+                    ]
+                ],
+                "capU": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "A",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "A",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        }
+                    ]
+                ],
+                "capC": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "B",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "B",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "capD": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "fresh25"
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "fresh26"
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "fresh27"
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "fresh28"
+                                    }
+                                ]
+                            ]
+                        }
+                    ]
+                ],
+                "capU": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "A",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "A",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        }
+                    ]
+                ],
+                "capC": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ]
+}

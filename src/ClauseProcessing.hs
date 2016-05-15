@@ -1,141 +1,235 @@
 module ClauseProcessing where
 
-import qualified Data.Map   as Map
+import           Control.Monad.Except
+import           Control.Monad.Reader
+import           Control.Monad.State
+
+import qualified Data.Map             as Map
 import           DataDefs
+import           Types
 import           Util
-import           Data.Maybe (fromMaybe)
 import           Debug.Trace
 
 
-data ClauseCoverage = ClauseCoverage { capC :: ValueAbstractionSet, capU :: ValueAbstractionSet, capD :: ValueAbstractionSet } deriving Show
+
+-- | Extends map function to only work on the valueAbstraction component
+patMap :: (ValueAbstractionVector -> ValueAbstractionVector) -> ConditionedValueAbstractionSet -> ConditionedValueAbstractionSet
+patMap f
+    = map extendedF
+    where
+        extendedF :: ConditionedValueAbstractionVector -> ConditionedValueAbstractionVector
+        extendedF CVAV {valueAbstraction=va, delta=delta} = CVAV {valueAbstraction = f va, delta = delta}
+
+-- | Creates CGuard, UGuard, DGuard implementations
+-- Syd: Can we do something about all the params?
+type AnalysisProcessor = PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
+
+guardHandler :: AnalysisProcessor -> Pattern -> Constraint -> PatternVector -> ValueAbstractionVector -> [Constraint]-> Analyzer ConditionedValueAbstractionSet
+guardHandler func p constraint ps us delta
+    = do
+        z <- freshVar
+        let delta' = addGuardConstraint z constraint delta
+        pWithType <- annotatePattern p
+        recurse <- func (pWithType:ps) CVAV {valueAbstraction=z:us, delta=delta'}
+        return $ patMap tail recurse
 
 -- Based on Figure 3 of 'GADTs meet their match'
 
 --
 -- Implements the 'C' helper function
 --
-coveredValues :: PatternVector -> SimpleTypeMap -> ValueAbstractionVector -> ValueAbstractionSet
+coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
+
+-- coveredValues x y | trace (show (x, y)) False = error "fail"
 
 -- CNil
-coveredValues [] _ [] = [[]] -- Important: one empty set to start with
+coveredValues [] vav@CVAV {valueAbstraction=[], delta=_}
+    = return [vav] -- Important: one empty set to start with, keep constraints
 
 -- CConCon
-coveredValues ((ConstructorPattern pname args, _):ps) tmap (ConstructorPattern vname up:us)
-        | pname == vname =
-            map (kcon (ConstructorPattern pname args))
-                (coveredValues (annotatedArguments ++ ps) tmap (substitutePatterns up ++ us))
-        | otherwise      = []
-        where
-            annotatedArguments = annotatePatterns tmap args
+coveredValues
+    ((ConstructorPattern pname args, _):ps)
+    CVAV {valueAbstraction=(ConstructorPattern vname up:us), delta=delta}
+        | pname == vname = do
+            annArgs <- annotatePatterns args
+            subs <- substitutePatterns up
+            cvs <- coveredValues (annArgs ++ ps) CVAV {valueAbstraction=subs ++ us, delta=delta}
+            return $ patMap (kcon (ConstructorPattern pname args)) cvs
+        | otherwise      = return []
 
--- CConVarx
-coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) tmap (VariablePattern _:us) =
-    -- Now this fresh variable substitution has no effect as there are are free
-    -- variables in the pattern vector. Once we start using solver, we need separate
-    -- names for them
-    coveredValues (kk:ps) tmap (substituteFreshParameters k:us)
+-- CConVar
+coveredValues
+    (kk@(k@(ConstructorPattern _ _), _):ps)
+    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta}
+    = do
+        substituted <- substituteFreshParameters k
+        let delta' = (varName ++ " ~~ " ++ show substituted):delta
+        coveredValues (kk:ps) CVAV {valueAbstraction=substituted:us, delta=delta'}
 
 -- CVar
-coveredValues ((VariablePattern _, _):ps) tmap (u:us) =
-    map (ucon u) (coveredValues ps tmap us)
+coveredValues
+    ((VariablePattern varName, _):ps)
+    CVAV {valueAbstraction=(u:us), delta=delta}
+    = do
+        let delta' = (varName ++ " ~~ " ++ show u):delta
+        cvs <- coveredValues ps CVAV {valueAbstraction=us, delta=delta'}
+        return $ patMap (ucon u) cvs
 
--- TODO CGuard
+-- CGuard
+coveredValues
+    ((GuardPattern p constraint, _):ps)
+    CVAV {valueAbstraction=us, delta=delta}
+    = guardHandler coveredValues p constraint ps us delta
 
-coveredValues _ _ _ = error "unsupported pattern"
-
+coveredValues pat values
+    = throwError
+    $ UnpredictedError
+    $ "coveredValues: unsupported pattern " ++ show pat ++ " with values " ++ show values
 
 --
 -- Implements the 'U' helper function
 --
-uncoveredValues :: PatternVector -> SimpleTypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
+uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
+
+uncoveredValues x y | trace (show (x, y)) False = error "fail"
 
 -- UNil
-uncoveredValues [] _ []  = [] -- Important! This is different than coveredValues
+uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
+    = return [] -- Important! This is different than coveredValues
+
 
 -- UConCon
-uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (kv@(ConstructorPattern vname uParams):us)
-    | pname == vname =
-        map (kcon k) (uncoveredValues (annotatedPParams ++ ps) tmap (uParams ++ us))
-    | otherwise      =
-        [substituteFreshParameters kv:us]
-    where
-        annotatedPParams = annotatePatterns tmap pParams
+uncoveredValues
+    ((k@(ConstructorPattern pname pargs), _):ps)
+    CVAV {valueAbstraction=(kv@(ConstructorPattern vname up):us), delta=delta}
+        | pname == vname = do
+            annArgs <- annotatePatterns pargs
+            uvs <- uncoveredValues (annArgs ++ ps) CVAV {valueAbstraction=up ++ us, delta=delta}
+            return $ patMap (kcon k) uvs
+        | otherwise      = do
+            substitute <- substituteFreshParameters kv
+            return [CVAV {valueAbstraction = substitute:us, delta = delta }]
 
 -- UConVar
-uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) tmap (VariablePattern _:us) =
-    concatMap
-        (\constructor ->  uncoveredValues (p:ps) tmap (constructor:us))
-        allConstructorsWithFreshParameters
-    where
-        allConstructors = fromMaybe
-                            (error $ "Lookup for type " ++ typeName ++ " failed")
-                            (Map.lookup typeName tmap)
-        allConstructorsWithFreshParameters = map substituteFreshParameters allConstructors
+uncoveredValues
+    (p@(ConstructorPattern _ _, typeName):ps)
+    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta}
+    = do
+        allConstructors <- lookupConstructors typeName
+        allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
+        uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
+            let delta' = (varName ++ " ~~ " ++ show constructor):delta in
+                uncoveredValues (p:ps) CVAV {valueAbstraction=constructor:us, delta=delta'}
+        return $ concat uvs
 
 -- UVar
-uncoveredValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (uncoveredValues ps tmap us)
+uncoveredValues
+    ((VariablePattern varName, _):ps)
+    CVAV {valueAbstraction=(u:us), delta=delta}
+    = do
+        let delta' = (varName ++ " ~~ " ++ show u):delta
+        cvs <- uncoveredValues ps CVAV {valueAbstraction=us, delta=delta'}
+        return $ patMap (ucon u) cvs
 
--- TODO UGuard
+-- UGuard
+uncoveredValues
+    ((GuardPattern p constraint, _):ps)
+    CVAV {valueAbstraction=us, delta=delta}
+    = guardHandler uncoveredValues p constraint ps us delta
 
-uncoveredValues a _ b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
+
+uncoveredValues pat values
+    = throwError
+    $ UnpredictedError
+    $ "uncoveredValues: unsupported pattern " ++ show pat ++ " with values " ++ show values
 
 
 
 --
 -- Implements the 'D' helper function
 --
-divergentValues :: PatternVector -> SimpleTypeMap  -> ValueAbstractionVector -> ValueAbstractionSet
+divergentValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
 -- DNil
-divergentValues [] _ []  = [] -- Important! This is different than coveredValues
+divergentValues [] CVAV {valueAbstraction=[], delta=_}
+    = return [] -- Important! This is different than coveredValues
 
 -- DConCon
-divergentValues ((k@(ConstructorPattern pname pParams), _):ps) tmap (ConstructorPattern vname uParams:us)
-    | pname == vname =
-        map (kcon k) (divergentValues (annotatedPParams ++ ps) tmap (uParams ++ us))
-    | otherwise      = []
-    where
-        annotatedPParams = annotatePatterns tmap pParams
+divergentValues
+    ((ConstructorPattern pname args, _):ps)
+    CVAV {valueAbstraction=(ConstructorPattern vname up:us), delta=delta}
+        | pname == vname = do
+            annArgs <- annotatePatterns args
+            subs <- substitutePatterns up
+            cvs <- divergentValues (annArgs ++ ps) CVAV {valueAbstraction=subs ++ us, delta=delta}
+            return $ patMap (kcon (ConstructorPattern pname args)) cvs
+        | otherwise      = return []
+
 
 -- DConVar
-divergentValues (p@(pc@(ConstructorPattern _ _), _):ps) tmap (VariablePattern _:us) =
-    (pc:us) : divergentValues (p:ps) tmap (substituteFreshParameters pc:us)
+divergentValues
+    (p@(pc@(ConstructorPattern _ _), _):ps)
+    CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta}
+        = do
+            substituted <- substituteFreshParameters pc
+            let delta' = (varName ++ " ~~ " ++ show substituted):delta
+            let deltaBot = (varName ++ "~~" ++ "bottom"):delta
+            dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta'}
+            return $ CVAV {valueAbstraction = var:us, delta = deltaBot}:dvs
 
 -- DVar
-divergentValues ((VariablePattern _, _):ps) tmap (u:us) = map (ucon u) (divergentValues ps tmap us)
+divergentValues
+    ((VariablePattern varName, _):ps)
+    CVAV {valueAbstraction=(u:us), delta=delta}
+    = do
+        let delta' = (varName ++ " ~~ " ++ show u):delta
+        cvs <- divergentValues ps CVAV {valueAbstraction=us, delta=delta'}
+        return $ patMap (ucon u) cvs
 
--- TODO DGuard
+-- DGuard
+divergentValues
+    ((GuardPattern p constraint, _):ps)
+    CVAV {valueAbstraction=us, delta=delta}
+    = guardHandler divergentValues p constraint ps us delta
 
-divergentValues a _ b = traceStack (show (a, b)) $ error "non-exhaustive pattern match"
+divergentValues pat values
+    = throwError
+    $ UnpredictedError
+    $ "divergentValues: unsupported pattern " ++ show pat ++ " with values " ++ show values
 
 
+addGuardConstraint :: Pattern -> Constraint -> [Constraint] -> [Constraint]
+addGuardConstraint (VariablePattern varName) constraint delta = (varName ++ " ~~ " ++ show constraint):delta
+addGuardConstraint _ _ _ = error "Can only require equality on variables"
 
 -- | Refines the VA of viable inputs using the pattern vector
-patVecProc :: PatternVector -> ValueAbstractionSet -> SimpleTypeMap -> ClauseCoverage
-patVecProc ps s tmap =
-    ClauseCoverage c u d
+patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
+patVecProc ps s = do
+    cvs <- concat <$> mapM (coveredValues ps) initialCVAS
+    uvs <- concat <$> mapM (uncoveredValues ps) initialCVAS
+    dvs <- concat <$> mapM (divergentValues ps) initialCVAS
+    return $ ClauseCoverage (extractValueAbstractions cvs) (extractValueAbstractions uvs) (extractValueAbstractions dvs)
     where
-        c = concatMap (coveredValues ps tmap) s
-        u = concatMap (uncoveredValues ps tmap) s
-        d = []
+        initialCVAS = withNoConstraints s
 
+-- | Constructs ConditionedValueAbstractionSet without any conditions on each abstraction
+withNoConstraints :: ValueAbstractionSet -> ConditionedValueAbstractionSet
+withNoConstraints
+    = map
+        (\vector -> CVAV {valueAbstraction = vector, delta = []})
 
-prettyIteratedVecProc :: Integer -> [PatternVector] -> ValueAbstractionSet -> SimpleTypeMap -> IO ()
+-- | SAT-check the constraints and return the abstractions
+extractValueAbstractions :: ConditionedValueAbstractionSet -> ValueAbstractionSet
+extractValueAbstractions (cvav:vs)
+    = trace ("Mock-SATing: " ++ show cvav) $ valueAbstraction cvav:extractValueAbstractions vs
+extractValueAbstractions [] = []
 
-prettyIteratedVecProc _ [] vas _ = do
-    print "Final iteration. Uncovered set:"
-    print vas
-
-prettyIteratedVecProc i (ps:pss) s tmap = do
-        putStrLn $ "Iteration: " ++ show i
-        putStrLn $ "Value abstractions to consider as inputs: " ++ show s
-        putStrLn $ "Pattern: " ++ show ps
-        putStrLn $ "U: " ++ show (capU res)
-        putStrLn $ "C: " ++ show (capC res)
-        putStrLn $ "D: " ++ show (capD res)
-        prettyIteratedVecProc (i + 1) pss (capU res) tmap
-    where
-        res = patVecProc ps s tmap
+iteratedVecProc :: [PatternVector] -> ValueAbstractionSet -> Analyzer ExecutionTrace
+iteratedVecProc [] _ = return []
+iteratedVecProc (ps:pss) s = do
+    res <- patVecProc ps s
+    rest <- iteratedVecProc pss (capU res)
+    return $ res : rest
 
 -- |Coverage vector concatenation
 -- TODO: Add the term constraints merging
@@ -150,29 +244,43 @@ kcon (ConstructorPattern name parameters) ws =
         arity = length parameters
 kcon _ _ = error "Only constructor patterns"
 
--- |Get fresh variables
--- TODO make this count new occurrences. (It is only relevant for the solver)
-freshVars :: Int -> [Pattern]
-freshVars 0 = []
-freshVars k = VariablePattern ("__fresh" ++ show k):freshVars (k - 1)
+freshVar :: Analyzer Pattern
+freshVar = do
+    i <- gets nextFreshVarName
+    modify (\s -> s { nextFreshVarName = i + 1} )
+    return $ VariablePattern $ "fresh" ++ show i
 
 -- | Replace PlaceHolderPatterns with appropriate fresh variables
-substituteFreshParameters :: Pattern -> Pattern
-substituteFreshParameters (ConstructorPattern name placeholders) =
-        ConstructorPattern name (substitutePatterns placeholders)
+substituteFreshParameters :: Pattern -> Analyzer Pattern
+substituteFreshParameters (ConstructorPattern name placeholders) = do
+    subs <- substitutePatterns placeholders
+    return $ ConstructorPattern name subs
 -- TODO add lists and tuples
 substituteFreshParameters _ = error "No substitution available"
 
 -- TODO check these are PlaceHolderPatterns only
-substitutePatterns :: [Pattern] -> [Pattern]
-substitutePatterns xs = freshVars $ length xs
+substitutePatterns :: [Pattern] -> Analyzer [Pattern]
+substitutePatterns xs = replicateM (length xs) freshVar
 
-annotatePatterns :: SimpleTypeMap -> [Pattern] -> PatternVector
-annotatePatterns tmap =
-    map (\p -> (p, fetchType p))
-    where
-        constructorToType = invertMap tmap
-        fetchType constructor =
-            fromMaybe
-                (error $ "Lookup for type " ++ show constructor ++ " failed")
-                (Map.lookup constructor constructorToType)
+annotatePattern :: Pattern -> Analyzer TypedPattern
+annotatePattern p = do
+    t <- lookupType p
+    return (p, t)
+
+annotatePatterns :: [Pattern] -> Analyzer PatternVector
+annotatePatterns = mapM annotatePattern
+
+lookupType :: Pattern -> Analyzer String
+lookupType constructor = do
+    tmap <- ask
+    let itmap = invertMap tmap
+    case Map.lookup constructor itmap of
+        Nothing -> throwError $ TypeNotFound $ "Type lookup for constructor " ++ show constructor ++ " failed"
+        Just r -> return r
+
+lookupConstructors :: String -> Analyzer [Pattern]
+lookupConstructors typeName = do
+    tmap <- ask
+    case Map.lookup typeName tmap of
+        Nothing -> throwError $ ConstructorNotFound $ "Constructor lookup for type " ++ show typeName ++ " failed"
+        Just cs -> return cs

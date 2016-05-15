@@ -1,54 +1,57 @@
 {
-    "Right": [
+    "tag": "AnalysisSuccess",
+    "contents": [
         [
-            [
-                [
-                    {
-                        "tag": "ConstructorPattern",
-                        "contents": [
-                            "True",
-                            []
-                        ]
-                    }
-                ],
-                [
-                    {
-                        "tag": "ConstructorPattern",
-                        "contents": [
-                            "False",
-                            []
-                        ]
-                    }
-                ]
-            ],
-            [
-                [
+            {
+                "capD": [
                     [
-                        [
-                            {
-                                "tag": "WildcardPattern",
-                                "contents": []
-                            }
-                        ],
-                        [
-                            {
-                                "tag": "EvaluatedConstructor",
-                                "contents": [
-                                    "True",
-                                    []
-                                ]
-                            },
-                            {
-                                "tag": "EvaluatedConstructor",
-                                "contents": [
-                                    "False",
-                                    []
-                                ]
-                            }
-                        ]
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "False",
+                                []
+                            ]
+                        }
+                    ]
+                ],
+                "capU": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "True",
+                                []
+                            ]
+                        }
+                    ]
+                ],
+                "capC": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "False",
+                                []
+                            ]
+                        }
                     ]
                 ]
-            ]
+            },
+            {
+                "capD": [],
+                "capU": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "True",
+                                []
+                            ]
+                        }
+                    ]
+                ],
+                "capC": []
+            }
         ]
     ]
 }

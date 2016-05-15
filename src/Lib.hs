@@ -2,80 +2,82 @@ module Lib where
 
 
 import           ClauseProcessing
-import           Util
-import           Control.Monad         (forM_)
-import           Data.List             (nub)
-import qualified Data.Map              as Map
-import           Data.Maybe            (catMaybes)
-import           Data.SBV
+import           Control.Monad            (replicateM)
+import           Control.Monad.Except     (runExceptT)
+import           Control.Monad.Reader     (runReader)
+import           Control.Monad.State      (evalStateT)
+import           Data.List                (nub)
+import qualified Data.Map                 as Map
+import           Data.Maybe               (catMaybes)
+-- import           Data.SBV
+import           Data.Aeson.Encode.Pretty (encodePretty)
+import qualified Data.ByteString.Lazy     as LB
 import           DataDefs
-import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
-                                        Pretty, Type (..), prettyPrint)
-import qualified Language.Haskell.Exts as H
-import qualified System.Environment    as Env
+import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
+                                           Pretty, Type (..), prettyPrint)
+import qualified Language.Haskell.Exts    as H
+
+import           OptParse
+import           OptParse.Types
+import           Types
 
 
 patterns :: IO ()
 patterns = do
     -- svbTest
-    args <- Env.getArgs
-    print args
-    mapM_ process args
+    sets <- getSettings
+    print sets
+    res <- processTarget (setsTargetFile sets)
+    print res
+    LB.putStr $ encodePretty res
 
--- Just testing out some svb
-svbTest :: IO ()
-svbTest = do
-    let pprove a = prove a >>= print
-    let ssat a = sat a >>= print
-    pprove $ do
-        x <- sInteger "x"
-        return $ x .> 5 ||| x .< 5 ||| x .== 5
-    ssat $ do
-        x <- sInteger "x"
-        return $ x.> 5
-    ssat $ do
-        x <- sInteger "x"
-        return $ x.> 5 &&& x.< 5
-    pprove $ do
-        x <- sInteger "x"
-        return $ x .> 5 ||| x .< 5
-
-    pprove $ do
-        x <- sInteger "x"
-        y <- sInteger "y"
-        z <- sInteger "z"
-        return $ x .> 1
-            ||| (y .< 2 &&& x .<= 1)
-            ||| (y .> 2 &&& z .<= 4)
-            ||| (y .== 2 &&& z .> 4)
-
-process :: String -> IO (MayFail [(CoverageResult, EvaluatednessResult)])
-process inputFile = do
-    results <- doItAll inputFile
+processTarget :: FilePath -> IO AnalysisResult
+processTarget inputFile = do
     ast <- fromParseResult <$> parseFile inputFile
-    case getFunctions ast of
-        Left err -> do
-            print err
-            return $ Left err
-        Right fs   -> do
-            forM_ fs $ \func@(Function name _ _) ->
-                let
-                    patterns = getTypedPatternVectors func
-                    initialVariables = freshVars $ length patterns - 1
-                in do
-                putStrLn $ "Processing " ++ name
-                print func
-                print $ getPlainTypeConstructorsMap ast
-                print $ getTypedPatternVectors func
-                print $ invertMap (getPlainTypeConstructorsMap ast)
-                prettyIteratedVecProc 0 patterns [initialVariables] (getPlainTypeConstructorsMap ast)
-            return results
+    let ass = AnalysisAssigment inputFile ast
+        res = processAssignment ass
+    return res
+
+processAssignment :: AnalysisAssigment -> AnalysisResult
+processAssignment (AnalysisAssigment _ ast)
+    = case (,) <$> getFunctions ast <*> getPlainTypeConstructorsMap ast of
+        Left err -> AnalysisError $ GatherError err
+        Right (fs, ptcm) -> let
+                targets = map FunctionTarget fs
+                initState = AnalyzerState 0
+            in case flip runReader ptcm $ flip evalStateT initState $ runExceptT $ mapM analyzeFunction targets of
+                Left err -> AnalysisError $ ProcessError err
+                Right res -> AnalysisSuccess res
 
 
--- TODO wildcard desugaring
+analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
+analyzeFunction (FunctionTarget fun) = do
+    freshVars <- replicateM (length (head patterns)) freshVar
+    FunctionResult <$> iteratedVecProc desugaredPatterns [freshVars]
+  where
+    Right patterns = getTypedPatternVectors fun
+    desugaredPatterns = map desugarPatternVector patterns
 
-getTypedPatternVectors :: Function -> [PatternVector]
-getTypedPatternVectors (Function _ functionType patterns) =
+
+-- | Transforms all patterns into the standard form (See figure 7)
+desugarPattern :: TypedPattern -> PatternVector
+desugarPattern (LiteralPattern sign literal, _)
+    = (VariablePattern "__x", "__guard_var"):desugarGuard (ConstraintGuard equality)
+    where
+        showSign Signless = []
+        showSign Negative = "-"
+        equality = "__x = " ++ showSign sign ++ show literal
+desugarPattern (WildcardPattern, wildcardType)
+    = [(VariablePattern "_", wildcardType)] -- Replace with Variable of same type
+desugarPattern x = [x]
+
+desugarGuard :: Guard -> PatternVector
+desugarGuard (ConstraintGuard constraint)
+    = [(GuardPattern (ConstructorPattern "True" []) constraint, guardType)]
+desugarGuard _ = error "FIXME: implement lets and patternGuards"
+
+getTypedPatternVectors :: Function -> MayFail [PatternVector]
+getTypedPatternVectors (Function _ functionType patterns) = Right $
     map (`zip` typesList) patternsList
     where
         typeName :: Type -> String
@@ -92,29 +94,25 @@ getTypedPatternVectors (Function _ functionType patterns) =
 
         typesList = map typeName (extractType functionType)
 
+desugarPatternVector :: PatternVector -> PatternVector
+desugarPatternVector = concatMap desugarPattern
 
-type Error = String
-type MayFail = Either Error
+type MayFail = Either GatherError
 
-doItAll :: FilePath -> IO (MayFail [(CoverageResult, EvaluatednessResult)])
-doItAll fp = do
-    -- FIXME do some actual error handling here.
-    ast <- fromParseResult <$> parseFile fp
-    -- FIXME make sure these are total
-    let results = do
-            types <- getTypes ast
-            functions <- getFunctions ast
-            return $ map (analyse types) functions
-    return results
+-- Provisional solution for providing True for the desugaring
+builtinTypes :: [DataType]
+builtinTypes
+    = [DataType "Boolean" [] [Constructor "True" [], Constructor "False" []]]
 
-getTypesMap :: Module -> Map.Map String [Constructor]
-getTypesMap mod =
-    case getTypes mod of
-        Left _ -> error "How is this better than having the function just fail?"
-        Right types -> Map.fromList $ map (\t -> case t of DataType name _ constructors -> (name, constructors)) types
+getTypesMap :: Module -> MayFail (Map.Map String [Constructor])
+getTypesMap mod = do
+    types <- getTypes mod
+    return $ Map.fromList $ map (\t -> case t of DataType name _ constructors -> (name, constructors)) types
 
-getPlainTypeConstructorsMap :: Module -> SimpleTypeMap
-getPlainTypeConstructorsMap mod = Map.map (map constructorToPattern) (getTypesMap mod)
+getPlainTypeConstructorsMap :: Module -> MayFail SimpleTypeMap
+getPlainTypeConstructorsMap mod = do
+    typesMap <- getTypesMap mod
+    return $ Map.map (map constructorToPattern) typesMap
     where
         substitutionPatterns parameters = replicate (length parameters) PlaceHolderPattern
         constructorToPattern (Constructor name parameters) = ConstructorPattern name (substitutionPatterns  parameters)
@@ -128,7 +126,9 @@ err = Left
 -- same question for @getFunctions@
 getTypes :: Module -> MayFail [DataType]
 getTypes (Module _ _ _ _ _ _ decls)
-    = catMaybes <$> mapM go decls
+    = do
+        gatheredDefs <- catMaybes <$> mapM go decls -- Add builtins
+        return $ builtinTypes ++ gatheredDefs
   where
     -- TODO make go total: use Either as a monad to collect why a datatype cannot be used.
     go :: Decl -> MayFail (Maybe DataType)
@@ -219,28 +219,3 @@ mkPattern PWildCard = return WildcardPattern
 mkPattern (PBangPat pat) = mkPattern pat
 mkPattern (PParen pat) = mkPattern pat
 mkPattern a = err $ "Unsupported pattern: " ++ show a
-
-
-analyse :: [DataType] -- ^ DataTypes 'in scope'
-        -> Function
-        -> (CoverageResult, EvaluatednessResult)
--- analyse _ (Function _ _ clauses) =
-analyse _ _ =
-    -- Just the expected answer for our current only data file.
-    -- See assignment.pdf for another example of this format.
-    ( CoverageResult
-        [ConstructorPattern "True" []] -- Missing patterns
-        [ConstructorPattern "False" []] -- Redundant patterns (exact patterns that we find)
-    , EvaluatednessResult
-        [ ArgumentEvaluatedness -- Length = number of arguments to the function
-          [ ( [WildcardPattern] -- Length = number of arguments to the function
-            , [ EvaluatedConstructor "True" []
-              , EvaluatedConstructor "False" []
-              ]
-            )
-          ]
-        ]
-    )
-
-
-

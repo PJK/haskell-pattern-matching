@@ -1,54 +1,10 @@
 {
-    "Right": [
-        [
-            [
-                [
-                    {
-                        "tag": "ConstructorPattern",
-                        "contents": [
-                            "True",
-                            []
-                        ]
-                    }
-                ],
-                [
-                    {
-                        "tag": "ConstructorPattern",
-                        "contents": [
-                            "False",
-                            []
-                        ]
-                    }
-                ]
-            ],
-            [
-                [
-                    [
-                        [
-                            {
-                                "tag": "WildcardPattern",
-                                "contents": []
-                            }
-                        ],
-                        [
-                            {
-                                "tag": "EvaluatedConstructor",
-                                "contents": [
-                                    "True",
-                                    []
-                                ]
-                            },
-                            {
-                                "tag": "EvaluatedConstructor",
-                                "contents": [
-                                    "False",
-                                    []
-                                ]
-                            }
-                        ]
-                    ]
-                ]
-            ]
-        ]
-    ]
+    "tag": "AnalysisError",
+    "contents": {
+        "tag": "ProcessError",
+        "contents": {
+            "tag": "TypeNotFound",
+            "contents": "Type lookup for constructor VariablePattern \"x\" failed"
+        }
+    }
 }
