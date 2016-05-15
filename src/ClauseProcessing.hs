@@ -200,6 +200,7 @@ divergentValues pat values
 
 addGuardConstraint :: Pattern -> Constraint -> [Constraint] -> [Constraint]
 addGuardConstraint (VariablePattern varName) constraint delta = (varName ++ " ~~ " ++ show constraint):delta
+addGuardConstraint _ _ _ = error "Can only require equality on variables"
 
 -- | Refines the VA of viable inputs using the pattern vector
 patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
@@ -219,8 +220,8 @@ withNoConstraints
 
 -- | SAT-check the constraints and return the abstractions
 extractValueAbstractions :: ConditionedValueAbstractionSet -> ValueAbstractionSet
-extractValueAbstractions (cvav:vs) | trace ("Mock-SATing: " ++ show cvav) True
-    = valueAbstraction cvav:extractValueAbstractions vs
+extractValueAbstractions (cvav:vs)
+    = trace ("Mock-SATing: " ++ show cvav) $ valueAbstraction cvav:extractValueAbstractions vs
 extractValueAbstractions [] = []
 
 iteratedVecProc :: [PatternVector] -> ValueAbstractionSet -> Analyzer ExecutionTrace
