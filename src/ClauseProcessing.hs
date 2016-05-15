@@ -192,10 +192,12 @@ divergentValues pat values
 -- | Refines the VA of viable inputs using the pattern vector
 patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
 patVecProc ps s = do
-    cvs <- extractValueAbstractions $ concat <$> (mapM (coveredValues ps) (withNoConstraints s))
+    cvs <- concat <$> mapM (coveredValues ps) initialCVAS
     uvs <- concat <$> mapM (uncoveredValues ps) s
     dvs <- concat <$> mapM (divergentValues ps) s
-    return $ ClauseCoverage cvs uvs dvs
+    return $ ClauseCoverage (extractValueAbstractions cvs) uvs dvs
+    where
+        initialCVAS = withNoConstraints s
 
 -- | Constructs ConditionedValueAbstractionSet without any conditions on each abstraction
 withNoConstraints :: ValueAbstractionSet -> ConditionedValueAbstractionSet
@@ -203,8 +205,11 @@ withNoConstraints
     = map
         (\vector -> CVAV {valueAbstraction = vector, delta = []})
 
-extractValueAbstractions :: ConditionedValueAbstractionSet -> Analyzer ValueAbstractionSet
-extractValueAbstractions cvas = return $ map valueAbstraction cvas
+-- | SAT-check the constraints and return the abstractions
+extractValueAbstractions :: ConditionedValueAbstractionSet -> ValueAbstractionSet
+extractValueAbstractions (cvav:vs) | trace (show cvav) True
+    = valueAbstraction cvav:extractValueAbstractions vs
+extractValueAbstractions [] = []
 
 iteratedVecProc :: [PatternVector] -> ValueAbstractionSet -> Analyzer ExecutionTrace
 iteratedVecProc [] _ = return []
