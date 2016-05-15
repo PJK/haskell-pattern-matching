@@ -58,10 +58,11 @@ coveredValues
 -- CConVar
 coveredValues
     (kk@(k@(ConstructorPattern _ _), _):ps)
-    CVAV {valueAbstraction=(VariablePattern _:us), delta=delta}
+    CVAV {valueAbstraction=(VariablePattern varname:us), delta=delta}
     = do
         substituted <- substituteFreshParameters k
-        coveredValues (kk:ps) CVAV {valueAbstraction=substituted:us, delta=delta}
+        let delta' = (varname ++ " ~~ " ++ show substituted):delta
+        coveredValues (kk:ps) CVAV {valueAbstraction=substituted:us, delta=delta'}
 
 -- CVar
 coveredValues
@@ -77,7 +78,8 @@ coveredValues
     CVAV {valueAbstraction=us, delta=delta}
     = do
         y <- freshVar
-        let delta' = show y:delta
+        let VariablePattern name = y
+        let delta' = (show name ++ " ~~ " ++ show constraint):delta
         pWithType <- annotatePattern p
         recursivelyCovered <- coveredValues (pWithType:ps) CVAV {valueAbstraction=y:us, delta=delta'}
         return $ patMap tail recursivelyCovered
