@@ -96,7 +96,9 @@ type PatternVector = [TypedPattern]
 type ValueAbstractionVector = [Pattern]
 type ValueAbstractionSet = [ValueAbstractionVector]
 
+-- | A value abstraction that is valid if the constraint bag is satisfiable
 type ConditionedValueAbstractionVector = ([Pattern], Bag Constraint)
+type ConditionedValueAbstractionSet = [ConditionedValueAbstractionVector]
 
 instance ToJSON   Pattern
 instance FromJSON Pattern
