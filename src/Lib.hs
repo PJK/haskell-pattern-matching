@@ -60,8 +60,6 @@ analyzeFunction (FunctionTarget fun) = do
     desugaredPatterns = map desugarPatternVector patterns
 
 
-
--- TODO wildcard desugaring
 -- | Transforms all patterns into the standard form (See figure 7)
 desugarPattern :: TypedPattern -> PatternVector
 desugarPattern (LiteralPattern sign literal, _)
@@ -74,7 +72,7 @@ desugarPattern x = [x]
 
 desugarGuard :: Guard -> PatternVector
 desugarGuard (ConstraintGuard constraint)
-    = [(GuardPattern TruePattern constraint, "__anonymous_guard_type")]
+    = [(GuardPattern (ConstructorPattern "True" []) constraint, guardType)]
 
 
 getTypedPatternVectors :: Function -> MayFail [PatternVector]

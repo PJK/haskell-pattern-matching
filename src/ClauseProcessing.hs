@@ -34,15 +34,6 @@ coveredValues x y | trace (show (x, y)) False = error "fail"
 coveredValues [] vav@CVAV {valueAbstraction=[], delta=delta}
     = return [vav] -- Important: one empty set to start with, keep constraints
 
--- TODO remove this once we have access to global types
-coveredValues
-    ((TruePattern, _):ps)
-    CVAV {valueAbstraction=(VariablePattern _:us), delta=delta}
-    = do
-        -- ConVar + ConCon
-        subCovered <- coveredValues ps CVAV {valueAbstraction = us, delta = delta}
-        return $ patMap (kcon (ConstructorPattern "True" [])) subCovered
-
 -- CConCon
 coveredValues
     ((ConstructorPattern pname args, _):ps)
@@ -98,16 +89,6 @@ uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyze
 -- UNil
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
     = return [] -- Important! This is different than coveredValues
-
-
--- TODO remove this once we have access to global types
-uncoveredValues
-    -- TODO fix this for global types
-    ((TruePattern, _):ps)
-    CVAV {valueAbstraction=(VariablePattern _:us), delta=delta}
-    = do
-        subUncovered <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta}
-        return $ patMap (kcon (ConstructorPattern "True" [])) subUncovered
 
 
 -- UConCon
@@ -171,17 +152,6 @@ divergentValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyze
 -- DNil
 divergentValues [] CVAV {valueAbstraction=[], delta=_}
     = return [] -- Important! This is different than coveredValues
-
--- TODO remove this once we have access to global types
-divergentValues
-    -- TODO fix this for global types
-    ((TruePattern, _):ps)
-    CVAV {valueAbstraction=(VariablePattern _:us), delta=delta}
-    = do
-        subUncovered <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta}
-        return $ patMap (kcon (ConstructorPattern "True" [])) subUncovered
-
-
 
 -- DConCon
 divergentValues
@@ -302,8 +272,6 @@ annotatePatterns :: [Pattern] -> Analyzer PatternVector
 annotatePatterns = mapM annotatePattern
 
 lookupType :: Pattern -> Analyzer String
--- TODO remove me after we have access to builtins
-lookupType TruePattern = return "DummyBuiltinBool"
 lookupType constructor = do
     tmap <- ask
     let itmap = invertMap tmap

@@ -68,9 +68,11 @@ data Pattern
     | WildcardPattern
     | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
     | GuardPattern Pattern Constraint
-    | TruePattern
   deriving (Show, Eq, Generic, Ord)
 
+-- We need to annotate all Patterns with the type they represent. Use this for guards
+guardType :: Name
+guardType = "__anonymous_guard_type"
 
 -- TODO should we introduce new type for these? seems laborious
 -- -- | Patterns that can be processed without desugaring
@@ -123,7 +125,6 @@ instance Pretty Pattern where
     pretty WildcardPattern = "_"
     pretty PlaceHolderPattern = "<placeholder>"
     pretty (GuardPattern _ const) = "Gbar(" ++ const ++ ")"
-    pretty TruePattern = "True(Guards only)" -- TODO remove me
 
 
 pars :: String -> String
