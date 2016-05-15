@@ -2,7 +2,6 @@
 
 module DataDefs where
 
-import           Bag
 import           Data.Aeson            (FromJSON, ToJSON)
 import           Data.List             (intercalate)
 import qualified Data.Map              as Map
@@ -97,7 +96,11 @@ type ValueAbstractionVector = [Pattern]
 type ValueAbstractionSet = [ValueAbstractionVector]
 
 -- | A value abstraction that is valid if the constraint bag is satisfiable
-type ConditionedValueAbstractionVector = ([Pattern], Bag Constraint)
+data ConditionedValueAbstractionVector = CVAV
+    { valueAbstraction :: ValueAbstractionVector
+    , delta            :: [Constraint]
+    } deriving (Show, Eq)
+
 type ConditionedValueAbstractionSet = [ConditionedValueAbstractionVector]
 
 instance ToJSON   Pattern

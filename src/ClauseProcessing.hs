@@ -12,26 +12,35 @@ import           Debug.Trace
 
 
 
+-- | Extends map function to only work on the valueAbstraction component
+patMap :: (ValueAbstractionVector -> ValueAbstractionVector) -> ConditionedValueAbstractionSet -> ConditionedValueAbstractionSet
+patMap f CVAV {valueAbstraction=va, delta=delta}
+    = CVAV {valueAbstraction = map f va, delta = delta}
 -- Based on Figure 3 of 'GADTs meet their match'
 
 --
 -- Implements the 'C' helper function
 --
-coveredValues :: PatternVector -> ValueAbstractionVector -> Analyzer ValueAbstractionSet
+coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
 -- CNil
-coveredValues [] []
-    = return [[]] -- Important: one empty set to start with
+coveredValues [] vav@ConditionedValueAbstractionVector {valueAbstraction=[], delta=delta}
+    = return [vav] -- Important: one empty set to start with, keep constraints
 
 -- TODO remove this once we have access to global types
 coveredValues x y | trace (show (x, y)) False = error "fail"
-coveredValues ((TruePattern, _):ps) (VariablePattern _:us) = do
-    -- ConVar + ConCon
-    subCovered <- coveredValues ps us
-    return $ map (kcon (ConstructorPattern "True" [])) subCovered
+coveredValues
+    ((TruePattern, _):ps)
+    ConditionedValueAbstractionVector {valueAbstraction=(VariablePattern _:us), delta=delta}
+    = do
+        -- ConVar + ConCon
+        subCovered <- coveredValues ps ConditionedValueAbstractionVector { }
+        return $ patMap (kcon (ConstructorPattern "True" [])) subCovered
 
 -- CConCon
-coveredValues ((ConstructorPattern pname args, _):ps) (ConstructorPattern vname up:us)
+coveredValues
+    ((ConstructorPattern pname args, _):ps)
+    ConditionedValueAbstractionVector {valueAbstraction=(ConstructorPattern vname up:us), delta=delta}
         | pname == vname = do
             annArgs <- annotatePatterns args
             subs <- substitutePatterns up
