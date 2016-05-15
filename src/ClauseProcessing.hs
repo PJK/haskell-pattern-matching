@@ -54,21 +54,30 @@ coveredValues
         | otherwise      = return []
 
 -- CConVar
-coveredValues (kk@(k@(ConstructorPattern _ _), _):ps) (VariablePattern _:us) = do
-    substituted <- substituteFreshParameters k
-    coveredValues (kk:ps) (substituted:us)
+coveredValues
+    (kk@(k@(ConstructorPattern _ _), _):ps)
+    CVAV {valueAbstraction=(VariablePattern _:us), delta=delta}
+    = do
+        substituted <- substituteFreshParameters k
+        coveredValues (kk:ps) CVAV {valueAbstraction=substituted:us, delta=delta}
 
 -- CVar
-coveredValues ((VariablePattern _, _):ps) (u:us) = do
-    cvs <- coveredValues ps us
-    return $ map (ucon u) cvs
+coveredValues
+    ((VariablePattern _, _):ps)
+    CVAV {valueAbstraction=(u:us), delta=delta}
+    = do
+        cvs <- coveredValues ps CVAV {valueAbstraction=us, delta=delta}
+        return $ patMap (ucon u) cvs
 
 -- CGuard
-coveredValues ((GuardPattern p constraint, _):ps) us = do
-    y <- freshVar
-    pWithType <- annotatePattern p
-    recursivelyCovered <- coveredValues (pWithType:ps) (y:us)
-    return $ map tail recursivelyCovered
+coveredValues
+    ((GuardPattern p constraint, _):ps)
+    CVAV {valueAbstraction=us, delta=delta}
+    = do
+        y <- freshVar
+        pWithType <- annotatePattern p
+        recursivelyCovered <- coveredValues (pWithType:ps) CVAV {valueAbstraction=y:us, delta=delta}
+        return $ patMap tail recursivelyCovered
 
 coveredValues pat values
     = throwError
@@ -183,7 +192,7 @@ divergentValues pat values
 -- | Refines the VA of viable inputs using the pattern vector
 patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
 patVecProc ps s = do
-    cvs <- concat <$> valueAbstraction (mapM (coveredValues ps) (withNoConstraints s))
+    cvs <- extractValueAbstractions $ concat <$> (mapM (coveredValues ps) (withNoConstraints s))
     uvs <- concat <$> mapM (uncoveredValues ps) s
     dvs <- concat <$> mapM (divergentValues ps) s
     return $ ClauseCoverage cvs uvs dvs
@@ -193,6 +202,9 @@ withNoConstraints :: ValueAbstractionSet -> ConditionedValueAbstractionSet
 withNoConstraints
     = map
         (\vector -> CVAV {valueAbstraction = vector, delta = []})
+
+extractValueAbstractions :: ConditionedValueAbstractionSet -> Analyzer ValueAbstractionSet
+extractValueAbstractions cvas = return $ map valueAbstraction cvas
 
 iteratedVecProc :: [PatternVector] -> ValueAbstractionSet -> Analyzer ExecutionTrace
 iteratedVecProc [] _ = return []
