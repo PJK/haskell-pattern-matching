@@ -166,16 +166,21 @@ uncoveredValues pat values
 --
 -- Implements the 'D' helper function
 --
-divergentValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionVector
+divergentValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
 -- DNil
-divergentValues [] []
+divergentValues [] CVAV {valueAbstraction=[], delta=_}
     = return [] -- Important! This is different than coveredValues
 
 -- TODO remove this once we have access to global types
-divergentValues ((TruePattern, _):ps) (VariablePattern _:us) = do
-    subDivergent <- divergentValues ps us
-    return $ map (kcon (ConstructorPattern "True" [])) subDivergent
+divergentValues
+    -- TODO fix this for global types
+    ((TruePattern, _):ps)
+    CVAV {valueAbstraction=(VariablePattern _:us), delta=delta}
+    = do
+        subUncovered <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta}
+        return $ patMap (kcon (ConstructorPattern "True" [])) subUncovered
+
 
 
 -- DConCon
@@ -183,17 +188,23 @@ divergentValues
     ((ConstructorPattern pname args, _):ps)
     CVAV {valueAbstraction=(ConstructorPattern vname up:us), delta=delta}
         | pname == vname = do
-            annPs <- annotatePatterns pParams
-            dvs <- divergentValues (annPs ++ ps) (uParams ++ us)
-            return $ map (kcon k) dvs
+            annArgs <- annotatePatterns args
+            subs <- substitutePatterns up
+            cvs <- divergentValues (annArgs ++ ps) CVAV {valueAbstraction=subs ++ us, delta=delta}
+            return $ patMap (kcon (ConstructorPattern pname args)) cvs
         | otherwise      = return []
 
+
 -- DConVar
-divergentValues (p@(pc@(ConstructorPattern _ _), _):ps) (VariablePattern _:us)
-    = do
-    subs <- substituteFreshParameters pc
-    dvs <- divergentValues (p:ps) (subs:us)
-    return $ (pc:us) : dvs
+divergentValues
+    (p@(pc@(ConstructorPattern _ _), _):ps)
+    CVAV {valueAbstraction=var@(VariablePattern varName:us), delta=delta}
+        = do
+            substituted <- substituteFreshParameters pc
+            let delta' = (varName ++ " ~~ " ++ show substituted):delta
+            let deltaBot = (varName ++ "~~" ++ "bottom"):delta
+            dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta'}
+            return $ CVAV {valueAbstraction = var:us, delta = deltaBot}:dvs
 
 -- DVar
 divergentValues ((VariablePattern _, _):ps) (u:us)
