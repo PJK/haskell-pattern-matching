@@ -20,7 +20,6 @@ patMap f
         extendedF :: ConditionedValueAbstractionVector -> ConditionedValueAbstractionVector
         extendedF CVAV {valueAbstraction=va, delta=delta} = CVAV {valueAbstraction = f va, delta = delta}
 
-
 -- Based on Figure 3 of 'GADTs meet their match'
 
 --
@@ -94,55 +93,66 @@ coveredValues pat values
 --
 -- Implements the 'U' helper function
 --
-uncoveredValues :: PatternVector -> ConditionedValueAbstractionSet -> Analyzer ConditionedValueAbstractionSet
+uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
 -- UNil
-uncoveredValues [] []
+uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
     = return [] -- Important! This is different than coveredValues
+
 
 -- TODO remove this once we have access to global types
 uncoveredValues
     ((TruePattern, _):ps)
     CVAV {valueAbstraction=(VariablePattern _:us), delta=delta}
     = do
-        subUncovered <- uncoveredValues ps us
-        return $ map (kcon (ConstructorPattern "True" [])) subUncovered
+        subUncovered <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta}
+        return $ patMap (kcon (ConstructorPattern "True" [])) subUncovered
 
 
 -- UConCon
 uncoveredValues
-    (k@(ConstructorPattern pname args, _):ps)
+    ((k@(ConstructorPattern pname args), _):ps)
     CVAV {valueAbstraction=(kv@(ConstructorPattern vname up):us), delta=delta}
         | pname == vname = do
             annArgs <- annotatePatterns up
             uvs <- uncoveredValues (annArgs ++ ps) CVAV {valueAbstraction=up ++ us, delta=delta}
-            return $ map (kcon k) uvs
+            return $ patMap (kcon k) uvs
         | otherwise      = do
             substitute <- substituteFreshParameters kv
-            return CVAV {valueAbstraction = [substitute:us], delta = delta }
+            return [CVAV {valueAbstraction = substitute:us, delta = delta }]
 
 -- UConVar
-uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) (VariablePattern _:us)
+uncoveredValues
+    (p@(ConstructorPattern _ _, typeName):ps)
+    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta}
     = do
-    allConstructors <- lookupConstructors typeName
-    allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
-    uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
-        uncoveredValues (p:ps) (constructor:us)
-    return $ concat uvs
+        allConstructors <- lookupConstructors typeName
+        allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
+        uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
+            uncoveredValues (p:ps) CVAV {valueAbstraction=constructor:us, delta=delta}
+        return $ concat uvs
 
 -- UVar
-uncoveredValues ((VariablePattern _, _):ps) (u:us)
+uncoveredValues
+    ((VariablePattern varName, _):ps)
+    CVAV {valueAbstraction=(u:us), delta=delta}
     = do
-    uvs <- uncoveredValues ps us
-    return $ map (ucon u) uvs
+        let delta' = (varName ++ " ~~ " ++ show u):delta
+        cvs <- uncoveredValues ps CVAV {valueAbstraction=us, delta=delta}
+        return $ patMap (ucon u) cvs
 
 -- UGuard
-uncoveredValues ((GuardPattern p constraint, _):ps) us = do
-    y <- freshVar
-    pWithType <- annotatePattern p
-    recursivelyUncovered <- uncoveredValues (pWithType:ps) (y:us)
-    -- return $ map tail recursivelyUncovered
-    return []
+uncoveredValues
+    ((GuardPattern p constraint, _):ps)
+    CVAV {valueAbstraction=us, delta=delta}
+    = do
+        y <- freshVar
+        let VariablePattern varName = y
+        let delta' = (varName ++ " ~~ " ++ show constraint):delta
+        pWithType <- annotatePattern p
+        recursivelyUncovered <- uncoveredValues (pWithType:ps) CVAV {valueAbstraction=y:us, delta=delta'}
+        return $ patMap tail recursivelyUncovered
+
 
 uncoveredValues pat values
     = throwError
