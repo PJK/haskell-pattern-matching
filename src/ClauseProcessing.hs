@@ -102,6 +102,7 @@ uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
 
 -- TODO remove this once we have access to global types
 uncoveredValues
+    -- TODO fix this for global types
     ((TruePattern, _):ps)
     CVAV {valueAbstraction=(VariablePattern _:us), delta=delta}
     = do
@@ -165,7 +166,7 @@ uncoveredValues pat values
 --
 -- Implements the 'D' helper function
 --
-divergentValues :: PatternVector -> ValueAbstractionVector -> Analyzer ValueAbstractionSet
+divergentValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionVector
 
 -- DNil
 divergentValues [] []
@@ -178,12 +179,14 @@ divergentValues ((TruePattern, _):ps) (VariablePattern _:us) = do
 
 
 -- DConCon
-divergentValues ((k@(ConstructorPattern pname pParams), _):ps) (ConstructorPattern vname uParams:us)
-    | pname == vname = do
-        annPs <- annotatePatterns pParams
-        dvs <- divergentValues (annPs ++ ps) (uParams ++ us)
-        return $ map (kcon k) dvs
-    | otherwise      = return []
+divergentValues
+    ((ConstructorPattern pname args, _):ps)
+    CVAV {valueAbstraction=(ConstructorPattern vname up:us), delta=delta}
+        | pname == vname = do
+            annPs <- annotatePatterns pParams
+            dvs <- divergentValues (annPs ++ ps) (uParams ++ us)
+            return $ map (kcon k) dvs
+        | otherwise      = return []
 
 -- DConVar
 divergentValues (p@(pc@(ConstructorPattern _ _), _):ps) (VariablePattern _:us)
