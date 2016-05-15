@@ -94,27 +94,32 @@ coveredValues pat values
 --
 -- Implements the 'U' helper function
 --
-uncoveredValues :: PatternVector -> ValueAbstractionVector -> Analyzer ValueAbstractionSet
+uncoveredValues :: PatternVector -> ConditionedValueAbstractionSet -> Analyzer ConditionedValueAbstractionSet
 
 -- UNil
 uncoveredValues [] []
     = return [] -- Important! This is different than coveredValues
 
 -- TODO remove this once we have access to global types
-uncoveredValues ((TruePattern, _):ps) (VariablePattern _:us) = do
-    subUncovered <- uncoveredValues ps us
-    return $ map (kcon (ConstructorPattern "True" [])) subUncovered
+uncoveredValues
+    ((TruePattern, _):ps)
+    CVAV {valueAbstraction=(VariablePattern _:us), delta=delta}
+    = do
+        subUncovered <- uncoveredValues ps us
+        return $ map (kcon (ConstructorPattern "True" [])) subUncovered
 
 
 -- UConCon
-uncoveredValues ((k@(ConstructorPattern pname pParams), _):ps) (kv@(ConstructorPattern vname uParams):us)
-    | pname == vname = do
-        annArgs <- annotatePatterns pParams
-        uvs <- uncoveredValues (annArgs ++ ps) (uParams ++ us)
-        return $ map (kcon k) uvs
-    | otherwise      = do
-        substitute <- substituteFreshParameters kv
-        return [substitute:us]
+uncoveredValues
+    (k@(ConstructorPattern pname args, _):ps)
+    CVAV {valueAbstraction=(kv@(ConstructorPattern vname up):us), delta=delta}
+        | pname == vname = do
+            annArgs <- annotatePatterns up
+            uvs <- uncoveredValues (annArgs ++ ps) CVAV {valueAbstraction=up ++ us, delta=delta}
+            return $ map (kcon k) uvs
+        | otherwise      = do
+            substitute <- substituteFreshParameters kv
+            return CVAV {valueAbstraction = [substitute:us], delta = delta }
 
 -- UConVar
 uncoveredValues (p@(ConstructorPattern _ _, typeName):ps) (VariablePattern _:us)
@@ -200,9 +205,9 @@ divergentValues pat values
 patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
 patVecProc ps s = do
     cvs <- concat <$> mapM (coveredValues ps) initialCVAS
-    uvs <- concat <$> mapM (uncoveredValues ps) s
+    uvs <- concat <$> mapM (uncoveredValues ps) initialCVAS
     dvs <- concat <$> mapM (divergentValues ps) s
-    return $ ClauseCoverage (extractValueAbstractions cvs) uvs dvs
+    return $ ClauseCoverage (extractValueAbstractions cvs) (extractValueAbstractions uvs) dvs
     where
         initialCVAS = withNoConstraints s
 
