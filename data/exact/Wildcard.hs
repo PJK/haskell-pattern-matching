@@ -13,6 +13,10 @@ extract (Sum A) _ = A
 extract (Sum B) _ = B
 extract _ (Sum B) = B
 extract _ (Sum C) = B
-extract Nope _ = B
-extract _ Nope = B
--- S C, S C is not covered
+{-
+    Uncovered:
+    Sum C, Sum A
+    Sum C, Nope
+    Nope, Sum A
+    Nope, Nope
+-}
