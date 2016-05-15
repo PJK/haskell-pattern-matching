@@ -74,7 +74,7 @@ desugarPattern x = [x]
 desugarGuard :: Guard -> PatternVector
 desugarGuard (ConstraintGuard constraint)
     = [(GuardPattern (ConstructorPattern "True" []) constraint, guardType)]
-
+desugarGuard _ = error "FIXME: implement lets and patternGuards"
 
 getTypedPatternVectors :: Function -> MayFail [PatternVector]
 getTypedPatternVectors (Function _ functionType patterns) = Right $
