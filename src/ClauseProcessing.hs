@@ -14,8 +14,13 @@ import           Debug.Trace
 
 -- | Extends map function to only work on the valueAbstraction component
 patMap :: (ValueAbstractionVector -> ValueAbstractionVector) -> ConditionedValueAbstractionSet -> ConditionedValueAbstractionSet
-patMap f CVAV {valueAbstraction=va, delta=delta}
-    = CVAV {valueAbstraction = map f va, delta = delta}
+patMap f
+    = map extendedF
+    where
+        extendedF :: ConditionedValueAbstractionVector -> ConditionedValueAbstractionVector
+        extendedF CVAV {valueAbstraction=va, delta=delta} = CVAV {valueAbstraction = f va, delta = delta}
+
+
 -- Based on Figure 3 of 'GADTs meet their match'
 
 --
@@ -24,28 +29,28 @@ patMap f CVAV {valueAbstraction=va, delta=delta}
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
 -- CNil
-coveredValues [] vav@ConditionedValueAbstractionVector {valueAbstraction=[], delta=delta}
+coveredValues [] vav@CVAV {valueAbstraction=[], delta=delta}
     = return [vav] -- Important: one empty set to start with, keep constraints
 
 -- TODO remove this once we have access to global types
 coveredValues x y | trace (show (x, y)) False = error "fail"
 coveredValues
     ((TruePattern, _):ps)
-    ConditionedValueAbstractionVector {valueAbstraction=(VariablePattern _:us), delta=delta}
+    CVAV {valueAbstraction=(VariablePattern _:us), delta=delta}
     = do
         -- ConVar + ConCon
-        subCovered <- coveredValues ps ConditionedValueAbstractionVector { }
+        subCovered <- coveredValues ps CVAV {valueAbstraction = us, delta = delta}
         return $ patMap (kcon (ConstructorPattern "True" [])) subCovered
 
 -- CConCon
 coveredValues
     ((ConstructorPattern pname args, _):ps)
-    ConditionedValueAbstractionVector {valueAbstraction=(ConstructorPattern vname up:us), delta=delta}
+    CVAV {valueAbstraction=(ConstructorPattern vname up:us), delta=delta}
         | pname == vname = do
             annArgs <- annotatePatterns args
             subs <- substitutePatterns up
-            cvs <- coveredValues (annArgs ++ ps) (subs ++ us)
-            return $ map (kcon (ConstructorPattern pname args)) cvs
+            cvs <- coveredValues (annArgs ++ ps) CVAV {valueAbstraction=subs ++ us, delta=delta}
+            return $ patMap (kcon (ConstructorPattern pname args)) cvs
         | otherwise      = return []
 
 -- CConVar
@@ -178,11 +183,16 @@ divergentValues pat values
 -- | Refines the VA of viable inputs using the pattern vector
 patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
 patVecProc ps s = do
-    cvs <- concat <$> mapM (coveredValues ps) s
+    cvs <- concat <$> valueAbstraction (mapM (coveredValues ps) (withNoConstraints s))
     uvs <- concat <$> mapM (uncoveredValues ps) s
     dvs <- concat <$> mapM (divergentValues ps) s
     return $ ClauseCoverage cvs uvs dvs
 
+-- | Constructs ConditionedValueAbstractionSet without any conditions on each abstraction
+withNoConstraints :: ValueAbstractionSet -> ConditionedValueAbstractionSet
+withNoConstraints
+    = map
+        (\vector -> CVAV {valueAbstraction = vector, delta = []})
 
 iteratedVecProc :: [PatternVector] -> ValueAbstractionSet -> Analyzer ExecutionTrace
 iteratedVecProc [] _ = return []
