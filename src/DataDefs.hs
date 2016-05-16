@@ -88,7 +88,6 @@ guardType = "__anonymous_guard_type"
 
 
 type SimpleTypeMap = Map.Map String [Pattern]
-type TypeMap = Map.Map String [(Pattern, String)]
 
 -- |(Pattern, name of type)
 type TypedPattern = (Pattern, Type)
