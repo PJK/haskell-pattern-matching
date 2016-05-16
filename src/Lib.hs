@@ -94,7 +94,7 @@ getTypedPatternVectors (Function _ functionType patterns) = Right $
         extractType t = case t of
                         FunctionType t1 t2 -> extractType t1 ++ extractType t2
                         TypeConstructor t  -> [TypeConstructor t]
-                        _ -> error "no way to extract a type from this"
+                        x -> error $ "no way to extract a type from " ++ show x
 
         patternsList = map (\xs -> case xs of Clause patterns -> patterns) patterns
 
