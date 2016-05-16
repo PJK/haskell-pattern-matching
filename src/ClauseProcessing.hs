@@ -203,20 +203,12 @@ addGuardConstraint (VariablePattern varName) constraint delta = (varName ++ " ~~
 addGuardConstraint _ _ _ = error "Can only require equality on variables"
 
 -- | Refines the VA of viable inputs using the pattern vector
-patVecProc :: PatternVector -> ValueAbstractionSet -> Analyzer ClauseCoverage
+patVecProc :: PatternVector -> ConditionedValueAbstractionSet -> Analyzer ClauseCoverage
 patVecProc ps s = do
-    cvs <- concat <$> mapM (coveredValues ps) initialCVAS
-    uvs <- concat <$> mapM (uncoveredValues ps) initialCVAS
-    dvs <- concat <$> mapM (divergentValues ps) initialCVAS
+    cvs <- concat <$> mapM (coveredValues ps) s
+    uvs <- concat <$> mapM (uncoveredValues ps) s
+    dvs <- concat <$> mapM (divergentValues ps) s
     return $ ClauseCoverage (extractValueAbstractions cvs) (extractValueAbstractions uvs) (extractValueAbstractions dvs)
-    where
-        initialCVAS = withNoConstraints s
-
--- | Constructs ConditionedValueAbstractionSet without any conditions on each abstraction
-withNoConstraints :: ValueAbstractionSet -> ConditionedValueAbstractionSet
-withNoConstraints
-    = map
-        (\vector -> CVAV {valueAbstraction = vector, delta = []})
 
 -- | SAT-check the constraints and return the abstractions
 extractValueAbstractions :: ConditionedValueAbstractionSet -> ConditionedValueAbstractionSet
@@ -224,7 +216,7 @@ extractValueAbstractions (cvav:vs)
     = trace ("Mock-SATing: " ++ show cvav) $ cvav:extractValueAbstractions vs
 extractValueAbstractions [] = []
 
-iteratedVecProc :: [PatternVector] -> ValueAbstractionSet -> Analyzer ExecutionTrace
+iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
 iteratedVecProc [] _ = return []
 iteratedVecProc (ps:pss) s = do
     res <- patVecProc ps s

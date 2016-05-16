@@ -49,11 +49,17 @@ processAssignment (AnalysisAssigment _ ast)
                 Left err -> AnalysisError $ ProcessError err
                 Right res -> AnalysisSuccess res
 
+-- | Constructs ConditionedValueAbstractionSet without any conditions on each abstraction
+withNoConstraints :: ValueAbstractionSet -> ConditionedValueAbstractionSet
+withNoConstraints
+    = map
+        (\vector -> CVAV {valueAbstraction = vector, delta = []})
+
 
 analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
 analyzeFunction (FunctionTarget fun) = do
     freshVars <- replicateM (length (head patterns)) freshVar
-    FunctionResult <$> iteratedVecProc desugaredPatterns [freshVars]
+    FunctionResult <$> iteratedVecProc desugaredPatterns (withNoConstraints [freshVars])
   where
     Right patterns = getTypedPatternVectors fun
     desugaredPatterns = map desugarPatternVector patterns
