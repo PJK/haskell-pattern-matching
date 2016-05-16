@@ -219,9 +219,9 @@ withNoConstraints
         (\vector -> CVAV {valueAbstraction = vector, delta = []})
 
 -- | SAT-check the constraints and return the abstractions
-extractValueAbstractions :: ConditionedValueAbstractionSet -> ValueAbstractionSet
+extractValueAbstractions :: ConditionedValueAbstractionSet -> ConditionedValueAbstractionSet
 extractValueAbstractions (cvav:vs)
-    = trace ("Mock-SATing: " ++ show cvav) $ valueAbstraction cvav:extractValueAbstractions vs
+    = trace ("Mock-SATing: " ++ show cvav) $ cvav:extractValueAbstractions vs
 extractValueAbstractions [] = []
 
 iteratedVecProc :: [PatternVector] -> ValueAbstractionSet -> Analyzer ExecutionTrace

@@ -50,11 +50,18 @@ instance FromJSON FunctionResult
 
 type ExecutionTrace = [ClauseCoverage]
 
+
+{-
+We also have to pass the constraints set: Consider
+f 1 = ... <- We cannot discard the substituted variable equality
+f 2 = ...
+-}
 data ClauseCoverage = ClauseCoverage
-    { capC :: ValueAbstractionSet
-    , capU :: ValueAbstractionSet
-    , capD :: ValueAbstractionSet
+    { capC :: ConditionedValueAbstractionSet
+    , capU :: ConditionedValueAbstractionSet
+    , capD :: ConditionedValueAbstractionSet
     } deriving (Show, Eq, Generic)
+
 
 instance ToJSON   ClauseCoverage
 instance FromJSON ClauseCoverage

@@ -101,9 +101,12 @@ type ValueAbstractionSet = [ValueAbstractionVector]
 data ConditionedValueAbstractionVector = CVAV
     { valueAbstraction :: ValueAbstractionVector
     , delta            :: [Constraint]
-    } deriving (Show, Eq)
+    } deriving (Show, Eq, Generic)
 
 type ConditionedValueAbstractionSet = [ConditionedValueAbstractionVector]
+
+instance ToJSON   ConditionedValueAbstractionVector
+instance FromJSON ConditionedValueAbstractionVector
 
 instance ToJSON   Pattern
 instance FromJSON Pattern
