@@ -13,6 +13,7 @@ import           Data.Maybe               (catMaybes)
 import           Data.Aeson.Encode.Pretty (encodePretty)
 import qualified Data.ByteString.Lazy     as LB
 import           DataDefs
+import           Debug.Trace
 import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
                                            Pretty, Type (..), prettyPrint)
 import qualified Language.Haskell.Exts    as H
@@ -94,7 +95,8 @@ getTypedPatternVectors (Function _ functionType patterns) = Right $
         extractType t = case t of
                         FunctionType t1 t2 -> extractType t1 ++ extractType t2
                         TypeConstructor t  -> [TypeConstructor t]
-                        x -> error $ "no way to extract a type from " ++ show x
+                        x -> [x]
+                        -- x -> error $ "no way to extract a type from " ++ show x
 
         patternsList = map (\xs -> case xs of Clause patterns -> patterns) patterns
 
@@ -134,7 +136,7 @@ getTypes :: Module -> MayFail [DataType]
 getTypes (Module _ _ _ _ _ _ decls)
     = do
         gatheredDefs <- catMaybes <$> mapM go decls -- Add builtins
-        return $ builtinTypes ++ gatheredDefs
+        return $ trace (show $ builtinTypes ++ gatheredDefs) (builtinTypes ++ gatheredDefs)
   where
     -- TODO make go total: use Either as a monad to collect why a datatype cannot be used.
     go :: Decl -> MayFail (Maybe DataType)
