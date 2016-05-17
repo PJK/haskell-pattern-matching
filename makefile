@@ -7,14 +7,12 @@ install: FORCE
 pedantic: FORCE
 	stack clean
 	stack build \
-    --pedantic \
     --fast \
     --jobs=8 \
     --ghc-options="\
         -fforce-recomp \
         -O0 \
         -Wall \
-        -Werror \
         -fwarn-unused-imports \
         -fwarn-incomplete-patterns \
         -fwarn-unused-do-bind \
