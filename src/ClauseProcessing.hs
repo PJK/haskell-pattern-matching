@@ -6,9 +6,9 @@ import           Control.Monad.State
 
 import qualified Data.Map             as Map
 import           DataDefs
+import           Debug.Trace
 import           Types
 import           Util
-import           Debug.Trace
 
 
 
@@ -239,7 +239,7 @@ kcon _ _ = error "Only constructor patterns"
 freshVar :: Analyzer Pattern
 freshVar = do
     i <- gets nextFreshVarName
-    modify (\s -> s { nextFreshVarName = i + 1} )
+    modify (\s -> s { nextFreshVarName = i + 1 } )
     return $ VariablePattern $ "fresh" ++ show i
 
 -- | Replace PlaceHolderPatterns with appropriate fresh variables
