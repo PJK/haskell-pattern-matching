@@ -52,6 +52,8 @@ test-suite patterns-test
   hs-source-dirs:      test
   main-is:             MainTest.hs
   other-modules:       LibSpec
+                       GathererSpec
+                       TestUtils
   build-depends:       base
                      , patterns
                      , hspec                  >= 2.2   && < 2.3

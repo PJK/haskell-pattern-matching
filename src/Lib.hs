@@ -6,11 +6,6 @@ import           Control.Monad            (replicateM)
 import           Control.Monad.Except     (runExceptT)
 import           Control.Monad.Reader     (runReader)
 import           Control.Monad.State      (evalStateT)
-import           Data.List                (nub)
-import qualified Data.Map                 as Map
-import           Data.Maybe               (catMaybes)
-import           TH                       (litFile)
--- import           Data.SBV
 import           Data.Aeson.Encode.Pretty (encodePretty)
 import qualified Data.ByteString.Lazy     as LB
 import           DataDefs

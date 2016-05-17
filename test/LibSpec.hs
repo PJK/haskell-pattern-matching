@@ -4,12 +4,8 @@ import           Control.Monad            (forM_, unless)
 import           Data.Aeson               (eitherDecode)
 import           Data.Aeson.Encode.Pretty (encodePretty)
 import qualified Data.ByteString.Lazy     as LB
-import           Data.Either              (isLeft, isRight)
-import           Language.Haskell.Exts    (fromParseResult, parseFile)
 import           Lib
-import           System.Directory         (doesFileExist, listDirectory,
-                                           withCurrentDirectory)
-import           System.FilePath.Posix    (takeExtension, (</>))
+import           System.Directory         (doesFileExist, withCurrentDirectory)
 import           Test.Hspec
 import           TestUtils
 

@@ -1,15 +1,8 @@
 module GathererSpec (spec) where
 
-import           Control.Monad            (forM_, unless)
-import           Data.Aeson               (eitherDecode)
-import           Data.Aeson.Encode.Pretty (encodePretty)
-import qualified Data.ByteString.Lazy     as LB
-import           Data.Either              (isLeft, isRight)
+import           Data.Either           (isLeft, isRight)
 import           Gatherer
-import           Language.Haskell.Exts    (fromParseResult, parseFile)
-import           System.Directory         (doesFileExist, listDirectory,
-                                           withCurrentDirectory)
-import           System.FilePath.Posix    (takeExtension, (</>))
+import           Language.Haskell.Exts (fromParseResult, parseFile)
 import           Test.Hspec
 import           TestUtils
 
@@ -25,7 +18,11 @@ blackBoxParseTests :: Spec
 blackBoxParseTests = do
     describe "Parse tests" $ do
         describe "Expected successful parses" $ do
-            forSourcesIn "data/shouldParse" $ \fp -> do
+            forSourcesInDirs
+                [ "data/shouldParse"
+                , "data/exact"
+                ]
+                $ \fp -> do
                 ast <- fromParseResult <$> parseFile fp
                 getTypes ast `shouldSatisfy` isRight
                 getFunctions ast `shouldSatisfy` isRight

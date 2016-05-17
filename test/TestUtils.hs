@@ -1,8 +1,7 @@
 module TestUtils where
 
 import           Control.Monad         (forM_)
-import           System.Directory      (doesFileExist, listDirectory,
-                                        withCurrentDirectory)
+import           System.Directory      (listDirectory)
 import           System.FilePath.Posix (takeExtension, (</>))
 import           Test.Hspec
 
@@ -17,7 +16,10 @@ sourceFiles dir
 
 -- | Sets up a test case for every sourcefile in the given dir path
 forSourcesIn :: FilePath -> (FilePath -> IO ()) -> Spec
-forSourcesIn dir func = do
+forSourcesIn dir = forSourcesInDirs [dir]
+
+forSourcesInDirs :: [FilePath] -> (FilePath -> IO ()) -> Spec
+forSourcesInDirs dirs func = forM_ dirs $ \dir -> do
     sfs <- runIO $ sourceFiles dir
     forM_ sfs $ \fp -> it fp $ func fp
 
