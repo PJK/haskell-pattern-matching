@@ -91,7 +91,7 @@ coveredValues pat values
 --
 uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-uncoveredValues x y | trace (show (x, y)) False = error "fail"
+-- uncoveredValues x y | trace (show (x, y)) False = error "fail"
 
 -- UNil
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
@@ -213,7 +213,7 @@ patVecProc ps s = do
 -- | SAT-check the constraints and return the abstractions
 extractValueAbstractions :: ConditionedValueAbstractionSet -> ConditionedValueAbstractionSet
 extractValueAbstractions (cvav:vs)
-    = trace ("Mock-SATing: " ++ show cvav) $ cvav:extractValueAbstractions vs
+    = {- trace ("Mock-SATing: " ++ show cvav) $ -} cvav:extractValueAbstractions vs
 extractValueAbstractions [] = []
 
 iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace

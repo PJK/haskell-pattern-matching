@@ -146,6 +146,7 @@ getFunctions (Module _ _ _ _ _ _ decls) = do
 
 mkQname :: H.QName -> MayFail Name
 mkQname (UnQual n) = mkName n
+mkQname (Special _) = err $ "Tried to use a special name qualification, not sure what to do with that yet."
 mkQname a = err $ "Unsupported name qualification: " ++ show a
 
 mkName :: H.Name -> MayFail Name
@@ -159,6 +160,7 @@ mkType (H.TyApp t1 t2) = TypeApplication <$> mkType t1 <*> mkType t2
 mkType (H.TyVar n) = VariableType <$> mkName n
 mkType (H.TyCon qn) = TypeConstructor <$> mkQname qn
 mkType (H.TyBang _ _) = err "Banged types/Unpacked types not supported"
+mkType (H.TyList t) = ListType <$> mkType t
 mkType a = err $ "Unsupported type declaration: " ++ show a
 
 mkPattern :: Pat -> MayFail Pattern
@@ -171,6 +173,7 @@ mkPattern (PAsPat _ pat) = mkPattern pat
 mkPattern PWildCard = return WildcardPattern
 mkPattern (PBangPat pat) = mkPattern pat
 mkPattern (PParen pat) = mkPattern pat
+mkPattern (PInfixApp h cons t) = InfixConstructorPattern <$> mkPattern h <*> mkQname cons <*> mkPattern t
 mkPattern a = err $ "Unsupported pattern: " ++ show a
 
 -- Compile the base datatypes into the binary.

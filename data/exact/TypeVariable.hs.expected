@@ -1,0 +1,10 @@
+{
+    "tag": "AnalysisError",
+    "contents": {
+        "tag": "ProcessError",
+        "contents": {
+            "tag": "TypeNotFound",
+            "contents": "Type lookup for constructor VariablePattern \"x\" failed"
+        }
+    }
+}

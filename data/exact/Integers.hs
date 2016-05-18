@@ -1,6 +1,6 @@
 module Integers where
 
-odd :: Int -> Boolean
+odd :: Int -> Bool
 odd 1
     | 1 + 1 > 4 = True
     | otherwise = False

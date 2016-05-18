@@ -65,6 +65,7 @@ data Pattern
     | ConstructorPattern Name [Pattern] -- ^ Data constructor: Node Leaf Leaf
     | TuplePattern [Pattern] -- ^ Tuple: (a, b, ..., z)
     | ListPattern [Pattern] -- ^ List: [a, b, ..., z]
+    | InfixConstructorPattern Pattern Name Pattern -- Name will be a symbol, this is used for lists, for example.
     | WildcardPattern
     | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
     | GuardPattern Pattern Constraint

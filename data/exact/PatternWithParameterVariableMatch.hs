@@ -2,10 +2,6 @@ module PatternWithParameterVariableMatch where
 
 data MyTrinary = A | B | C
 
-data MyBool
-    = True
-    | False
-
 data MyMaybe = Sum MyTrinary | Nope
 
 extract :: MyMaybe -> MyMaybe -> MyTrinary
