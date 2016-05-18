@@ -12,6 +12,10 @@ setup-info:
       8.0.0.20160421:
         url: https://downloads.haskell.org/~ghc/8.0.1-rc4/ghc-8.0.0.20160421-x86_64-deb8-linux.tar.xz
         sha1: 6e8bd7c96fa46da0b8c12bf9d62f006940adfe67
+    macosx:
+      8.0.0.20160421:
+        url: https://downloads.haskell.org/~ghc/8.0.1-rc4/ghc-8.0.0.20160421-x86_64-apple-darwin.tar.xz
+        sha1: f1b60c26bd29f48e03f0881034bcaaa3d53b925f
 extra-deps:
 - HUnit-1.3.1.1
 - QuickCheck-2.8.2
