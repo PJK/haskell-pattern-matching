@@ -6,9 +6,9 @@ import           Control.Monad.State
 
 import qualified Data.Map             as Map
 import           DataDefs
+import           Debug.Trace
 import           Types
 import           Util
-import           Debug.Trace
 
 
 
@@ -91,7 +91,7 @@ coveredValues pat values
 --
 uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-uncoveredValues x y | trace (show (x, y)) False = error "fail"
+-- uncoveredValues x y | trace (show (x, y)) False = error "fail"
 
 -- UNil
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
@@ -213,7 +213,7 @@ patVecProc ps s = do
 -- | SAT-check the constraints and return the abstractions
 extractValueAbstractions :: ConditionedValueAbstractionSet -> ConditionedValueAbstractionSet
 extractValueAbstractions (cvav:vs)
-    = trace ("Mock-SATing: " ++ show cvav) $ cvav:extractValueAbstractions vs
+    = {- trace ("Mock-SATing: " ++ show cvav) $ -} cvav:extractValueAbstractions vs
 extractValueAbstractions [] = []
 
 iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
@@ -239,7 +239,7 @@ kcon _ _ = error "Only constructor patterns"
 freshVar :: Analyzer Pattern
 freshVar = do
     i <- gets nextFreshVarName
-    modify (\s -> s { nextFreshVarName = i + 1} )
+    modify (\s -> s { nextFreshVarName = i + 1 } )
     return $ VariablePattern $ "fresh" ++ show i
 
 -- | Replace PlaceHolderPatterns with appropriate fresh variables

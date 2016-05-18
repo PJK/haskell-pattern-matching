@@ -1,20 +1,21 @@
 name:                patterns
 version:             0.1.0.0
-synopsis:            Initial project template from stack
+synopsis:            Pattern matching program analysis
 description:         Please see README.md
 homepage:            https://github.com/githubuser/patterns#readme
 license:             BSD3
 license-file:        LICENSE
-author:              Author name here
-maintainer:          example@example.com
-copyright:           2016 Author name here
-category:            Web
+author:              Pavel Kalvoda and Tom Sydney Kerckhove
+maintainer:          syd.kerckhove@gmail.com
+copyright:           2016 Pavel Kalvoda and Tom Sydney Kerckhove
+category:            System
 build-type:          Simple
 -- extra-source-files:
 cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
+  ghc-options:         -package ghc
   exposed-modules:     Lib
                      , Util
                      , ClauseProcessing
@@ -22,31 +23,37 @@ library
                      , OptParse
                      , OptParse.Types
                      , Types
-  build-depends:       base >= 4.7 && < 5
+                     , Gatherer
+                     , TH
+  build-depends:       base                   >= 4.9   && < 5
                      , containers             >= 0.5   && < 0.6
                      , haskell-src-exts       >= 1.17  && < 1.18
-                     , ghc                    >= 7.10  && < 7.11
+                     , ghc                    >= 8.0   && < 8.1
                      , aeson-pretty           >= 0.7   && < 0.8
                      , aeson                  >= 0.11  && < 0.12
                      , bytestring             >= 0.10  && < 0.11
-                     , sbv                    >= 5.11  && < 5.12
+                     , sbv                    >= 5.11  && < 5.13
                      , optparse-applicative   >= 0.12  && < 0.13
                      , mtl                    >= 2.2   && < 2.3
+                     , template-haskell       >= 2.11  && < 2.12
   default-language:    Haskell2010
 
 executable patterns
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -package ghc
   build-depends:       base
                      , patterns
   default-language:    Haskell2010
 
 test-suite patterns-test
   type:                exitcode-stdio-1.0
+  ghc-options:         -package ghc
   hs-source-dirs:      test
   main-is:             MainTest.hs
   other-modules:       LibSpec
+                       GathererSpec
+                       TestUtils
   build-depends:       base
                      , patterns
                      , hspec                  >= 2.2   && < 2.3

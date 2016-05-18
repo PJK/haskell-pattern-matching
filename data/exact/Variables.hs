@@ -1,9 +1,5 @@
 module Variables where
 
-data MyBool
-    = True
-    | False
-
 -- f :: MyBool -> MyBool -> Integer
 -- f True y = 4
 -- f x y = 3
@@ -20,6 +16,6 @@ data MyTrinary = A | B | C
 
 data MyMaybe = Sum MyTrinary | Nope
 
-extract :: MyMaybe -> MyBool -> MyTrinary
+extract :: MyMaybe -> Bool -> MyTrinary
 extract (Sum x) False = x
-extract (Sum C) True = x
+extract (Sum C) True = C

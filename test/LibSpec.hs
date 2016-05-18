@@ -4,13 +4,10 @@ import           Control.Monad            (forM_, unless)
 import           Data.Aeson               (eitherDecode)
 import           Data.Aeson.Encode.Pretty (encodePretty)
 import qualified Data.ByteString.Lazy     as LB
-import           Data.Either              (isLeft, isRight)
-import           Language.Haskell.Exts    (fromParseResult, parseFile)
 import           Lib
-import           System.Directory         (doesFileExist, listDirectory,
-                                           withCurrentDirectory)
-import           System.FilePath.Posix    (takeExtension, (</>))
+import           System.Directory         (doesFileExist, withCurrentDirectory)
 import           Test.Hspec
+import           TestUtils
 
 spec :: Spec
 spec = do
@@ -19,7 +16,6 @@ spec = do
 blackBoxSpec :: Spec
 blackBoxSpec = describe "Black box tests" $ do
     blackBoxExactTests
-    blackBoxParseTests
 
 resultFileFor :: FilePath -> FilePath
 resultFileFor fp = fp ++ ".expected"
@@ -46,35 +42,3 @@ blackBoxExactTests = describe "Black box tests" $ do
             eC <- LB.readFile rfp
             actual <- processTarget fp
             eitherDecode eC `shouldBe` Right actual -- This implicitly checks that decoding succeeds.
-
-blackBoxParseTests :: Spec
-blackBoxParseTests = do
-    describe "Parse tests" $ do
-        describe "Expected successful parses" $ do
-            forSourcesIn "data/shouldParse" $ \fp -> do
-                ast <- fromParseResult <$> parseFile fp
-                getTypes ast `shouldSatisfy` isRight
-                getFunctions ast `shouldSatisfy` isRight
-
-        describe "Expected unsuccessful parses" $ do
-            forSourcesIn "data/shouldNotParse" $ \fp -> do
-                ast <- fromParseResult <$> parseFile fp
-                let ress = (,) <$> getTypes ast <*> getFunctions ast
-                ress `shouldSatisfy` isLeft
-
--- List the source files in a given directory
-sourceFiles :: FilePath -> IO [FilePath]
-sourceFiles dir
-    =   map (\f -> dir </> f)
-    <$> filter (\f -> takeExtension f == ".hs")
-    <$> listDirectory dir
-
-
--- | Sets up a test case for every sourcefile in the given dir path
-forSourcesIn :: FilePath -> (FilePath -> IO ()) -> Spec
-forSourcesIn dir func = do
-    sfs <- runIO $ sourceFiles dir
-    forM_ sfs $ \fp -> it fp $ func fp
-
-
-
