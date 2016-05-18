@@ -10,9 +10,6 @@ import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
 import qualified Language.Haskell.Exts as H
 
--- Input:
---   - Context of datatypes (but not other functions)
---   - AST of function (but no need for RHS)
 type Name = String
 
 data DataType

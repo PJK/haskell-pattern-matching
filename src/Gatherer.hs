@@ -146,7 +146,7 @@ getFunctions (Module _ _ _ _ _ _ decls) = do
 
 mkQname :: H.QName -> MayFail Name
 mkQname (UnQual n) = mkName n
-mkQname (Special _) = err $ "Tried to use a special name qualification, not sure what to do with that yet."
+mkQname (Special _) = err "Tried to use a special name qualification, not sure what to do with that yet."
 mkQname a = err $ "Unsupported name qualification: " ++ show a
 
 mkName :: H.Name -> MayFail Name
