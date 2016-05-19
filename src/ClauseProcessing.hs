@@ -218,11 +218,11 @@ extractValueAbstractions (cvav:vs)
     = {- trace ("Mock-SATing: " ++ show cvav) $ -} cvav:extractValueAbstractions vs
 extractValueAbstractions [] = []
 
-iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
-iteratedVecProc [] _ = return []
-iteratedVecProc (ps:pss) s = do
+iteratedVecProc :: [PatternVector] -> [Binding] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
+iteratedVecProc [] [] _ = return []
+iteratedVecProc (ps:pss) (g:gs) s = do
     res <- patVecProc ps s
-    rest <- iteratedVecProc pss (capU res)
+    rest <- iteratedVecProc pss gs (capU res)
     return $ res : rest
 
 -- |Coverage vector concatenation

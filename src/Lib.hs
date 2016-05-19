@@ -13,6 +13,7 @@ import           Debug.Trace
 import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
                                            Pretty, Type (..), prettyPrint)
 import           Language.Haskell.Exts    (fromParseResult, parseFile)
+import qualified Data.Map                 as Map
 import           Gatherer
 import           OptParse
 import           OptParse.Types
@@ -52,14 +53,15 @@ processAssignment (AnalysisAssigment _ ast)
 withNoConstraints :: ValueAbstractionSet -> ConditionedValueAbstractionSet
 withNoConstraints
     = map
-        (\vector -> CVAV {valueAbstraction = vector, delta = []})
+        (\vector -> CVAV {valueAbstraction = vector, delta = [], gamma = Map.fromList []})
 
 
 analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
 analyzeFunction (FunctionTarget fun) = do
     freshVars <- replicateM (length (head patterns)) freshVar
-    FunctionResult <$> iteratedVecProc desugaredPatterns (withNoConstraints [freshVars])
+    let initialAbstraction = withNoConstraints [freshVars]
+    FunctionResult <$> iteratedVecProc desugaredPatterns gammas initialAbstraction
   where
     Right patterns = getTypedPatternVectors fun
     desugaredPatterns = map desugarPatternVector patterns
-    gammas = initialGammas fun
+    Right gammas = initialGammas fun
