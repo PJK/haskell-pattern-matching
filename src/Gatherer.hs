@@ -15,17 +15,25 @@ import           Types
 
 type MayFail = Either GatherError
 
+signFact :: Num a => Sign -> a
+signFact Signless = 1
+signFact Negative = -1
+
 -- | Transforms all patterns into the standard form (See figure 7)
 desugarPattern :: TypedPattern -> PatternVector
-desugarPattern (LiteralPattern sign literal, _)
-    = (VariablePattern "__x", "__guard_var"):desugarGuard (ConstraintGuard equality)
-    where
-        showSign Signless = []
-        showSign Negative = "-"
-        equality = "__x = " ++ showSign sign ++ show literal
+desugarPattern (LiteralPattern sign (Frac f), _)
+    = (VariablePattern var, "__guard_var"):desugarGuard (ConstraintGuard $ BoolExp $ FracBoolOp FracEQ (FracVar var) (FracLit f))
+    where var = "__x"
+
+desugarPattern (LiteralPattern sign (Int i), _)
+    = (VariablePattern var, "__guard_var"):desugarGuard (ConstraintGuard $ BoolExp $ IntBoolOp IntEQ (IntVar var) (IntLit i))
+    where var = "__x"
+
 desugarPattern (WildcardPattern, wildcardType)
-    = [(VariablePattern "_", wildcardType)] -- Replace with Variable of same type
+    = [(VariablePattern "_", wildcardType)] -- TODO Replace with Variable of same type
 desugarPattern x = [x]
+
+
 
 desugarGuard :: Guard -> PatternVector
 desugarGuard (ConstraintGuard constraint)

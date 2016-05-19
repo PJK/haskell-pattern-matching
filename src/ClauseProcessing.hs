@@ -63,7 +63,7 @@ coveredValues
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta}
     = do
         substituted <- substituteFreshParameters k
-        let delta' = (varName ++ " ~~ " ++ show substituted):delta
+        let delta' = (Uncheckable $ varName ++ " ~~ " ++ show substituted):delta
         coveredValues (kk:ps) CVAV {valueAbstraction=substituted:us, delta=delta'}
 
 -- CVar
@@ -71,7 +71,7 @@ coveredValues
     ((VariablePattern varName, _):ps)
     CVAV {valueAbstraction=(u:us), delta=delta}
     = do
-        let delta' = (varName ++ " ~~ " ++ show u):delta
+        let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
         cvs <- coveredValues ps CVAV {valueAbstraction=us, delta=delta'}
         return $ patMap (ucon u) cvs
 
@@ -118,7 +118,7 @@ uncoveredValues
         allConstructors <- lookupConstructors typeName
         allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
         uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
-            let delta' = (varName ++ " ~~ " ++ show constructor):delta in
+            let delta' = (Uncheckable $ varName ++ " ~~ " ++ show constructor):delta in
                 uncoveredValues (p:ps) CVAV {valueAbstraction=constructor:us, delta=delta'}
         return $ concat uvs
 
@@ -127,7 +127,7 @@ uncoveredValues
     ((VariablePattern varName, _):ps)
     CVAV {valueAbstraction=(u:us), delta=delta}
     = do
-        let delta' = (varName ++ " ~~ " ++ show u):delta
+        let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
         cvs <- uncoveredValues ps CVAV {valueAbstraction=us, delta=delta'}
         return $ patMap (ucon u) cvs
 
@@ -172,8 +172,8 @@ divergentValues
     CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta}
         = do
             substituted <- substituteFreshParameters pc
-            let delta' = (varName ++ " ~~ " ++ show substituted):delta
-            let deltaBot = (varName ++ "~~" ++ "bottom"):delta
+            let delta' = (Uncheckable $ varName ++ " ~~ " ++ show substituted):delta
+            let deltaBot = (Uncheckable $ varName ++ "~~" ++ "bottom"):delta
             dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta'}
             return $ CVAV {valueAbstraction = var:us, delta = deltaBot}:dvs
 
@@ -182,7 +182,7 @@ divergentValues
     ((VariablePattern varName, _):ps)
     CVAV {valueAbstraction=(u:us), delta=delta}
     = do
-        let delta' = (varName ++ " ~~ " ++ show u):delta
+        let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
         cvs <- divergentValues ps CVAV {valueAbstraction=us, delta=delta'}
         return $ patMap (ucon u) cvs
 
@@ -199,7 +199,7 @@ divergentValues pat values
 
 
 addGuardConstraint :: Pattern -> Constraint -> [Constraint] -> [Constraint]
-addGuardConstraint (VariablePattern varName) constraint delta = (varName ++ " ~~ " ++ show constraint):delta
+addGuardConstraint (VariablePattern varName) constraint delta = (Uncheckable $ varName ++ " ~~ " ++ show constraint):delta
 addGuardConstraint _ _ _ = error "Can only require equality on variables"
 
 -- | Refines the VA of viable inputs using the pattern vector

@@ -48,28 +48,74 @@ data Clause -- No need to include the right-hand side. We're only doing our anal
       [Pattern] -- ^ The patterns to match for this clause, one for each argument.
   deriving (Show, Eq)
 
--- | TODO these should model constraints arising from guards.
-type Constraint = SVBConstraint
-
-data SVBConstraint
+data Constraint
     = BoolExp BoolE
-    | IntExp IntE
+    | Uncheckable String
+  deriving (Show, Eq, Generic, Ord)
+
+instance ToJSON   Constraint
+instance FromJSON Constraint
 
 data BoolE
     = LitBool Bool
     | BoolVar String
-    | BoolUnOp BoolUnOp BoolE
+    | BoolNot BoolE
     | BoolOp BoolBinOp BoolE
     | IntBoolOp IntBoolBinOp IntE IntE
+    | FracBoolOp FracBoolBinOp FracE FracE
+  deriving (Show, Eq, Generic, Ord)
 
-data BoolUnOp
-    = BoolNot
+instance ToJSON   BoolE
+instance FromJSON BoolE
 
 data BoolBinOp
     = BoolAnd
     | BoolOr
     | BoolEQ
     | BoolNEQ
+  deriving (Show, Eq, Generic, Ord)
+
+instance ToJSON   BoolBinOp
+instance FromJSON BoolBinOp
+
+data FracE
+    = FracLit Rational
+    | FracVar String
+    | FracUnOp FracUnOp FracE
+    | FracOp FracBinOp FracE FracE
+  deriving (Show, Eq, Generic, Ord)
+
+instance ToJSON   FracE
+instance FromJSON FracE
+
+data FracUnOp
+    = FracNeg
+  deriving (Show, Eq, Generic, Ord)
+
+instance ToJSON   FracUnOp
+instance FromJSON FracUnOp
+
+data FracBinOp
+    = FracPlus
+    | FracMin
+    | FracTimes
+    | FracDiv
+  deriving (Show, Eq, Generic, Ord)
+
+instance ToJSON   FracBinOp
+instance FromJSON FracBinOp
+
+data FracBoolBinOp
+    = FracLT
+    | FracLE
+    | FracGT
+    | FracGE
+    | FracEQ
+    | FracNEQ
+  deriving (Show, Eq, Generic, Ord)
+
+instance ToJSON   FracBoolBinOp
+instance FromJSON FracBoolBinOp
 
 data IntBoolBinOp
     = IntLT
@@ -78,15 +124,27 @@ data IntBoolBinOp
     | IntGE
     | IntEQ
     | IntNEQ
+  deriving (Show, Eq, Generic, Ord)
+
+instance ToJSON   IntBoolBinOp
+instance FromJSON IntBoolBinOp
 
 data IntE
-    = LitInt Int
+    = IntLit Integer
     | IntVar String
     | IntUnOp IntUnOp IntE
     | IntOp IntBinOp IntE IntE
+  deriving (Show, Eq, Generic, Ord)
+
+instance ToJSON   IntE
+instance FromJSON IntE
 
 data IntUnOp
-    = IntMin
+    = IntNeg
+  deriving (Show, Eq, Generic, Ord)
+
+instance ToJSON   IntUnOp
+instance FromJSON IntUnOp
 
 data IntBinOp
     = IntPlus
@@ -94,11 +152,16 @@ data IntBinOp
     | IntMinus
     | IntDiv
     | IntMod
+  deriving (Show, Eq, Generic, Ord)
+
+instance ToJSON   IntBinOp
+instance FromJSON IntBinOp
 
 data Guard
     = ConstraintGuard Constraint
     | PatternGuard Pattern Constraint
     | LetGuard Pattern Constraint
+  deriving (Show, Eq, Generic, Ord)
 
 data Pattern
     = VariablePattern Name -- ^ Variable: a
@@ -169,7 +232,7 @@ instance Pretty Pattern where
     pretty (ListPattern pats) = list $ map pretty pats
     pretty WildcardPattern = "_"
     pretty PlaceHolderPattern = "<placeholder>"
-    pretty (GuardPattern _ const) = "Gbar(" ++ const ++ ")"
+    pretty (GuardPattern pat const) = "Gbar(" ++ pretty pat ++ ", " ++ show const ++ ")"
 
 
 pars :: String -> String
