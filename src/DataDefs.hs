@@ -33,7 +33,10 @@ data Type
     | TypeApplication Type Type -- ^ Application of type constructor: Tree a
     | VariableType Name -- ^ Type variable: a
     | TypeConstructor Name -- ^ Named constructor: Tree
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON   Type
+instance FromJSON Type
 
 
 data Function
@@ -41,12 +44,19 @@ data Function
       Name
       Type -- We'll only deal with explicitly typed functions, for now.
       [Clause]
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON   Function
+instance FromJSON Function
 
 data Clause -- No need to include the right-hand side. We're only doing our analysis on the left part anyway.
     = Clause
       [Pattern] -- ^ The patterns to match for this clause, one for each argument.
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON   Clause
+instance FromJSON Clause
+
 
 data Constraint
     = BoolExp BoolE

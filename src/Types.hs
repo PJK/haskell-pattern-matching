@@ -20,18 +20,36 @@ data AnalysisAssigment
 
 data AnalysisResult
     = AnalysisError AnalysisError
-    | AnalysisSuccess [FunctionResult] -- TODO replace with recommendations instead
+    | AnalysisSuccess [Recommendation] -- TODO add the evaluatedness of functions
     deriving (Show, Eq, Generic)
 
-instance ToJSON AnalysisResult
+instance ToJSON   AnalysisResult
 instance FromJSON AnalysisResult
+
+data Recommendation
+    = Recommendation
+        Name -- ^ Function name
+        RecommendationReason
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   Recommendation
+instance FromJSON Recommendation
+
+data RecommendationReason
+    = NonExhaustive [Clause] -- Missing clause, namely these
+    | Redundant Clause -- Redundant Clause
+    | InaccessibleRhs Clause -- Clause with inaccessible right-hand side
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   RecommendationReason
+instance FromJSON RecommendationReason
 
 data AnalysisError
     = GatherError GatherError -- ^ Something went wrong while scraping functions
     | ProcessError AnalyzerError -- ^ Something went wrong during clause processing
     deriving (Show, Eq, Generic)
 
-instance ToJSON AnalysisError
+instance ToJSON   AnalysisError
 instance FromJSON AnalysisError
 
 type GatherError = String
@@ -39,7 +57,10 @@ type GatherError = String
 data FunctionTarget
     = FunctionTarget Function
     -- TODO add SrcLoc for printing later
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   FunctionTarget
+instance FromJSON FunctionTarget
 
 data FunctionResult
     = FunctionResult ExecutionTrace
