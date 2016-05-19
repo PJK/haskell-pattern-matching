@@ -35,6 +35,8 @@ processTarget inputFile = do
         res = processAssignment ass
     return res
 
+    -- TODO name conflicts in variable patterns
+
 processAssignment :: AnalysisAssigment -> AnalysisResult
 processAssignment (AnalysisAssigment _ ast)
     = case (,) <$> getFunctions ast <*> getPlainTypeConstructorsMap ast of
@@ -60,3 +62,4 @@ analyzeFunction (FunctionTarget fun) = do
   where
     Right patterns = getTypedPatternVectors fun
     desugaredPatterns = map desugarPatternVector patterns
+    gammas = initialGammas fun
