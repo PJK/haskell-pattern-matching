@@ -5,6 +5,7 @@ import           Data.List             (nub)
 import qualified Data.Map              as Map
 import           Data.Maybe            (catMaybes)
 import           DataDefs
+import           Debug.Trace
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
 import qualified Language.Haskell.Exts as H
@@ -63,11 +64,12 @@ initialGammas (Function _ functionType patterns)
     = Right $ map (buildGamma functionTypes) (patternsList patterns)
     where
         functionTypes = extractType functionType
+
         buildGamma :: [Type] -> [Pattern] -> Binding
         buildGamma (t:ts) (VariablePattern name:ps)
             = Map.insert name t (buildGamma ts ps)
         buildGamma (_:ts) (_:ps) = buildGamma ts ps
-        buildGamma [] []         = Map.fromList []
+        buildGamma [_] []        = Map.fromList [] -- One extra element for return type
 
 getTypesMap :: Module -> MayFail (Map.Map String [Constructor])
 getTypesMap mod = do
