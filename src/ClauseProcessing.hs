@@ -216,6 +216,7 @@ extractValueAbstractions (cvav:vs)
     = {- trace ("Mock-SATing: " ++ show cvav) $ -} cvav:extractValueAbstractions vs
 extractValueAbstractions [] = []
 
+
 iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
 iteratedVecProc [] _ = return []
 iteratedVecProc (ps:pss) s = do

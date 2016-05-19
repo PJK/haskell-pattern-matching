@@ -52,7 +52,51 @@ data Clause -- No need to include the right-hand side. We're only doing our anal
   deriving (Show, Eq)
 
 -- | TODO these should model constraints arising from guards.
-type Constraint = String
+type Constraint = SVBConstraint
+
+data SVBConstraint
+    = BoolExp BoolE
+    | IntExp IntE
+
+data BoolE
+    = LitBool Bool
+    | BoolVar String
+    | BoolUnOp BoolUnOp BoolE
+    | BoolOp BoolBinOp BoolE
+    | IntBoolOp IntBoolBinOp IntE IntE
+
+data BoolUnOp
+    = BoolNot
+
+data BoolBinOp
+    = BoolAnd
+    | BoolOr
+    | BoolEQ
+    | BoolNEQ
+
+data IntBoolBinOp
+    = IntLT
+    | IntLE
+    | IntGT
+    | IntGE
+    | IntEQ
+    | IntNEQ
+
+data IntE
+    = LitInt Int
+    | IntVar String
+    | IntUnOp IntUnOp IntE
+    | IntOp IntBinOp IntE IntE
+
+data IntUnOp
+    = IntMin
+
+data IntBinOp
+    = IntPlus
+    | IntTimes
+    | IntMinus
+    | IntDiv
+    | IntMod
 
 data Guard
     = ConstraintGuard Constraint
