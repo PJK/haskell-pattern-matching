@@ -42,7 +42,7 @@ guardHandler func p constraint ps us delta gamma
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
---coveredValues x y | trace ("covered: " ++ show (x, gamma y)) False = error "fail"
+coveredValues x y | trace ("covered: " ++ show (x, y)) False = error "fail"
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}
@@ -106,11 +106,11 @@ uncoveredValues
     CVAV {valueAbstraction=(kv@(ConstructorPattern vname up):us), delta=delta, gamma=gamma}
         | pname == vname = do
             annArgs <- annotatePatterns pargs
-            uvs <- uncoveredValues (annArgs ++ ps) CVAV {valueAbstraction=up ++ us, delta=delta}
+            uvs <- uncoveredValues (annArgs ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
             return $ patMap (kcon k) uvs
         | otherwise      = do
             substitute <- substituteFreshParameters kv
-            return [CVAV {valueAbstraction = substitute:us, delta = delta, gamma = gamma }]
+            return [CVAV {valueAbstraction = substitute:us, delta = delta, gamma = gamma}]
 
 -- UConVar
 uncoveredValues
