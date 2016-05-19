@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module DataDefs where
 
@@ -36,7 +37,7 @@ data Type
     | TypeApplication Type Type -- ^ Application of type constructor: Tree a
     | VariableType Name -- ^ Type variable: a
     | TypeConstructor Name -- ^ Named constructor: Tree
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
 
 
 data Function
@@ -111,10 +112,14 @@ data ConstraintSet = ConstraintSet
 -- | A value abstraction that is valid if the constraint bag is satisfiable
 data ConditionedValueAbstractionVector = CVAV
     { valueAbstraction :: ValueAbstractionVector
+    , gamma            :: Binding
     , delta            :: [Constraint]
     } deriving (Show, Eq, Generic)
 
 type ConditionedValueAbstractionSet = [ConditionedValueAbstractionVector]
+
+instance ToJSON   Type
+instance FromJSON Type
 
 instance ToJSON   ConditionedValueAbstractionVector
 instance FromJSON ConditionedValueAbstractionVector
