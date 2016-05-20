@@ -33,6 +33,7 @@ extra-deps:
 - dlist-0.7.1.2
 - fail-4.9.0.0
 - hashable-1.2.4.0
+- haskell-lexer-1.0
 - haskell-src-exts-1.17.1
 - hspec-2.2.3
 - hspec-core-2.2.3
@@ -44,6 +45,7 @@ extra-deps:
 - old-time-1.1.0.3
 - optparse-applicative-0.12.1.0
 - polyparse-1.12
+- pretty-show-1.6.9
 - primitive-0.6.1.0
 - quickcheck-io-0.1.2
 - random-1.1

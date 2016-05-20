@@ -9,6 +9,7 @@ import           Control.Monad.State      (evalStateT)
 import           Data.Aeson.Encode.Pretty (encodePretty)
 import qualified Data.ByteString.Lazy     as LB
 import           Data.Maybe               (mapMaybe)
+import qualified Text.Show.Pretty as Pr
 import           DataDefs
 import           Debug.Trace
 import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
@@ -95,7 +96,7 @@ analyzeFunction (FunctionTarget fun) = do
     freshVars <- replicateM (arity (head clauses)) freshVar
     let initialAbstraction = withNoConstraints [freshVars]
     executionTrace <- iteratedVecProc desugaredPatterns gammas initialAbstraction
-    return $ trace (show executionTrace) (FunctionResult executionTrace)
+    return $ trace (Pr.ppShow executionTrace) (FunctionResult executionTrace)
     where
         Function _ _ clauses = fun
         Right patterns = getTypedPatternVectors fun
