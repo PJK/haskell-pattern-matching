@@ -5,6 +5,7 @@ import           Control.Applicative   (liftA2)
 import           Control.Monad         (forM)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
+import qualified Data.Set              as Set
 import           Data.Maybe            (catMaybes)
 import           DataDefs
 import           Debug.Trace
@@ -102,6 +103,10 @@ getTypesMap mod = do
 --     where
 --         constructorToPattern (Constructor name parameters) = ConstructorPattern name parameters
 
+getTypeUniverse :: Module -> MayFail TypeUniverse
+getTypeUniverse mod = do
+    types <- getTypes mod
+    return $ Set.fromList types
 
 
 err :: String -> MayFail a

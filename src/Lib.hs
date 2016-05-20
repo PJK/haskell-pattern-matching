@@ -41,7 +41,7 @@ processTarget inputFile = do
     -- TODO name conflicts in variable patterns
 processAssignment :: AnalysisAssigment -> IO AnalysisResult
 processAssignment (AnalysisAssigment _ ast)
-    = case (,) <$> getFunctions ast <*> getPlainTypeConstructorsMap ast of
+    = case (,) <$> getFunctions ast <*> getTypeUniverse ast of
         Left err -> return $ AnalysisError $ GatherError err
         Right (fs, ptcm) -> do
             let targets = map FunctionTarget fs

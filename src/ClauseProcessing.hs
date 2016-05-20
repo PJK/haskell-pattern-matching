@@ -5,6 +5,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 
 import qualified Data.Map             as Map
+import qualified Data.Foldable as DFo
 import           DataDefs
 import           Debug.Trace
 import           Types
@@ -268,17 +269,26 @@ annotatePattern p = return (p, "unnanotated type dummy")
 annotatePatterns :: [Pattern] -> Analyzer PatternVector
 annotatePatterns = mapM annotatePattern
 
-lookupType :: Pattern -> Analyzer String
-lookupType constructor = do
-    tmap <- ask
-    let itmap = invertMap tmap
-    case Map.lookup constructor (trace (show itmap) itmap) of
+-- | Maps Constructors to their Types
+lookupType :: Pattern -> Analyzer DataType
+lookupType constructor@(ConstructorPattern constructorName _) = do
+    universe <- ask
+    case DFo.find (\(DataType name _ _) -> name == constructorName) universe of
         Nothing -> throwError $ TypeNotFound $ "Type lookup for constructor " ++ show constructor ++ " failed"
         Just r -> return r
 
-lookupConstructors :: String -> Analyzer [Pattern]
+-- | Extracts all constructors for the type and turns them into patterns
+-- TODO rename this - this no longer does look ups
+lookupConstructors :: DataType -> Analyzer [Pattern]
 lookupConstructors typeName = do
-    tmap <- ask
-    case Map.lookup typeName tmap of
-        Nothing -> throwError $ ConstructorNotFound $ "Constructor lookup for type " ++ show typeName ++ " failed"
-        Just cs -> return cs
+    return []
+--     tmap <- ask
+--     case Map.lookup typeName tmap of
+--         Nothing -> throwError $ ConstructorNotFound $ "Constructor lookup for type " ++ show typeName ++ " failed"
+--         Just cs -> return cs
+
+constructorToPattern :: Constructor -> Analyzer Pattern
+constructorToPattern (Constructor name types)
+    -- don't expand the parameters - this can be done at the next step if forced by the pattern
+    -- = ConstructorPattern name (map (const freshVar) types)
+    = return $ ConstructorPattern name []

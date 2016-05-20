@@ -16,15 +16,15 @@ type Name = String
 
 data DataType
     = DataType Name [TypeVariable] [Constructor]
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 data TypeVariable
     = TypeVariable Name
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 data Constructor
     = Constructor Name [Type]
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 data Type
     = FunctionType Type Type -- ^ Function: a -> b
@@ -35,7 +35,7 @@ data Type
     | TypeApplication Type Type -- ^ Application of type constructor: Tree a
     | VariableType Name -- ^ Type variable: a
     | TypeConstructor Name -- ^ Named constructor: Tree
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Ord)
 
 instance ToJSON   Type
 instance FromJSON Type
@@ -209,7 +209,7 @@ guardType = "__anonymous_guard_type"
 -- | Replaces the previous attemps to provide maps between types and constructors
 -- | Since all the translations are isomorphisms (hopefully), all we need is the type
 -- | information.
-type TypeUniverse = Set.Set Type
+type TypeUniverse = Set.Set DataType
 
 -- |(Pattern, name of type)
 type TypedPattern = (Pattern, String)
