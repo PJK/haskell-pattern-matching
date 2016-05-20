@@ -42,11 +42,7 @@ guardHandler func p constraint ps us delta gamma
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-<<<<<<< HEAD
 -- coveredValues x y | trace ("C: " ++ show (x, y)) False = error "fail"
-=======
-coveredValues x y | trace ("covered: " ++ show (x, y)) False = error "fail"
->>>>>>> pk-type-constraints
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}
@@ -69,26 +65,16 @@ coveredValues
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
         substituted <- substituteFreshParameters k
-<<<<<<< HEAD
         let delta' = (Uncheckable $ varName ++ " ~~ " ++ show substituted):delta
-        coveredValues (kk:ps) CVAV {valueAbstraction=substituted:us, delta=delta'}
-=======
-        let delta' = (varName ++ " ~~ " ++ show substituted):delta
         coveredValues (kk:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma}
->>>>>>> pk-type-constraints
 
 -- CVar
 coveredValues
     ((VariablePattern varName, _):ps)
     CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
     = do
-<<<<<<< HEAD
         let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
-        cvs <- coveredValues ps CVAV {valueAbstraction=us, delta=delta'}
-=======
-        let delta' = (varName ++ " ~~ " ++ show u):delta
         cvs <- coveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma}
->>>>>>> pk-type-constraints
         return $ patMap (ucon u) cvs
 
 -- CGuard
@@ -134,13 +120,8 @@ uncoveredValues
         allConstructors <- lookupConstructors typeName
         allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
         uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
-<<<<<<< HEAD
             let delta' = (Uncheckable $ varName ++ " ~~ " ++ show constructor):delta in
-                uncoveredValues (p:ps) CVAV {valueAbstraction=constructor:us, delta=delta'}
-=======
-            let delta' = (varName ++ " ~~ " ++ show constructor):delta in
                 uncoveredValues (p:ps) CVAV {valueAbstraction=constructor:us, delta=delta', gamma = gamma}
->>>>>>> pk-type-constraints
         return $ concat uvs
 
 -- UVar
@@ -148,13 +129,8 @@ uncoveredValues
     ((VariablePattern varName, _):ps)
     CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
     = do
-<<<<<<< HEAD
         let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
-        cvs <- uncoveredValues ps CVAV {valueAbstraction=us, delta=delta'}
-=======
-        let delta' = (varName ++ " ~~ " ++ show u):delta
         cvs <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma}
->>>>>>> pk-type-constraints
         return $ patMap (ucon u) cvs
 
 -- UGuard
@@ -198,30 +174,18 @@ divergentValues
     CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
         = do
             substituted <- substituteFreshParameters pc
-<<<<<<< HEAD
             let delta' = (Uncheckable $ varName ++ " ~~ " ++ show substituted):delta
             let deltaBot = (Uncheckable $ varName ++ "~~" ++ "bottom"):delta
-            dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta'}
-            return $ CVAV {valueAbstraction = var:us, delta = deltaBot}:dvs
-=======
-            let delta' = (varName ++ " ~~ " ++ show substituted):delta
-            let deltaBot = (varName ++ "~~" ++ "bottom"):delta
             dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma}
             return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
->>>>>>> pk-type-constraints
 
 -- DVar
 divergentValues
     ((VariablePattern varName, _):ps)
     CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
     = do
-<<<<<<< HEAD
         let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
-        cvs <- divergentValues ps CVAV {valueAbstraction=us, delta=delta'}
-=======
-        let delta' = (varName ++ " ~~ " ++ show u):delta
         cvs <- divergentValues ps CVAV {valueAbstraction=us, delta=delta', gamma = gamma}
->>>>>>> pk-type-constraints
         return $ patMap (ucon u) cvs
 
 -- DGuard
@@ -254,20 +218,12 @@ extractValueAbstractions (cvav:vs)
     = {- trace ("Mock-SATing: " ++ show cvav) $ -} cvav:extractValueAbstractions vs
 extractValueAbstractions [] = []
 
-<<<<<<< HEAD
 
-iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
-iteratedVecProc [] _ = return []
-iteratedVecProc (ps:pss) s = do
-    res <- patVecProc ps s
-    rest <- iteratedVecProc pss (capU res)
-=======
 iteratedVecProc :: [PatternVector] -> [Binding] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
 iteratedVecProc [] [] _ = return []
 iteratedVecProc (ps:pss) (g:gs) s = do
     res <- patVecProc ps (map (addGamma g) s)
     rest <- iteratedVecProc pss gs (capU res)
->>>>>>> pk-type-constraints
     return $ res : rest
 
 addGamma :: Binding -> ConditionedValueAbstractionVector -> ConditionedValueAbstractionVector

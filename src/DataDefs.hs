@@ -232,9 +232,6 @@ data ConditionedValueAbstractionVector = CVAV
 
 type ConditionedValueAbstractionSet = [ConditionedValueAbstractionVector]
 
-instance ToJSON   Type
-instance FromJSON Type
-
 instance ToJSON   ConditionedValueAbstractionVector
 instance FromJSON ConditionedValueAbstractionVector
 
