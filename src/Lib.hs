@@ -40,17 +40,17 @@ processAssignment :: AnalysisAssigment -> IO AnalysisResult
 processAssignment (AnalysisAssigment _ ast)
     = case (,) <$> getFunctions ast <*> getPlainTypeConstructorsMap ast of
         Left err -> return $ AnalysisError $ GatherError err
-        Right (fs, ptcm) -> let
-                targets = map FunctionTarget fs
+        Right (fs, ptcm) -> do
+            let targets = map FunctionTarget fs
                 initState = AnalyzerState 0
-            in do
-                LB.putStr $ encodePretty targets
-                case flip runReader ptcm $ flip evalStateT initState $ runExceptT $ mapM analyzeFunction targets of
-                    Left err -> return $ AnalysisError $ ProcessError err
-                    Right res -> do
-                        print targets
-                        print res
-                        return $ AnalysisSuccess $ concatMap (uncurry produceRecommendations) $ zip targets res
+            LB.putStr $ encodePretty targets
+            case flip runReader ptcm $ flip evalStateT initState $ runExceptT $ mapM analyzeFunction targets of
+                Left err -> return $ AnalysisError $ ProcessError err
+                Right res -> do
+                    print targets
+                    print res
+                    return $ AnalysisSuccess $ concatMap (uncurry produceRecommendations) $ zip targets res
+
 -- TODO actually solve the constraints, now I'm just ignoring them, which is like having an oracle that returns true.
 
 -- TODO replace FunctionResult with (solved Conditioned)ValueAbstractionSet.

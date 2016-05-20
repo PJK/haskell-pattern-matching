@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 module Gatherer where
 
+import           Control.Applicative   (liftA2)
 import           Control.Monad         (forM)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
@@ -149,14 +150,17 @@ getFunctions (Module _ _ _ _ _ _ decls) = do
                 _ -> err $ "Illegal list of clauses in function binding: " ++ show ms
         go _ = return Nothing
 
-        mkClause :: Match -> MayFail (Name, [Clause])
-        mkClause (Match _ name pats _ (UnGuardedRhs _) _) = (,) <$> mkName name <*> ((\ps -> [Clause ps]) <$> mapM mkPattern pats)
-        mkClause (Match _ name pats _ (GuardedRhss rhss) _)
-            = (,) <$> mkName name <*> (forM rhss $ \(GuardedRhs _ [Qualifier exp] _) ->
-                (Clause <$> (forM pats $ \pat -> GuardPattern <$> mkPattern pat <*> mkConstraint exp)))
+mkClause :: Match -> MayFail (Name, [Clause])
+mkClause (Match _ name pats _ (UnGuardedRhs _) _) = (,) <$> mkName name <*> ((\ps -> [Clause ps]) <$> mapM mkPattern pats)
+mkClause (Match _ name pats _ (GuardedRhss rhss) _)
+    = (,) <$> mkName name <*> (forM rhss $ \(GuardedRhs _ [Qualifier exp] _) ->
+        (Clause <$> (liftA2 snoc (forM pats mkPattern) (GuardPattern <$> (pure $ ConstructorPattern "True" []) <*> mkConstraint exp))))
 
-        mkConstraint :: Exp -> MayFail Constraint
-        mkConstraint e = return $ Uncheckable $ show e -- TODO parse nicer guards
+mkConstraint :: Exp -> MayFail Constraint
+mkConstraint e = return $ Uncheckable $ show e -- TODO parse nicer guards
+
+snoc :: [a] -> a -> [a]
+snoc as a = as ++ [a]
 
 
 mkQname :: H.QName -> MayFail Name
