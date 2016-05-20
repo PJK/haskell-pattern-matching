@@ -35,7 +35,11 @@ desugarPattern (WildcardPattern, wildcardType)
     = [(VariablePattern "_", wildcardType)] -- TODO Replace with Variable of same type
 desugarPattern x = [x]
 
-
+-- | Recover the original number of parameters before desugaring and guard expansion.
+arity :: Clause -> Int
+arity (Clause (GuardPattern _ _:cs)) = arity (Clause cs)
+arity (Clause (_:cs)) = 1 + arity (Clause cs)
+arity (Clause []) = 0
 
 desugarGuard :: Guard -> PatternVector
 desugarGuard (ConstraintGuard constraint)

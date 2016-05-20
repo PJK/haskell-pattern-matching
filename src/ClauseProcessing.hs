@@ -40,7 +40,7 @@ guardHandler func p constraint ps us delta
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
--- coveredValues x y | trace (show (x, y)) False = error "fail"
+-- coveredValues x y | trace ("C: " ++ show (x, y)) False = error "fail"
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[], delta=_}

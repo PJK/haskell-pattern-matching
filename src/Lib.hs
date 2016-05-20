@@ -88,8 +88,9 @@ withNoConstraints
 
 analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
 analyzeFunction (FunctionTarget fun) = do
-    freshVars <- replicateM (length (head patterns)) freshVar
+    freshVars <- replicateM (arity (head clauses)) freshVar
     FunctionResult <$> iteratedVecProc desugaredPatterns (withNoConstraints [freshVars])
   where
+    Function _ _ clauses = fun
     Right patterns = getTypedPatternVectors fun
     desugaredPatterns = map desugarPatternVector patterns
