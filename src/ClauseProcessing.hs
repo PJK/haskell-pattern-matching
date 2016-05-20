@@ -18,19 +18,21 @@ patMap f
     = map extendedF
     where
         extendedF :: ConditionedValueAbstractionVector -> ConditionedValueAbstractionVector
-        extendedF CVAV {valueAbstraction=va, delta=delta} = CVAV {valueAbstraction = f va, delta = delta}
+        extendedF CVAV {valueAbstraction=va
+                       , delta=delta
+                       , gamma=gamma} = CVAV {valueAbstraction = f va, delta = delta, gamma = gamma}
 
 -- | Creates CGuard, UGuard, DGuard implementations
 -- Syd: Can we do something about all the params?
 type AnalysisProcessor = PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-guardHandler :: AnalysisProcessor -> Pattern -> Constraint -> PatternVector -> ValueAbstractionVector -> [Constraint]-> Analyzer ConditionedValueAbstractionSet
-guardHandler func p constraint ps us delta
+guardHandler :: AnalysisProcessor -> Pattern -> Constraint -> PatternVector -> ValueAbstractionVector -> [Constraint]-> Binding -> Analyzer ConditionedValueAbstractionSet
+guardHandler func p constraint ps us delta gamma
     = do
         z <- freshVar
         let delta' = addGuardConstraint z constraint delta
         pWithType <- annotatePattern p
-        recurse <- func (pWithType:ps) CVAV {valueAbstraction=z:us, delta=delta'}
+        recurse <- func (pWithType:ps) CVAV {valueAbstraction = z:us, delta = delta', gamma = gamma}
         return $ patMap tail recurse
 
 -- Based on Figure 3 of 'GADTs meet their match'
@@ -40,46 +42,60 @@ guardHandler func p constraint ps us delta
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
+<<<<<<< HEAD
 -- coveredValues x y | trace ("C: " ++ show (x, y)) False = error "fail"
+=======
+coveredValues x y | trace ("covered: " ++ show (x, y)) False = error "fail"
+>>>>>>> pk-type-constraints
 
 -- CNil
-coveredValues [] vav@CVAV {valueAbstraction=[], delta=_}
+coveredValues [] vav@CVAV {valueAbstraction=[]}
     = return [vav] -- Important: one empty set to start with, keep constraints
 
 -- CConCon
 coveredValues
     ((ConstructorPattern pname args, _):ps)
-    CVAV {valueAbstraction=(ConstructorPattern vname up:us), delta=delta}
+    CVAV {valueAbstraction=(ConstructorPattern vname up:us), delta=delta, gamma=gamma}
         | pname == vname = do
             annArgs <- annotatePatterns args
             subs <- substitutePatterns up
-            cvs <- coveredValues (annArgs ++ ps) CVAV {valueAbstraction=subs ++ us, delta=delta}
+            cvs <- coveredValues (annArgs ++ ps) CVAV {valueAbstraction = subs ++ us, delta = delta, gamma = gamma}
             return $ patMap (kcon (ConstructorPattern pname args)) cvs
         | otherwise      = return []
 
 -- CConVar
 coveredValues
     (kk@(k@(ConstructorPattern _ _), _):ps)
-    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta}
+    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
         substituted <- substituteFreshParameters k
+<<<<<<< HEAD
         let delta' = (Uncheckable $ varName ++ " ~~ " ++ show substituted):delta
         coveredValues (kk:ps) CVAV {valueAbstraction=substituted:us, delta=delta'}
+=======
+        let delta' = (varName ++ " ~~ " ++ show substituted):delta
+        coveredValues (kk:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma}
+>>>>>>> pk-type-constraints
 
 -- CVar
 coveredValues
     ((VariablePattern varName, _):ps)
-    CVAV {valueAbstraction=(u:us), delta=delta}
+    CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
     = do
+<<<<<<< HEAD
         let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
         cvs <- coveredValues ps CVAV {valueAbstraction=us, delta=delta'}
+=======
+        let delta' = (varName ++ " ~~ " ++ show u):delta
+        cvs <- coveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma}
+>>>>>>> pk-type-constraints
         return $ patMap (ucon u) cvs
 
 -- CGuard
 coveredValues
     ((GuardPattern p constraint, _):ps)
-    CVAV {valueAbstraction=us, delta=delta}
-    = guardHandler coveredValues p constraint ps us delta
+    CVAV {valueAbstraction=us, delta=delta, gamma=gamma}
+    = guardHandler coveredValues p constraint ps us delta gamma
 
 coveredValues pat values
     = throwError
@@ -101,41 +117,51 @@ uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
 -- UConCon
 uncoveredValues
     ((k@(ConstructorPattern pname pargs), _):ps)
-    CVAV {valueAbstraction=(kv@(ConstructorPattern vname up):us), delta=delta}
+    CVAV {valueAbstraction=(kv@(ConstructorPattern vname up):us), delta=delta, gamma=gamma}
         | pname == vname = do
             annArgs <- annotatePatterns pargs
-            uvs <- uncoveredValues (annArgs ++ ps) CVAV {valueAbstraction=up ++ us, delta=delta}
+            uvs <- uncoveredValues (annArgs ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
             return $ patMap (kcon k) uvs
         | otherwise      = do
             substitute <- substituteFreshParameters kv
-            return [CVAV {valueAbstraction = substitute:us, delta = delta }]
+            return [CVAV {valueAbstraction = substitute:us, delta = delta, gamma = gamma}]
 
 -- UConVar
 uncoveredValues
     (p@(ConstructorPattern _ _, typeName):ps)
-    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta}
+    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
         allConstructors <- lookupConstructors typeName
         allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
         uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
+<<<<<<< HEAD
             let delta' = (Uncheckable $ varName ++ " ~~ " ++ show constructor):delta in
                 uncoveredValues (p:ps) CVAV {valueAbstraction=constructor:us, delta=delta'}
+=======
+            let delta' = (varName ++ " ~~ " ++ show constructor):delta in
+                uncoveredValues (p:ps) CVAV {valueAbstraction=constructor:us, delta=delta', gamma = gamma}
+>>>>>>> pk-type-constraints
         return $ concat uvs
 
 -- UVar
 uncoveredValues
     ((VariablePattern varName, _):ps)
-    CVAV {valueAbstraction=(u:us), delta=delta}
+    CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
     = do
+<<<<<<< HEAD
         let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
         cvs <- uncoveredValues ps CVAV {valueAbstraction=us, delta=delta'}
+=======
+        let delta' = (varName ++ " ~~ " ++ show u):delta
+        cvs <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma}
+>>>>>>> pk-type-constraints
         return $ patMap (ucon u) cvs
 
 -- UGuard
 uncoveredValues
     ((GuardPattern p constraint, _):ps)
-    CVAV {valueAbstraction=us, delta=delta}
-    = guardHandler uncoveredValues p constraint ps us delta
+    CVAV {valueAbstraction=us, delta=delta, gamma=gamma}
+    = guardHandler uncoveredValues p constraint ps us delta gamma
 
 
 uncoveredValues pat values
@@ -169,28 +195,40 @@ divergentValues
 -- DConVar
 divergentValues
     (p@(pc@(ConstructorPattern _ _), _):ps)
-    CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta}
+    CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
         = do
             substituted <- substituteFreshParameters pc
+<<<<<<< HEAD
             let delta' = (Uncheckable $ varName ++ " ~~ " ++ show substituted):delta
             let deltaBot = (Uncheckable $ varName ++ "~~" ++ "bottom"):delta
             dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta'}
             return $ CVAV {valueAbstraction = var:us, delta = deltaBot}:dvs
+=======
+            let delta' = (varName ++ " ~~ " ++ show substituted):delta
+            let deltaBot = (varName ++ "~~" ++ "bottom"):delta
+            dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma}
+            return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
+>>>>>>> pk-type-constraints
 
 -- DVar
 divergentValues
     ((VariablePattern varName, _):ps)
-    CVAV {valueAbstraction=(u:us), delta=delta}
+    CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
     = do
+<<<<<<< HEAD
         let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
         cvs <- divergentValues ps CVAV {valueAbstraction=us, delta=delta'}
+=======
+        let delta' = (varName ++ " ~~ " ++ show u):delta
+        cvs <- divergentValues ps CVAV {valueAbstraction=us, delta=delta', gamma = gamma}
+>>>>>>> pk-type-constraints
         return $ patMap (ucon u) cvs
 
 -- DGuard
 divergentValues
     ((GuardPattern p constraint, _):ps)
-    CVAV {valueAbstraction=us, delta=delta}
-    = guardHandler divergentValues p constraint ps us delta
+    CVAV {valueAbstraction=us, delta=delta, gamma=gamma}
+    = guardHandler divergentValues p constraint ps us delta gamma
 
 divergentValues pat values
     = throwError
@@ -216,13 +254,25 @@ extractValueAbstractions (cvav:vs)
     = {- trace ("Mock-SATing: " ++ show cvav) $ -} cvav:extractValueAbstractions vs
 extractValueAbstractions [] = []
 
+<<<<<<< HEAD
 
 iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
 iteratedVecProc [] _ = return []
 iteratedVecProc (ps:pss) s = do
     res <- patVecProc ps s
     rest <- iteratedVecProc pss (capU res)
+=======
+iteratedVecProc :: [PatternVector] -> [Binding] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
+iteratedVecProc [] [] _ = return []
+iteratedVecProc (ps:pss) (g:gs) s = do
+    res <- patVecProc ps (map (addGamma g) s)
+    rest <- iteratedVecProc pss gs (capU res)
+>>>>>>> pk-type-constraints
     return $ res : rest
+
+addGamma :: Binding -> ConditionedValueAbstractionVector -> ConditionedValueAbstractionVector
+addGamma gamma CVAV {valueAbstraction=us, delta=delta, gamma=_}
+    = CVAV {valueAbstraction = us, delta = delta, gamma = gamma}
 
 -- |Coverage vector concatenation
 -- TODO: Add the term constraints merging

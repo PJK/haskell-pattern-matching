@@ -7,6 +7,7 @@ import           Data.List             (nub)
 import qualified Data.Map              as Map
 import           Data.Maybe            (catMaybes)
 import           DataDefs
+import           Debug.Trace
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
 import qualified Language.Haskell.Exts as H
@@ -48,26 +49,41 @@ desugarGuard _ = error "FIXME: implement lets and patternGuards"
 
 getTypedPatternVectors :: Function -> MayFail [PatternVector]
 getTypedPatternVectors (Function _ functionType patterns) = Right $
-    map (`zip` typesList) patternsList
+    map (`zip` typesList) (patternsList patterns)
     where
         typeName :: Type -> String
         typeName (TypeConstructor name) = name
         typeName _                      = error "FIXME: we can only handle simple nominal types"
 
-        extractType :: Type -> [Type]
-        extractType t = case t of
-                        FunctionType t1 t2 -> extractType t1 ++ extractType t2
-                        TypeConstructor t  -> [TypeConstructor t]
-                        _ -> error "no way to extract a type from this"
-
-        patternsList = map (\xs -> case xs of Clause patterns -> patterns) patterns
-
         typesList = map typeName (extractType functionType)
+
 
 desugarPatternVector :: PatternVector -> PatternVector
 desugarPatternVector = concatMap desugarPattern
 
+patternsList :: [Clause] -> [[Pattern]]
+patternsList = map (\xs -> case xs of Clause patterns -> patterns)
 
+extractType :: Type -> [Type]
+extractType t = case t of
+                FunctionType t1 t2 -> extractType t1 ++ extractType t2
+                TypeConstructor t  -> [TypeConstructor t]
+                _ -> error "no way to extract a type from this"
+
+
+-- | Provides initial binding for each clause -- all variables that occur among the patterns
+-- | have to be assigned a type.
+initialGammas :: Function -> MayFail [Binding]
+initialGammas (Function _ functionType patterns)
+    = Right $ map (buildGamma functionTypes) (patternsList patterns)
+    where
+        functionTypes = extractType functionType
+
+        buildGamma :: [Type] -> [Pattern] -> Binding
+        buildGamma (t:ts) (VariablePattern name:ps)
+            = Map.insert name t (buildGamma ts ps)
+        buildGamma (_:ts) (_:ps) = buildGamma ts ps
+        buildGamma [_] []        = Map.fromList [] -- One extra element for return type
 
 getTypesMap :: Module -> MayFail (Map.Map String [Constructor])
 getTypesMap mod = do
@@ -89,6 +105,7 @@ err :: String -> MayFail a
 err = Left
 
 -- FIXME currently it's still returning Left in case of _any_ error.
+--- > This is not a problem because GHC won't work anyway so we cannot do anything about the rest
 -- We have to decide whether that's what we want or whether we want it to parse as many types as possible
 -- same question for @getFunctions@
 getTypes :: Module -> MayFail [DataType]

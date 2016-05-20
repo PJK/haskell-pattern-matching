@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module DataDefs where
 
@@ -201,9 +202,8 @@ guardType = "__anonymous_guard_type"
 --     | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
 --   deriving (Show, Eq, Generic, Ord)
 
-
+-- | Maps type names to lists of their constructors
 type SimpleTypeMap = Map.Map String [Pattern]
-type TypeMap = Map.Map String [(Pattern, String)]
 
 -- |(Pattern, name of type)
 type TypedPattern = (Pattern, String)
@@ -212,13 +212,28 @@ type PatternVector = [TypedPattern]
 type ValueAbstractionVector = [Pattern]
 type ValueAbstractionSet = [ValueAbstractionVector]
 
+-- | Type equality constraint, e.g. Tree a ~ Tree (Maybe Int)
+type TypeConstraint = (Type, Type)
+
+-- | Models Gamma - type binding for variables
+type Binding = Map.Map String Type
+
+data ConstraintSet = ConstraintSet
+    { termConstraints :: [Constraint]
+    , typeConstraints :: [TypeConstraint]
+    } deriving (Show, Eq, Generic)
+
 -- | A value abstraction that is valid if the constraint bag is satisfiable
 data ConditionedValueAbstractionVector = CVAV
     { valueAbstraction :: ValueAbstractionVector
+    , gamma            :: Binding
     , delta            :: [Constraint]
     } deriving (Show, Eq, Generic)
 
 type ConditionedValueAbstractionSet = [ConditionedValueAbstractionVector]
+
+instance ToJSON   Type
+instance FromJSON Type
 
 instance ToJSON   ConditionedValueAbstractionVector
 instance FromJSON ConditionedValueAbstractionVector

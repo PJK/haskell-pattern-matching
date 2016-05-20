@@ -11,8 +11,10 @@ import qualified Data.ByteString.Lazy     as LB
 import           Data.Maybe               (mapMaybe)
 import           DataDefs
 import           Debug.Trace
+import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
+                                           Pretty, Type (..), prettyPrint)
 import           Language.Haskell.Exts    (fromParseResult, parseFile)
-
+import qualified Data.Map                 as Map
 import           Gatherer
 import           OptParse
 import           OptParse.Types
@@ -36,6 +38,7 @@ processTarget inputFile = do
     res <- processAssignment ass
     return res
 
+    -- TODO name conflicts in variable patterns
 processAssignment :: AnalysisAssigment -> IO AnalysisResult
 processAssignment (AnalysisAssigment _ ast)
     = case (,) <$> getFunctions ast <*> getPlainTypeConstructorsMap ast of
@@ -83,14 +86,17 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (FunctionResult
 -- | Constructs ConditionedValueAbstractionSet without any conditions on each abstraction
 withNoConstraints :: ValueAbstractionSet -> ConditionedValueAbstractionSet
 withNoConstraints
-    = map (\vector -> CVAV {valueAbstraction = vector, delta = []})
+    = map
+        (\vector -> CVAV {valueAbstraction = vector, delta = [], gamma = Map.fromList []})
 
 
 analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
 analyzeFunction (FunctionTarget fun) = do
     freshVars <- replicateM (arity (head clauses)) freshVar
-    FunctionResult <$> iteratedVecProc desugaredPatterns (withNoConstraints [freshVars])
-  where
-    Function _ _ clauses = fun
-    Right patterns = getTypedPatternVectors fun
-    desugaredPatterns = map desugarPatternVector patterns
+    let initialAbstraction = withNoConstraints [freshVars]
+    FunctionResult <$> iteratedVecProc desugaredPatterns gammas initialAbstraction
+    where
+        Function _ _ clauses = fun
+        Right patterns = getTypedPatternVectors fun
+        desugaredPatterns = map desugarPatternVector patterns
+        Right gammas = initialGammas fun
