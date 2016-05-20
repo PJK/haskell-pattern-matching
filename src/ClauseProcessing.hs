@@ -161,11 +161,13 @@ divergentValues [] CVAV {valueAbstraction=[], delta=_}
 -- DConCon
 divergentValues
     ((ConstructorPattern pname args, _):ps)
-    CVAV {valueAbstraction=(ConstructorPattern vname up:us), delta=delta}
+    CVAV {valueAbstraction=(ConstructorPattern vname up:us), delta=delta, gamma=gamma}
         | pname == vname = do
             annArgs <- annotatePatterns args
             subs <- substitutePatterns up
-            cvs <- divergentValues (annArgs ++ ps) CVAV {valueAbstraction=subs ++ us, delta=delta}
+            cvs <- divergentValues
+                        (annArgs ++ ps)
+                        CVAV {valueAbstraction = subs ++ us, delta = delta, gamma = gamma}
             return $ patMap (kcon (ConstructorPattern pname args)) cvs
         | otherwise      = return []
 
