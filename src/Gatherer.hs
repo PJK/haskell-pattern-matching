@@ -24,17 +24,20 @@ signFact Signless = 1
 signFact Negative = -1
 
 -- | Transforms all patterns into the standard form (See figure 7)
-desugarPattern :: TypedPattern -> PatternVector
-desugarPattern (LiteralPattern sign (Frac f), _)
-    = (VariablePattern var, "__guard_var"):desugarGuard (ConstraintGuard $ BoolExp $ FracBoolOp FracEQ (FracVar var) (FracLit f))
-    where var = "__x"
+desugarPattern :: Pattern -> PatternVector
+desugarPattern (LiteralPattern sign (Frac f))
+    = VariablePattern var:desugarGuard (ConstraintGuard $ BoolExp $ FracBoolOp FracEQ (FracVar var) (FracLit f))
+    where
+        var = "__x"
 
-desugarPattern (LiteralPattern sign (Int i), _)
-    = (VariablePattern var, "__guard_var"):desugarGuard (ConstraintGuard $ BoolExp $ IntBoolOp IntEQ (IntVar var) (IntLit i))
-    where var = "__x"
+desugarPattern (LiteralPattern sign (Int i))
+    = VariablePattern var:desugarGuard (ConstraintGuard $ BoolExp $ IntBoolOp IntEQ (IntVar var) (IntLit i))
+    where
+        var = "__x"
 
-desugarPattern (WildcardPattern, wildcardType)
-    = [(VariablePattern "_", wildcardType)] -- TODO Replace with Variable of same type
+desugarPattern WildcardPattern
+    = [VariablePattern "_"]
+
 desugarPattern x = [x]
 
 -- | Recover the original number of parameters before desugaring and guard expansion.
@@ -45,18 +48,11 @@ arity (Clause []) = 0
 
 desugarGuard :: Guard -> PatternVector
 desugarGuard (ConstraintGuard constraint)
-    = [(GuardPattern (ConstructorPattern "True" []) constraint, guardType)]
+    = [GuardPattern (ConstructorPattern "True" []) constraint]
 desugarGuard _ = error "FIXME: implement lets and patternGuards"
 
-getTypedPatternVectors :: Function -> MayFail [PatternVector]
-getTypedPatternVectors (Function _ functionType patterns) = Right $
-    map (`zip` typesList) (patternsList patterns)
-    where
-        typeName :: Type -> String
-        typeName (TypeConstructor name) = name
-        typeName _                      = error "FIXME: we can only handle simple nominal types"
-
-        typesList = map typeName (extractType functionType)
+getPatternVectors :: Function -> MayFail [PatternVector]
+getPatternVectors (Function _ functionType patterns) = Right $ patternsList patterns
 
 
 desugarPatternVector :: PatternVector -> PatternVector
@@ -88,20 +84,6 @@ initialGammas (Function _ functionType patterns)
         buildGamma (_:ts) (_:ps) = buildGamma ts ps
         buildGamma [_] []        = Map.fromList [] -- One extra element for return type
 
--- getTypesMap :: Module -> MayFail (Map.Map String [Constructor])
--- getTypesMap mod = do
---     types <- getTypes mod
---     return $ Map.fromList
---            $ map (\t -> case t of DataType name _ constructors -> (name, constructors))
---            $ types ++ builtinTypes
---
-
--- getPlainTypeConstructorsMap :: Module -> MayFail SimpleTypeMap
--- getPlainTypeConstructorsMap mod = do
---     typesMap <- getTypesMap mod
---     return $ Map.map (map constructorToPattern) typesMap
---     where
---         constructorToPattern (Constructor name parameters) = ConstructorPattern name parameters
 
 getTypeUniverse :: Module -> MayFail TypeUniverse
 getTypeUniverse mod = do

@@ -98,6 +98,6 @@ analyzeFunction (FunctionTarget fun) = do
     return $ trace (Pr.ppShow executionTrace) (FunctionResult executionTrace)
     where
         Function _ _ clauses = fun
-        Right patterns = getTypedPatternVectors fun
+        Right patterns = getPatternVectors fun
         desugaredPatterns = map desugarPatternVector patterns
         Right gammas = initialGammas fun
