@@ -88,13 +88,13 @@ initialGammas (Function _ functionType patterns)
         buildGamma (_:ts) (_:ps) = buildGamma ts ps
         buildGamma [_] []        = Map.fromList [] -- One extra element for return type
 
-getTypesMap :: Module -> MayFail (Map.Map String [Constructor])
-getTypesMap mod = do
-    types <- getTypes mod
-    return $ Map.fromList
-           $ map (\t -> case t of DataType name _ constructors -> (name, constructors))
-           $ types ++ builtinTypes
-
+-- getTypesMap :: Module -> MayFail (Map.Map String [Constructor])
+-- getTypesMap mod = do
+--     types <- getTypes mod
+--     return $ Map.fromList
+--            $ map (\t -> case t of DataType name _ constructors -> (name, constructors))
+--            $ types ++ builtinTypes
+--
 
 -- getPlainTypeConstructorsMap :: Module -> MayFail SimpleTypeMap
 -- getPlainTypeConstructorsMap mod = do
@@ -106,7 +106,7 @@ getTypesMap mod = do
 getTypeUniverse :: Module -> MayFail TypeUniverse
 getTypeUniverse mod = do
     types <- getTypes mod
-    return $ Set.fromList types
+    return $ Set.fromList (types ++ builtinTypes)
 
 
 err :: String -> MayFail a
