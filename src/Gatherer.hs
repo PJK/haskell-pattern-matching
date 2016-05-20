@@ -182,7 +182,7 @@ getFunctions (Module _ _ _ _ _ _ decls) = do
 mkClause :: Match -> MayFail (Name, [Clause])
 mkClause (Match _ name pats _ (UnGuardedRhs _) _) = (,) <$> mkName name <*> ((\ps -> [Clause ps]) <$> mapM mkPattern pats)
 mkClause (Match _ name pats _ (GuardedRhss rhss) _)
-    = (,) <$> mkName name <*> (forM rhss $ \(GuardedRhs _ [Qualifier exp] _) ->
+    = (,) <$> mkName name <*> forM rhss (\(GuardedRhs _ [Qualifier exp] _) ->
         (Clause <$> (liftA2 snoc (forM pats mkPattern) (GuardPattern <$> (pure $ ConstructorPattern "True" []) <*> mkConstraint exp))))
 
 mkConstraint :: Exp -> MayFail Constraint

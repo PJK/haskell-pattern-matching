@@ -218,9 +218,7 @@ patVecProc ps s = do
 
 -- | SAT-check the constraints and return the abstractions
 extractValueAbstractions :: ConditionedValueAbstractionSet -> ConditionedValueAbstractionSet
-extractValueAbstractions (cvav:vs)
-    = {- trace ("Mock-SATing: " ++ show cvav) $ -} cvav:extractValueAbstractions vs
-extractValueAbstractions [] = []
+extractValueAbstractions = id
 
 
 iteratedVecProc :: [PatternVector] -> [Binding] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
