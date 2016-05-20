@@ -42,7 +42,7 @@ guardHandler func p constraint ps us delta gamma
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
--- coveredValues x y | trace ("C: " ++ show (x, y)) False = error "fail"
+coveredValues x y | trace ("C: " ++ show (x, y)) False = error "fail"
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}
@@ -93,7 +93,7 @@ coveredValues pat values
 --
 uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
--- uncoveredValues x y | trace (show (x, y)) False = error "fail"
+uncoveredValues x y | trace (show (x, y)) False = error "fail"
 
 -- UNil
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
@@ -114,10 +114,11 @@ uncoveredValues
 
 -- UConVar
 uncoveredValues
-    (p@(ConstructorPattern _ _, typeName):ps)
+    (p@(pat@(ConstructorPattern _ _), _):ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
-        allConstructors <- lookupConstructors typeName
+        constructorType <- lookupType pat
+        allConstructors <- lookupConstructors constructorType
         allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
         uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
             let delta' = (Uncheckable $ varName ++ " ~~ " ++ show constructor):delta in
@@ -262,9 +263,7 @@ substitutePatterns :: [Pattern] -> Analyzer [Pattern]
 substitutePatterns xs = replicateM (length xs) freshVar
 
 annotatePattern :: Pattern -> Analyzer TypedPattern
-annotatePattern p = do
-    t <- lookupType p
-    return (p, t)
+annotatePattern p = return (p, "unnanotated type dummy")
 
 annotatePatterns :: [Pattern] -> Analyzer PatternVector
 annotatePatterns = mapM annotatePattern
@@ -273,7 +272,7 @@ lookupType :: Pattern -> Analyzer String
 lookupType constructor = do
     tmap <- ask
     let itmap = invertMap tmap
-    case Map.lookup constructor itmap of
+    case Map.lookup constructor (trace (show itmap) itmap) of
         Nothing -> throwError $ TypeNotFound $ "Type lookup for constructor " ++ show constructor ++ " failed"
         Just r -> return r
 

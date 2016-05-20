@@ -104,4 +104,4 @@ data AnalyzerState
     { nextFreshVarName :: Int -- ^ To generate fresh variable names
     }
 
-type AnalyzerContext = SimpleTypeMap
+type AnalyzerContext = TypeUniverse

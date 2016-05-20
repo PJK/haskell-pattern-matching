@@ -6,6 +6,7 @@ module DataDefs where
 import           Data.Aeson            (FromJSON, ToJSON)
 import           Data.List             (intercalate)
 import qualified Data.Map              as Map
+import qualified Data.Set              as Set
 import           GHC.Generics          (Generic)
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
@@ -182,7 +183,7 @@ data Pattern
     | ListPattern [Pattern] -- ^ List: [a, b, ..., z]
     | InfixConstructorPattern Pattern Name Pattern -- Name will be a symbol, this is used for lists, for example.
     | WildcardPattern
-    | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
+    -- | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
     | GuardPattern Pattern Constraint
   deriving (Show, Eq, Generic, Ord)
 
@@ -203,7 +204,12 @@ guardType = "__anonymous_guard_type"
 --   deriving (Show, Eq, Generic, Ord)
 
 -- | Maps type names to lists of their constructors
-type SimpleTypeMap = Map.Map String [Pattern]
+-- type SimpleTypeMap = Map.Map String [Pattern]
+
+-- | Replaces the previous attemps to provide maps between types and constructors
+-- | Since all the translations are isomorphisms (hopefully), all we need is the type
+-- | information.
+type TypeUniverse = Set.Set Type
 
 -- |(Pattern, name of type)
 type TypedPattern = (Pattern, String)
@@ -253,7 +259,6 @@ instance Pretty Pattern where
     pretty (TuplePattern pats) = tup $ map pretty pats
     pretty (ListPattern pats) = list $ map pretty pats
     pretty WildcardPattern = "_"
-    pretty PlaceHolderPattern = "<placeholder>"
     pretty (GuardPattern pat const) = "Gbar(" ++ pretty pat ++ ", " ++ show const ++ ")"
 
 

@@ -95,13 +95,14 @@ getTypesMap mod = do
            $ types ++ builtinTypes
 
 
-getPlainTypeConstructorsMap :: Module -> MayFail SimpleTypeMap
-getPlainTypeConstructorsMap mod = do
-    typesMap <- getTypesMap mod
-    return $ Map.map (map constructorToPattern) typesMap
-    where
-        substitutionPatterns parameters = replicate (length parameters) PlaceHolderPattern
-        constructorToPattern (Constructor name parameters) = ConstructorPattern name (substitutionPatterns  parameters)
+-- getPlainTypeConstructorsMap :: Module -> MayFail SimpleTypeMap
+-- getPlainTypeConstructorsMap mod = do
+--     typesMap <- getTypesMap mod
+--     return $ Map.map (map constructorToPattern) typesMap
+--     where
+--         constructorToPattern (Constructor name parameters) = ConstructorPattern name parameters
+
+
 
 err :: String -> MayFail a
 err = Left
