@@ -10,6 +10,7 @@ import           Data.Aeson.Encode.Pretty (encodePretty)
 import qualified Data.ByteString.Lazy     as LB
 import           Data.Maybe               (mapMaybe)
 import           DataDefs
+import           Debug.Trace
 import           Language.Haskell.Exts    (fromParseResult, parseFile)
 
 import           Gatherer
@@ -22,7 +23,7 @@ patterns :: IO ()
 patterns = do
     -- svbTest
     sets <- getSettings
-    print sets
+    -- print sets
     res <- processTarget (setsTargetFile sets)
     print res
     LB.putStr $ encodePretty res
@@ -30,22 +31,26 @@ patterns = do
 processTarget :: FilePath -> IO AnalysisResult
 processTarget inputFile = do
     ast <- fromParseResult <$> parseFile inputFile
+    -- print ast
     let ass = AnalysisAssigment inputFile ast
-        res = processAssignment ass
+    res <- processAssignment ass
     return res
 
-processAssignment :: AnalysisAssigment -> AnalysisResult
+processAssignment :: AnalysisAssigment -> IO AnalysisResult
 processAssignment (AnalysisAssigment _ ast)
     = case (,) <$> getFunctions ast <*> getPlainTypeConstructorsMap ast of
-        Left err -> AnalysisError $ GatherError err
+        Left err -> return $ AnalysisError $ GatherError err
         Right (fs, ptcm) -> let
                 targets = map FunctionTarget fs
                 initState = AnalyzerState 0
             in case flip runReader ptcm $ flip evalStateT initState $ runExceptT $ mapM analyzeFunction targets of
-                Left err -> AnalysisError $ ProcessError err
-                Right res -> AnalysisSuccess $ concatMap (uncurry produceRecommendations) $ zip targets res
+                Left err -> return $ AnalysisError $ ProcessError err
+                Right res -> do
+                    print res
+                    return $ AnalysisSuccess $ concatMap (uncurry produceRecommendations) $ zip targets res
 -- TODO actually solve the constraints, now I'm just ignoring them, which is like having an oracle that returns true.
 
+-- TODO replace FunctionResult with (solved Conditioned)ValueAbstractionSet.
 produceRecommendations :: FunctionTarget -> FunctionResult -> [Recommendation]
 produceRecommendations t@(FunctionTarget (Function name _ clss)) (FunctionResult tr)
     =  map (Recommendation name)

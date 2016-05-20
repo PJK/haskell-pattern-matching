@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 module Gatherer where
 
+import           Control.Monad         (forM)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
 import           Data.Maybe            (catMaybes)
@@ -144,12 +145,18 @@ getFunctions (Module _ _ _ _ _ _ decls) = do
         go (FunBind ms) = do
             cs <- mapM mkClause ms
             case nub (map fst cs) of
-                [name] -> return $ Just (name, map snd cs)
+                [name] -> return $ Just (name, concatMap snd cs)
                 _ -> err $ "Illegal list of clauses in function binding: " ++ show ms
         go _ = return Nothing
 
-        mkClause :: Match -> MayFail (Name, Clause)
-        mkClause (Match _ name pats _ _ _) = (,) <$> mkName name <*> (Clause <$> mapM mkPattern pats)
+        mkClause :: Match -> MayFail (Name, [Clause])
+        mkClause (Match _ name pats _ (UnGuardedRhs _) _) = (,) <$> mkName name <*> ((\ps -> [Clause ps]) <$> mapM mkPattern pats)
+        mkClause (Match _ name pats _ (GuardedRhss rhss) _)
+            = (,) <$> mkName name <*> (forM rhss $ \(GuardedRhs _ [Qualifier exp] _) ->
+                (Clause <$> (forM pats $ \pat -> GuardPattern <$> mkPattern pat <*> mkConstraint exp)))
+
+        mkConstraint :: Exp -> MayFail Constraint
+        mkConstraint e = return $ Uncheckable $ show e -- TODO parse nicer guards
 
 
 mkQname :: H.QName -> MayFail Name
