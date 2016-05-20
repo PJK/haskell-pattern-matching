@@ -94,7 +94,7 @@ coveredValues pat values
 --
 uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-uncoveredValues x y | trace (show (x, y)) False = error "fail"
+uncoveredValues x y | trace ("U: " ++ show (x, y)) False = error "fail"
 
 -- UNil
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
@@ -286,15 +286,12 @@ lookupType constructor@(ConstructorPattern constructorName _) = do
 -- | Extracts all constructors for the type and turns them into patterns
 -- TODO rename this - this no longer does look ups
 lookupConstructors :: DataType -> Analyzer [Pattern]
-lookupConstructors typeName = do
-    return []
---     tmap <- ask
---     case Map.lookup typeName tmap of
---         Nothing -> throwError $ ConstructorNotFound $ "Constructor lookup for type " ++ show typeName ++ " failed"
---         Just cs -> return cs
+lookupConstructors (DataType _ _ constructors)
+    = mapM constructorToPattern constructors -- Wooo I did a thing with a monad
+
 
 constructorToPattern :: Constructor -> Analyzer Pattern
-constructorToPattern (Constructor name types)
-    -- don't expand the parameters - this can be done at the next step if forced by the pattern
-    -- = ConstructorPattern name (map (const freshVar) types)
-    = return $ ConstructorPattern name []
+constructorToPattern (Constructor name types) = do
+        -- don't expand the parameters - this can be done at the next step if forced by the pattern
+        params <- replicateM (length types) freshVar
+        return $ ConstructorPattern name params

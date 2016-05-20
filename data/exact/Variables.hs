@@ -15,6 +15,7 @@ data MyTrinary = A | B | C
 -- incompleteFT x B = 3
 
 data MyMaybe = Sum MyTrinary | Nope
+data FooBar = FooBar
 
 extract :: MyMaybe -> Bool -> MyTrinary
 extract (Sum x) False = x
