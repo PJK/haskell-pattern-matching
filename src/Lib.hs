@@ -36,8 +36,7 @@ processTarget inputFile = do
     ast <- fromParseResult <$> parseFile inputFile
     -- print ast
     let ass = AnalysisAssigment inputFile ast
-    res <- processAssignment ass
-    return res
+    processAssignment ass
 
     -- TODO name conflicts in variable patterns
 processAssignment :: AnalysisAssigment -> IO AnalysisResult
