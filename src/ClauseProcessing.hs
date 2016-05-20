@@ -273,9 +273,13 @@ annotatePatterns = mapM annotatePattern
 lookupType :: Pattern -> Analyzer DataType
 lookupType constructor@(ConstructorPattern constructorName _) = do
     universe <- ask
-    case DFo.find (\(DataType name _ _) -> name == constructorName) universe of
-        Nothing -> throwError $ TypeNotFound $ "Type lookup for constructor " ++ show constructor ++ " failed"
+    case DFo.find containsConstructor universe of
+        Nothing -> throwError $ TypeNotFound $ "Type lookup for constructor " ++ show constructor ++ " failed (searched in " ++ show universe ++ ")"
         Just r -> return r
+    where
+        containsConstructor :: DataType -> Bool
+        containsConstructor (DataType _ _ constructors)
+            = any (\(Constructor name _) -> name == constructorName) constructors
 
 -- | Extracts all constructors for the type and turns them into patterns
 -- TODO rename this - this no longer does look ups
