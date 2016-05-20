@@ -211,9 +211,7 @@ guardType = "__anonymous_guard_type"
 -- | information.
 type TypeUniverse = Set.Set DataType
 
--- |(Pattern, name of type)
-type TypedPattern = (Pattern, String)
-type PatternVector = [TypedPattern]
+type PatternVector = [Pattern]
 
 type ValueAbstractionVector = [Pattern]
 type ValueAbstractionSet = [ValueAbstractionVector]
