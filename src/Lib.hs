@@ -94,7 +94,8 @@ analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
 analyzeFunction (FunctionTarget fun) = do
     freshVars <- replicateM (arity (head clauses)) freshVar
     let initialAbstraction = withNoConstraints [freshVars]
-    FunctionResult <$> iteratedVecProc desugaredPatterns gammas initialAbstraction
+    executionTrace <- iteratedVecProc desugaredPatterns gammas initialAbstraction
+    return $ trace (show executionTrace) (FunctionResult executionTrace)
     where
         Function _ _ clauses = fun
         Right patterns = getTypedPatternVectors fun
