@@ -81,7 +81,9 @@ coveredValues
         -- with a fresh variable (must have the same meaning)
         x' <- freshVar
         let delta' = (Uncheckable $ x ++ " ~~ " ++ show u):delta
-        let uType = fromJust $ Map.lookup uName gamma
+        let uType = case Map.lookup uName gamma of
+                            Just x -> x
+                            Nothing -> error ("Couldn't find type of " ++ uName ++ " in " ++ (show gamma))
         let gamma' = Map.insert (varName x') uType gamma
         cvs <- coveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
         return $ patMap (ucon u) cvs
@@ -128,18 +130,29 @@ uncoveredValues
         constructorType <- lookupType pat
         allConstructors <- lookupConstructors constructorType
         allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
+
+        patternGammas <- mapM substitutedConstructorContext allConstructorsWithFreshParameters
+        let gamma' = foldr Map.union gamma patternGammas
+
         uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
             let delta' = (Uncheckable $ varName ++ " ~~ " ++ show constructor):delta in
-                uncoveredValues (pat:ps) CVAV {valueAbstraction=constructor:us, delta=delta', gamma = gamma}
+                uncoveredValues (pat:ps) CVAV {valueAbstraction=constructor:us, delta=delta', gamma = gamma'}
         return $ concat uvs
 
 -- UVar
 uncoveredValues
-    (VariablePattern varName:ps)
-    CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
+    (VariablePattern x:ps)
+    CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
     = do
-        let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
-        cvs <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma}
+        -- Substitute x (which depends on the type definition and may occur many times)
+        -- with a fresh variable (must have the same meaning)
+        x' <- freshVar
+        let delta' = (Uncheckable $ x ++ " ~~ " ++ show u):delta
+        let uType = case Map.lookup uName gamma of
+                                                Just x -> x
+                                                Nothing -> error ("Couldn't find type of " ++ uName ++ " in " ++ (show gamma))
+        let gamma' = Map.insert (varName x') uType gamma
+        cvs <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
         return $ patMap (ucon u) cvs
 
 -- UGuard
@@ -170,10 +183,9 @@ divergentValues
     (ConstructorPattern pname args:ps)
     CVAV {valueAbstraction=(ConstructorPattern vname up:us), delta=delta, gamma=gamma}
         | pname == vname = do
-            subs <- substitutePatterns up
             cvs <- divergentValues
                         (args ++ ps)
-                        CVAV {valueAbstraction = subs ++ us, delta = delta, gamma = gamma}
+                        CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
             return $ patMap (kcon (ConstructorPattern pname args)) cvs
         | otherwise      = return []
 
@@ -186,16 +198,25 @@ divergentValues
             substituted <- substituteFreshParameters p
             let delta' = (Uncheckable $ varName ++ " ~~ " ++ show substituted):delta
             let deltaBot = (Uncheckable $ varName ++ "~~" ++ "bottom"):delta
-            dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma}
+            patternGamma <- substitutedConstructorContext substituted
+            let gamma' = Map.union gamma patternGamma
+            dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
             return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
 
 -- DVar
 divergentValues
-    (VariablePattern varName:ps)
-    CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
+    (VariablePattern x:ps)
+    CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
     = do
-        let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
-        cvs <- divergentValues ps CVAV {valueAbstraction=us, delta=delta', gamma = gamma}
+        -- Substitute x (which depends on the type definition and may occur many times)
+        -- with a fresh variable (must have the same meaning)
+        x' <- freshVar
+        let delta' = (Uncheckable $ x ++ " ~~ " ++ show u):delta
+        let uType = case Map.lookup uName gamma of
+                                                Just x -> x
+                                                Nothing -> error ("Couldn't find type of " ++ uName ++ " in " ++ (show gamma))
+        let gamma' = Map.insert (varName x') uType gamma
+        cvs <- divergentValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
         return $ patMap (ucon u) cvs
 
 -- DGuard
