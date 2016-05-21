@@ -38,6 +38,22 @@ guardHandler func p constraint ps us delta gamma
         recurse <- func (p:ps) CVAV {valueAbstraction = z:us, delta = delta', gamma = gamma'}
         return $ patMap tail recurse
 
+-- | Creates CVar, UVar, DVar implementations
+varHandler :: AnalysisProcessor -> String -> PatternVector -> String -> Pattern -> PatternVector -> ConstraintSet-> Binding -> Analyzer ConditionedValueAbstractionSet
+varHandler func x ps uName u us delta gamma
+    = do
+        -- Substitute x (which depends on the type definition and may occur many times)
+        -- with a fresh variable (must have the same meaning)
+        x' <- freshVar
+        let delta' = addConstraint (Uncheckable $ x ++ " ~~ " ++ show u) delta
+        uType <- lookupVariableType uName gamma
+        let gamma' = Map.insert (varName x') uType gamma
+        cvs <- func ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
+        return $ patMap (ucon u) cvs
+
+--
+-- (VariablePattern x:ps)
+--     CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
 -- Based on Figure 3 of 'GADTs meet their match'
 
 --
@@ -76,15 +92,7 @@ coveredValues
 coveredValues
     (VariablePattern x:ps)
     CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
-    = do
-        -- Substitute x (which depends on the type definition and may occur many times)
-        -- with a fresh variable (must have the same meaning)
-        x' <- freshVar
-        let delta' = addConstraint (Uncheckable $ x ++ " ~~ " ++ show u) delta
-        uType <- lookupVariableType uName gamma
-        let gamma' = Map.insert (varName x') uType gamma
-        cvs <- coveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
-        return $ patMap (ucon u) cvs
+    = varHandler divergentValues x ps uName u us delta gamma
 
 -- CGuard
 coveredValues
@@ -141,15 +149,7 @@ uncoveredValues
 uncoveredValues
     (VariablePattern x:ps)
     CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
-    = do
-        -- Substitute x (which depends on the type definition and may occur many times)
-        -- with a fresh variable (must have the same meaning)
-        x' <- freshVar
-        let delta' = addConstraint (Uncheckable $ x ++ " ~~ " ++ show u) delta
-        uType <- lookupVariableType uName gamma
-        let gamma' = Map.insert (varName x') uType gamma
-        cvs <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
-        return $ patMap (ucon u) cvs
+    = varHandler divergentValues x ps uName u us delta gamma
 
 -- UGuard
 uncoveredValues
@@ -203,15 +203,8 @@ divergentValues
 divergentValues
     (VariablePattern x:ps)
     CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
-    = do
-        -- Substitute x (which depends on the type definition and may occur many times)
-        -- with a fresh variable (must have the same meaning)
-        x' <- freshVar
-        let delta' = addConstraint (Uncheckable $ x ++ " ~~ " ++ show u) delta
-        uType <- lookupVariableType uName gamma
-        let gamma' = Map.insert (varName x') uType gamma
-        cvs <- divergentValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
-        return $ patMap (ucon u) cvs
+    = varHandler divergentValues x ps uName u us delta gamma
+
 
 -- DGuard
 divergentValues
