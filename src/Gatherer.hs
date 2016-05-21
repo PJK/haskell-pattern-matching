@@ -72,25 +72,26 @@ extractType t = case t of
 
 -- | Provides initial binding for each clause -- all variables that occur among the patterns
 -- | have to be assigned a type.
-initialGammas :: Function -> MayFail [Binding]
-initialGammas (Function _ functionType patterns)
-    = Right $ map (buildGamma functionTypes) (patternsList patterns)
+initialGamma :: Function -> [Pattern] -> MayFail Binding
+initialGamma
+    (Function _ functionType patterns)
+    freshVariables
+    = Right $ Map.fromList (zip variableNames (init functionTypes))
     where
         functionTypes = extractType functionType
-
-        buildGamma :: [Type] -> [Pattern] -> Binding
-        -- buildGamma x y | trace ("Buildgamma: " ++ show (x, y)) False = error "asdfa"
-        buildGamma ts (GuardPattern _ _:ps) = buildGamma ts ps -- Do not bind guards
-        buildGamma (t:ts) (VariablePattern name:ps)
-            = Map.insert name t (buildGamma ts ps)
-        buildGamma (_:ts) (_:ps) = buildGamma ts ps
-        buildGamma [_] []        = Map.fromList [] -- One extra element for return type
+        variableNames = map varName freshVariables
 
 
 getTypeUniverse :: Module -> MayFail TypeUniverse
 getTypeUniverse mod = do
     types <- getTypes mod
     return $ Set.fromList (types ++ builtinTypes)
+
+
+varName :: Pattern -> Name
+varName (VariablePattern name) = name
+varName _ = error "Only variables have names"
+
 
 
 err :: String -> MayFail a

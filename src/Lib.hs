@@ -84,20 +84,22 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (FunctionResult
 
 
 -- | Constructs ConditionedValueAbstractionSet without any conditions on each abstraction
-withNoConstraints :: ValueAbstractionSet -> ConditionedValueAbstractionSet
-withNoConstraints
+withNoConstraints :: ValueAbstractionSet -> Binding -> ConditionedValueAbstractionSet
+withNoConstraints vas gamma
     = map
-        (\vector -> CVAV {valueAbstraction = vector, delta = [], gamma = Map.fromList []})
+        (\vector -> CVAV {valueAbstraction = vector, delta = [], gamma = gamma})
+        vas
 
 
 analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
 analyzeFunction (FunctionTarget fun) = do
     freshVars <- replicateM (arity (head clauses)) freshVar
-    let initialAbstraction = withNoConstraints [freshVars]
-    executionTrace <- iteratedVecProc desugaredPatterns gammas initialAbstraction
+    let Right gamma = initialGamma fun freshVars
+    let initialAbstraction = withNoConstraints [freshVars] gamma
+    executionTrace <- iteratedVecProc desugaredPatterns initialAbstraction
     return $ trace (Pr.ppShow executionTrace) (FunctionResult executionTrace)
     where
         Function _ _ clauses = fun
         Right patterns = getPatternVectors fun
         desugaredPatterns = map desugarPatternVector patterns
-        Right gammas = initialGammas fun
+

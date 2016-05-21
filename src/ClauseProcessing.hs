@@ -242,16 +242,12 @@ extractValueAbstractions :: ConditionedValueAbstractionSet -> ConditionedValueAb
 extractValueAbstractions = id
 
 
-iteratedVecProc :: [PatternVector] -> [Binding] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
-iteratedVecProc [] [] _ = return []
-iteratedVecProc (ps:pss) (g:gs) s = do
-    res <- patVecProc ps (map (addGamma g) s)
-    rest <- iteratedVecProc pss gs (capU res)
+iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
+iteratedVecProc [] _ = return []
+iteratedVecProc (ps:pss) s = do
+    res <- patVecProc ps s
+    rest <- iteratedVecProc pss (capU res)
     return $ res : rest
-
-addGamma :: Binding -> ConditionedValueAbstractionVector -> ConditionedValueAbstractionVector
-addGamma gamma CVAV {valueAbstraction=us, delta=delta, gamma=_}
-    = CVAV {valueAbstraction = us, delta = delta, gamma = gamma}
 
 -- |Coverage vector concatenation
 -- TODO: Add the term constraints merging
@@ -315,11 +311,6 @@ constructorToPattern (Constructor name types) = do
         -- don't expand the parameters - this can be done at the next step if forced by the pattern
         params <- replicateM (length types) freshVar
         return $ ConstructorPattern name params
-
-varName :: Pattern -> Name
-varName (VariablePattern name) = name
-varName _ = error "Only variables have names"
-
 
 -- | Takes a pattern with freshly substituted parameters and produces a binding map for them
 substitutedConstructorContext :: Pattern -> Analyzer Binding
