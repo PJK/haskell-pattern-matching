@@ -5,6 +5,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 
 import qualified Data.Map             as Map
+import           Data.Maybe            (fromJust)
 import qualified Data.Foldable as DFo
 import           DataDefs
 import           Debug.Trace
@@ -44,7 +45,7 @@ guardHandler func p constraint ps us delta gamma
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-coveredValues x y | trace ("C: " ++ show (x, y)) False = error "fail"
+-- coveredValues x y | trace ("C: " ++ show (x, y)) False = error "fail"
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}
@@ -67,7 +68,10 @@ coveredValues
     = do
         substituted <- substituteFreshParameters k
         let delta' = (Uncheckable $ varName ++ " ~~ " ++ show substituted):delta
-        coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma}
+        patternGamma <- substitutedConstructorContext substituted
+        let gamma' = Map.union gamma patternGamma
+        coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
+
 
 -- CVar
 coveredValues
@@ -279,6 +283,13 @@ lookupConstructors :: DataType -> Analyzer [Pattern]
 lookupConstructors (DataType _ _ constructors)
     = mapM constructorToPattern constructors -- Wooo I did a thing with a monad
 
+lookupConstructorDefinition :: Pattern -> Analyzer Constructor
+lookupConstructorDefinition constructor@(ConstructorPattern constructorName _) = do
+    DataType _ _ constructors  <- lookupType constructor
+    return $ fromJust (DFo.find sameName constructors)
+    where
+        sameName (Constructor name _) = name == constructorName
+
 
 constructorToPattern :: Constructor -> Analyzer Pattern
 constructorToPattern (Constructor name types) = do
@@ -289,3 +300,11 @@ constructorToPattern (Constructor name types) = do
 varName :: Pattern -> Name
 varName (VariablePattern name) = name
 varName _ = error "Only variables have names"
+
+
+-- | Takes a pattern with freshly substituted parameters and produces a binding map for them
+substitutedConstructorContext :: Pattern -> Analyzer Binding
+substitutedConstructorContext construtorPattern@(ConstructorPattern name vars) = do
+    Constructor _ types <- lookupConstructorDefinition construtorPattern
+    let varNames = map varName vars
+    return $ Map.fromList (zip varNames types)
