@@ -79,7 +79,7 @@ initialGammas (Function _ functionType patterns)
         functionTypes = extractType functionType
 
         buildGamma :: [Type] -> [Pattern] -> Binding
-        buildGamma x y | trace ("Buildgamma: " ++ show (x, y)) False = error "asdfa"
+        -- buildGamma x y | trace ("Buildgamma: " ++ show (x, y)) False = error "asdfa"
         buildGamma ts (GuardPattern _ _:ps) = buildGamma ts ps -- Do not bind guards
         buildGamma (t:ts) (VariablePattern name:ps)
             = Map.insert name t (buildGamma ts ps)
