@@ -74,11 +74,16 @@ coveredValues
 
 -- CVar
 coveredValues
-    (VariablePattern varName:ps)
-    CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
+    (VariablePattern x:ps)
+    CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
     = do
-        let delta' = (Uncheckable $ varName ++ " ~~ " ++ show u):delta
-        cvs <- coveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma}
+        -- Substitute x (which depends on the type definition and may occur many times)
+        -- with a fresh variable (must have the same meaning)
+        x' <- freshVar
+        let delta' = (Uncheckable $ x ++ " ~~ " ++ show u):delta
+        let uType = fromJust $ Map.lookup uName gamma
+        let gamma' = Map.insert (varName x') uType gamma
+        cvs <- coveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
         return $ patMap (ucon u) cvs
 
 -- CGuard
