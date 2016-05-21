@@ -14,6 +14,8 @@ import qualified Language.Haskell.Exts as H
 
 type Name = String
 
+
+-- This is confusing. DataType ~ data Name = .... declaration
 data DataType
     = DataType Name [TypeVariable] [Constructor]
   deriving (Show, Eq, Ord)
@@ -228,6 +230,9 @@ data ConstraintSet = ConstraintSet
     } deriving (Show, Eq, Generic)
 
 -- | A value abstraction that is valid if the constraint bag is satisfiable
+-- | Invariant: All VarPatterns in valueAbstraction are bound by gamma
+-- TODO make ^ true
+-- Challenge: encode this as a GADT
 data ConditionedValueAbstractionVector = CVAV
     { valueAbstraction :: ValueAbstractionVector
     , gamma            :: Binding

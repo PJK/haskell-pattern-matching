@@ -6,7 +6,8 @@ import           Control.Monad         (forM)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
 import qualified Data.Set              as Set
-import           Data.Maybe            (catMaybes)
+import           Data.Maybe            (catMaybes, fromJust)
+import           Data.Foldable         (find)
 import           DataDefs
 import           Debug.Trace
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
@@ -31,6 +32,7 @@ desugarPattern (LiteralPattern sign (Frac f))
         var = "__x"
 
 desugarPattern (LiteralPattern sign (Int i))
+
     = VariablePattern var:desugarGuard (ConstraintGuard $ BoolExp $ IntBoolOp IntEQ (IntVar var) (IntLit i))
     where
         var = "__x"
@@ -215,4 +217,7 @@ builtinTypes
             $ fromParseResult
             $ parseFileContents [litFile|build_data/BaseDataTypes.hs|]
       in baseTypes
+
+booleanType :: Type
+booleanType = TypeConstructor "Boolean"
 

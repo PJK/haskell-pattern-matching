@@ -10,6 +10,7 @@ import           DataDefs
 import           Debug.Trace
 import           Types
 import           Util
+import           Gatherer
 
 
 
@@ -32,7 +33,8 @@ guardHandler func p constraint ps us delta gamma
     = do
         z <- freshVar
         let delta' = addGuardConstraint z constraint delta
-        recurse <- func (p:ps) CVAV {valueAbstraction = z:us, delta = delta', gamma = gamma}
+        let gamma' = Map.insert (varName z) booleanType gamma
+        recurse <- func (p:ps) CVAV {valueAbstraction = z:us, delta = delta', gamma = gamma'}
         return $ patMap tail recurse
 
 -- Based on Figure 3 of 'GADTs meet their match'
@@ -283,3 +285,7 @@ constructorToPattern (Constructor name types) = do
         -- don't expand the parameters - this can be done at the next step if forced by the pattern
         params <- replicateM (length types) freshVar
         return $ ConstructorPattern name params
+
+varName :: Pattern -> Name
+varName (VariablePattern name) = name
+varName _ = error "Only variables have names"
