@@ -3,11 +3,11 @@ module Gatherer where
 
 import           Control.Applicative   (liftA2)
 import           Control.Monad         (forM)
+import           Data.Foldable         (find)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
-import qualified Data.Set              as Set
 import           Data.Maybe            (catMaybes, fromJust)
-import           Data.Foldable         (find)
+import qualified Data.Set              as Set
 import           DataDefs
 import           Debug.Trace
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
@@ -220,5 +220,5 @@ builtinTypes
       in baseTypes
 
 booleanType :: Type
-booleanType = TypeConstructor "Boolean"
+booleanType = TypeConstructor "Bool"
 
