@@ -56,8 +56,7 @@ coveredValues
     (ConstructorPattern pname args:ps)
     CVAV {valueAbstraction=(ConstructorPattern vname up:us), delta=delta, gamma=gamma}
         | pname == vname = do
-            subs <- substitutePatterns up
-            cvs <- coveredValues (args ++ ps) CVAV {valueAbstraction = subs ++ us, delta = delta, gamma = gamma}
+            cvs <- coveredValues (args ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
             return $ patMap (kcon (ConstructorPattern pname args)) cvs
         | otherwise      = return []
 
