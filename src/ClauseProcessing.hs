@@ -231,6 +231,12 @@ addConstraint constraint ConstraintSet {termConstraints=termC, typeConstraints=t
                     , typeConstraints = typeC
                     }
 
+addTypeConstraint :: TypeConstraint -> ConstraintSet -> ConstraintSet
+addTypeConstraint constraint ConstraintSet {termConstraints=termC, typeConstraints=typeC}
+    = ConstraintSet { termConstraints = termC
+                    , typeConstraints = constraint:typeC
+                    }
+
 -- | Refines the VA of viable inputs using the pattern vector
 patVecProc :: PatternVector -> ConditionedValueAbstractionSet -> Analyzer ClauseCoverage
 patVecProc ps s = do
