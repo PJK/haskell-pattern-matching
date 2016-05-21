@@ -87,7 +87,10 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (FunctionResult
 withNoConstraints :: ValueAbstractionSet -> Binding -> ConditionedValueAbstractionSet
 withNoConstraints vas gamma
     = map
-        (\vector -> CVAV {valueAbstraction = vector, delta = [], gamma = gamma})
+        (\vector -> CVAV {valueAbstraction = vector
+                         , delta = ConstraintSet {termConstraints = [], typeConstraints = []}
+                         , gamma = gamma
+                         })
         vas
 
 

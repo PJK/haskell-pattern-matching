@@ -231,15 +231,18 @@ data ConstraintSet = ConstraintSet
 
 -- | A value abstraction that is valid if the constraint bag is satisfiable
 -- | Invariant: All VarPatterns in valueAbstraction are bound by gamma
--- TODO make ^ true
 -- Challenge: encode this as a GADT
 data ConditionedValueAbstractionVector = CVAV
     { valueAbstraction :: ValueAbstractionVector
     , gamma            :: Binding
-    , delta            :: [Constraint]
+    , delta            :: ConstraintSet
     } deriving (Show, Eq, Generic)
 
 type ConditionedValueAbstractionSet = [ConditionedValueAbstractionVector]
+
+
+instance ToJSON   ConstraintSet
+instance FromJSON ConstraintSet
 
 instance ToJSON   ConditionedValueAbstractionVector
 instance FromJSON ConditionedValueAbstractionVector

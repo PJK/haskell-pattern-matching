@@ -29,7 +29,7 @@ patMap f
 -- Syd: Can we do something about all the params?
 type AnalysisProcessor = PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-guardHandler :: AnalysisProcessor -> Pattern -> Constraint -> PatternVector -> ValueAbstractionVector -> [Constraint]-> Binding -> Analyzer ConditionedValueAbstractionSet
+guardHandler :: AnalysisProcessor -> Pattern -> Constraint -> PatternVector -> ValueAbstractionVector -> ConstraintSet-> Binding -> Analyzer ConditionedValueAbstractionSet
 guardHandler func p constraint ps us delta gamma
     = do
         z <- freshVar
@@ -66,7 +66,7 @@ coveredValues
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
         substituted <- substituteFreshParameters k
-        let delta' = (Uncheckable $ varName ++ " ~~ " ++ show substituted):delta
+        let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show substituted) delta
         patternGamma <- substitutedConstructorContext substituted
         let gamma' = Map.union gamma patternGamma
         coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
@@ -80,7 +80,7 @@ coveredValues
         -- Substitute x (which depends on the type definition and may occur many times)
         -- with a fresh variable (must have the same meaning)
         x' <- freshVar
-        let delta' = (Uncheckable $ x ++ " ~~ " ++ show u):delta
+        let delta' = addConstraint (Uncheckable $ x ++ " ~~ " ++ show u) delta
         uType <- lookupVariableType uName gamma
         let gamma' = Map.insert (varName x') uType gamma
         cvs <- coveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
@@ -133,7 +133,7 @@ uncoveredValues
         let gamma' = foldr Map.union gamma patternGammas
 
         uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
-            let delta' = (Uncheckable $ varName ++ " ~~ " ++ show constructor):delta in
+            let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show constructor) delta in
                 uncoveredValues (pat:ps) CVAV {valueAbstraction=constructor:us, delta=delta', gamma = gamma'}
         return $ concat uvs
 
@@ -145,7 +145,7 @@ uncoveredValues
         -- Substitute x (which depends on the type definition and may occur many times)
         -- with a fresh variable (must have the same meaning)
         x' <- freshVar
-        let delta' = (Uncheckable $ x ++ " ~~ " ++ show u):delta
+        let delta' = addConstraint (Uncheckable $ x ++ " ~~ " ++ show u) delta
         uType <- lookupVariableType uName gamma
         let gamma' = Map.insert (varName x') uType gamma
         cvs <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
@@ -192,8 +192,8 @@ divergentValues
     CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
         = do
             substituted <- substituteFreshParameters p
-            let delta' = (Uncheckable $ varName ++ " ~~ " ++ show substituted):delta
-            let deltaBot = (Uncheckable $ varName ++ "~~" ++ "bottom"):delta
+            let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show substituted) delta
+            let deltaBot = addConstraint (Uncheckable $ varName ++ "~~" ++ "bottom") delta
             patternGamma <- substitutedConstructorContext substituted
             let gamma' = Map.union gamma patternGamma
             dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
@@ -207,7 +207,7 @@ divergentValues
         -- Substitute x (which depends on the type definition and may occur many times)
         -- with a fresh variable (must have the same meaning)
         x' <- freshVar
-        let delta' = (Uncheckable $ x ++ " ~~ " ++ show u):delta
+        let delta' = addConstraint (Uncheckable $ x ++ " ~~ " ++ show u) delta
         uType <- lookupVariableType uName gamma
         let gamma' = Map.insert (varName x') uType gamma
         cvs <- divergentValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
@@ -225,9 +225,18 @@ divergentValues pat values
     $ "divergentValues: unsupported pattern " ++ show pat ++ " with values " ++ show values
 
 
-addGuardConstraint :: Pattern -> Constraint -> [Constraint] -> [Constraint]
-addGuardConstraint (VariablePattern varName) constraint delta = (Uncheckable $ varName ++ " ~~ " ++ show constraint):delta
+addGuardConstraint :: Pattern -> Constraint -> ConstraintSet -> ConstraintSet
+addGuardConstraint (VariablePattern varName) constraint ConstraintSet {termConstraints=termC, typeConstraints=typeC}
+    = ConstraintSet { termConstraints = (Uncheckable $ varName ++ " ~~ " ++ show constraint):termC
+                    , typeConstraints = typeC
+                    }
 addGuardConstraint _ _ _ = error "Can only require equality on variables"
+
+addConstraint :: Constraint -> ConstraintSet -> ConstraintSet
+addConstraint constraint ConstraintSet {termConstraints=termC, typeConstraints=typeC}
+    = ConstraintSet { termConstraints = constraint:termC
+                    , typeConstraints = typeC
+                    }
 
 -- | Refines the VA of viable inputs using the pattern vector
 patVecProc :: PatternVector -> ConditionedValueAbstractionSet -> Analyzer ClauseCoverage
