@@ -92,6 +92,7 @@ type Analyzer = ExceptT AnalyzerError (StateT AnalyzerState (Reader AnalyzerCont
 
 data AnalyzerError
     = TypeNotFound String
+    | VariableNotBound String
     | ConstructorNotFound String -- TODO make these two better than strings
     | UnpredictedError String
     deriving (Show, Eq, Generic)

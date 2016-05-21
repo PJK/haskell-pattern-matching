@@ -81,9 +81,7 @@ coveredValues
         -- with a fresh variable (must have the same meaning)
         x' <- freshVar
         let delta' = (Uncheckable $ x ++ " ~~ " ++ show u):delta
-        let uType = case Map.lookup uName gamma of
-                            Just x -> x
-                            Nothing -> error ("Couldn't find type of " ++ uName ++ " in " ++ (show gamma))
+        uType <- lookupVariableType uName gamma
         let gamma' = Map.insert (varName x') uType gamma
         cvs <- coveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
         return $ patMap (ucon u) cvs
@@ -148,9 +146,7 @@ uncoveredValues
         -- with a fresh variable (must have the same meaning)
         x' <- freshVar
         let delta' = (Uncheckable $ x ++ " ~~ " ++ show u):delta
-        let uType = case Map.lookup uName gamma of
-                                                Just x -> x
-                                                Nothing -> error ("Couldn't find type of " ++ uName ++ " in " ++ (show gamma))
+        uType <- lookupVariableType uName gamma
         let gamma' = Map.insert (varName x') uType gamma
         cvs <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
         return $ patMap (ucon u) cvs
@@ -212,9 +208,7 @@ divergentValues
         -- with a fresh variable (must have the same meaning)
         x' <- freshVar
         let delta' = (Uncheckable $ x ++ " ~~ " ++ show u):delta
-        let uType = case Map.lookup uName gamma of
-                                                Just x -> x
-                                                Nothing -> error ("Couldn't find type of " ++ uName ++ " in " ++ (show gamma))
+        uType <- lookupVariableType uName gamma
         let gamma' = Map.insert (varName x') uType gamma
         cvs <- divergentValues ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
         return $ patMap (ucon u) cvs
@@ -333,3 +327,9 @@ substitutedConstructorContext construtorPattern@(ConstructorPattern name vars) =
     Constructor _ types <- lookupConstructorDefinition construtorPattern
     let varNames = map varName vars
     return $ Map.fromList (zip varNames types)
+
+lookupVariableType :: String -> Binding -> Analyzer Type
+lookupVariableType name gamma
+    = case Map.lookup name gamma of
+        Nothing -> throwError $ VariableNotBound $ "Type lookup for variable " ++ name ++ " failed (searched in " ++ show gamma ++ ")"
+        Just x  -> return x
