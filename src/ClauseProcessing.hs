@@ -82,10 +82,17 @@ coveredValues
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
         substituted <- substituteFreshParameters k
-        let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show substituted) delta
+
         patternGamma <- substitutedConstructorContext substituted
         let gamma' = Map.union gamma patternGamma
-        coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
+
+        varType <- lookupVariableType varName gamma
+        constructorType <- dataTypeToType <$> lookupType k -- Holy shit I did it again!
+
+        let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show substituted) delta
+        let delta'' = addTypeConstraint (varType, constructorType) delta'
+
+        coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
 
 
 -- CVar
@@ -140,8 +147,13 @@ uncoveredValues
         patternGammas <- mapM substitutedConstructorContext allConstructorsWithFreshParameters
         let gamma' = foldr Map.union gamma patternGammas
 
+        varType <- lookupVariableType varName gamma
+        constructorType <- dataTypeToType <$> lookupType pat
+
+        let delta' = addTypeConstraint (varType, constructorType) delta
+
         uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
-            let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show constructor) delta in
+            let delta'' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show constructor) delta' in
                 uncoveredValues (pat:ps) CVAV {valueAbstraction=constructor:us, delta=delta', gamma = gamma'}
         return $ concat uvs
 
@@ -190,13 +202,22 @@ divergentValues
 divergentValues
     (p@(ConstructorPattern _ _):ps)
     CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
-        = do
+    = do
             substituted <- substituteFreshParameters p
+
+            varType <- lookupVariableType varName gamma
+            constructorType <- dataTypeToType <$> lookupType p -- Holy shit I did it again!
+
             let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show substituted) delta
+            let delta'' = addTypeConstraint (varType, constructorType) delta'
+
             let deltaBot = addConstraint (Uncheckable $ varName ++ "~~" ++ "bottom") delta
+
             patternGamma <- substitutedConstructorContext substituted
+
             let gamma' = Map.union gamma patternGamma
-            dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
+
+            dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
             return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
 
 -- DVar
@@ -273,7 +294,7 @@ kcon _ _ = error "Only constructor patterns"
 freshVar :: Analyzer Pattern
 freshVar = do
     i <- gets nextFreshVarName
-    modify (\s -> s { nextFreshVarName = i + 1 } )
+    modify (\s -> s { nextFreshVarName = i + 1 })
     return $ VariablePattern $ "fresh" ++ show i
 
 -- | Replace PlaceHolderPatterns with appropriate fresh variables
@@ -300,8 +321,12 @@ lookupType constructor@(ConstructorPattern constructorName _) = do
         containsConstructor (DataType _ _ constructors)
             = any (\(Constructor name _) -> name == constructorName) constructors
 
+
+-- TODO I'm not sure if this makes sense?
+dataTypeToType :: DataType -> Type
+dataTypeToType (DataType name _ _) = TypeConstructor name
+
 -- | Extracts all constructors for the type and turns them into patterns
--- TODO rename this - this no longer does look ups
 lookupConstructors :: DataType -> Analyzer [Pattern]
 lookupConstructors (DataType _ _ constructors)
     = mapM constructorToPattern constructors -- Wooo I did a thing with a monad
