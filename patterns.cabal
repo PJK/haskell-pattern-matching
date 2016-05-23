@@ -25,6 +25,7 @@ library
                      , Types
                      , Gatherer
                      , TH
+                     , Oracle
   build-depends:       base                   >= 4.9   && < 5
                      , containers             >= 0.5   && < 0.6
                      , haskell-src-exts       >= 1.17  && < 1.18
