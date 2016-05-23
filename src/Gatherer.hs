@@ -195,6 +195,7 @@ mkType (H.TyVar n) = VariableType <$> mkName n
 mkType (H.TyCon qn) = TypeConstructor <$> mkQname qn
 mkType (H.TyBang _ _) = err "Banged types/Unpacked types not supported"
 mkType (H.TyList t) = ListType <$> mkType t
+mkType (H.TyParen t) = mkType t
 mkType a = err $ "Unsupported type declaration: " ++ show a
 
 mkPattern :: Pat -> MayFail Pattern
