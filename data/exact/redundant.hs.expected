@@ -2,55 +2,35 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
+            "func",
             {
-                "capD": [
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "False",
-                                []
-                            ]
-                        }
-                    ]
-                ],
-                "capU": [
+                "tag": "NonExhaustive",
+                "contents": [
                     [
                         {
                             "tag": "ConstructorPattern",
                             "contents": [
                                 "True",
-                                []
-                            ]
-                        }
-                    ]
-                ],
-                "capC": [
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "False",
                                 []
                             ]
                         }
                     ]
                 ]
-            },
+            }
+        ],
+        [
+            "func",
             {
-                "capD": [],
-                "capU": [
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "True",
-                                []
-                            ]
-                        }
-                    ]
-                ],
-                "capC": []
+                "tag": "Redundant",
+                "contents": [
+                    {
+                        "tag": "ConstructorPattern",
+                        "contents": [
+                            "False",
+                            []
+                        ]
+                    }
+                ]
             }
         ]
     ]

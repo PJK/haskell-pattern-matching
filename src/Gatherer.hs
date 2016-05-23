@@ -67,7 +67,8 @@ extractType :: Type -> [Type]
 extractType t = case t of
                 FunctionType t1 t2 -> extractType t1 ++ extractType t2
                 TypeConstructor t  -> [TypeConstructor t]
-                _ -> error "no way to extract a type from this"
+                -- VariableType x -> error $ "Top-level type variable hasnt been implemented yet: " ++ show x
+                x -> [x]
 
 
 -- | Provides initial binding for each clause -- all variables that occur among the patterns
