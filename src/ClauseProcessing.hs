@@ -40,14 +40,14 @@ guardHandler func p constraint ps us delta gamma
         return $ patMap tail recurse
 
 -- | Creates CVar, UVar, DVar implementations
-varHandler :: AnalysisProcessor -> String -> PatternVector -> String -> Pattern -> PatternVector -> ConstraintSet-> Binding -> Analyzer ConditionedValueAbstractionSet
-varHandler func x ps uName u us delta gamma
+varHandler :: AnalysisProcessor -> String -> PatternVector -> Pattern -> PatternVector -> ConstraintSet-> Binding -> Analyzer ConditionedValueAbstractionSet
+varHandler func x ps u us delta gamma
     = do
         -- Substitute x (which depends on the type definition and may occur many times)
         -- with a fresh variable (must have the same meaning)
         x' <- freshVar
         let delta' = addConstraint (Uncheckable $ x ++ " ~~ " ++ show u) delta
-        uType <- lookupVariableType uName gamma
+        uType <- lookupType u gamma
         let gamma' = Map.insert (varName x') uType gamma
         cvs <- func ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
         return $ patMap (ucon u) cvs
@@ -85,7 +85,7 @@ coveredValues
         let gamma' = Map.union gamma patternGamma
 
         varType <- lookupVariableType varName gamma
-        constructorType <- dataTypeToType <$> lookupType k -- Holy shit I did it again!
+        constructorType <- dataTypeToType <$> lookupDataType k
 
         let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show substituted) delta
         let delta'' = addTypeConstraint (varType, constructorType) delta'
@@ -96,13 +96,9 @@ coveredValues
 -- CVar
 coveredValues
     (VariablePattern x:ps)
-    CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
-    = varHandler coveredValues x ps uName u us delta gamma
+    CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
+    = varHandler coveredValues x ps u us delta gamma
 
-coveredValues
-    (VariablePattern x:ps)
-    CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
-    = varHandler coveredValues x ps uName u us delta gamma
 
 -- CGuard
 coveredValues
@@ -143,7 +139,7 @@ uncoveredValues
     (pat@(ConstructorPattern _ _):ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
-        constructorType <- lookupType pat
+        constructorType <- lookupDataType pat
         allConstructors <- lookupConstructors constructorType
         allConstructorsWithFreshParameters <- mapM substituteFreshParameters allConstructors
 
@@ -151,7 +147,7 @@ uncoveredValues
         let gamma' = foldr Map.union gamma patternGammas
 
         varType <- lookupVariableType varName gamma
-        constructorType <- dataTypeToType <$> lookupType pat
+        constructorType <- dataTypeToType <$> lookupDataType pat
 
         let delta' = addTypeConstraint (varType, constructorType) delta
 
@@ -163,8 +159,9 @@ uncoveredValues
 -- UVar
 uncoveredValues
     (VariablePattern x:ps)
-    CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
-    = varHandler uncoveredValues x ps uName u us delta gamma
+    CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
+    = varHandler uncoveredValues x ps u us delta gamma
+
 
 -- UGuard
 uncoveredValues
@@ -209,7 +206,7 @@ divergentValues
             substituted <- substituteFreshParameters p
 
             varType <- lookupVariableType varName gamma
-            constructorType <- dataTypeToType <$> lookupType p -- Holy shit I did it again!
+            constructorType <- dataTypeToType <$> lookupDataType p
 
             let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show substituted) delta
             let delta'' = addTypeConstraint (varType, constructorType) delta'
@@ -226,9 +223,8 @@ divergentValues
 -- DVar
 divergentValues
     (VariablePattern x:ps)
-    CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
-    = varHandler divergentValues x ps uName u us delta gamma
-
+    CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
+    = varHandler divergentValues x ps u us delta gamma
 
 -- DGuard
 divergentValues
@@ -312,9 +308,18 @@ substituteFreshParameters _ = error "No substitution available"
 substitutePatterns :: [Pattern] -> Analyzer [Pattern]
 substitutePatterns xs = replicateM (length xs) freshVar
 
--- | Maps Constructors to their Types
-lookupType :: Pattern -> Analyzer DataType
-lookupType constructor@(ConstructorPattern constructorName _) = do
+-- | Maps Patterns to their Types
+lookupType :: Pattern -> Binding -> Analyzer Type
+-- Variables are described by the binding
+lookupType (VariablePattern name) binding
+-- For Constructors, just see the type it belongs to
+    = lookupVariableType name binding
+lookupType pat@(ConstructorPattern _ _) _ = do
+    dataType <- lookupDataType pat
+    return $ dataTypeToType dataType
+
+lookupDataType :: Pattern -> Analyzer DataType
+lookupDataType constructor@(ConstructorPattern constructorName _) = do
     universe <- ask
     case DFo.find containsConstructor universe of
         Nothing -> throwError $ TypeNotFound $ "Type lookup for constructor " ++ show constructor ++ " failed (searched in " ++ show universe ++ ")"
@@ -323,7 +328,6 @@ lookupType constructor@(ConstructorPattern constructorName _) = do
         containsConstructor :: DataType -> Bool
         containsConstructor (DataType _ _ constructors)
             = any (\(Constructor name _) -> name == constructorName) constructors
-
 
 -- TODO I'm not sure if this makes sense?
 dataTypeToType :: DataType -> Type
@@ -336,7 +340,7 @@ lookupConstructors (DataType _ _ constructors)
 
 lookupConstructorDefinition :: Pattern -> Analyzer Constructor
 lookupConstructorDefinition constructor@(ConstructorPattern constructorName _) = do
-    DataType _ _ constructors  <- lookupType constructor
+    DataType _ _ constructors  <- lookupDataType constructor
     return $ fromJust (DFo.find sameName constructors)
     where
         sameName (Constructor name _) = name == constructorName

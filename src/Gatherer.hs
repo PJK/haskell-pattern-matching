@@ -24,6 +24,8 @@ signFact :: Num a => Sign -> a
 signFact Signless = 1
 signFact Negative = -1
 
+
+-- TODO we need to create the binding for these variables during the desugaring
 -- | Transforms all patterns into the standard form (See figure 7)
 desugarPattern :: Pattern -> PatternVector
 desugarPattern (LiteralPattern sign (Frac f))
@@ -32,11 +34,13 @@ desugarPattern (LiteralPattern sign (Frac f))
         var = "__x"
 
 desugarPattern (LiteralPattern sign (Int i))
-
     = VariablePattern var:desugarGuard (ConstraintGuard $ BoolExp $ IntBoolOp IntEQ (IntVar var) (IntLit i))
     where
         var = "__x"
 
+desugarPattern (ConstructorPattern name patterns)
+    = [ConstructorPattern name (concatMap desugarPattern patterns)]
+-- TODO these have to generate fresh variables!
 desugarPattern WildcardPattern
     = [VariablePattern "_"]
 
