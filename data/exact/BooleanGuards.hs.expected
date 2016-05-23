@@ -1,4 +1,19 @@
 {
     "tag": "AnalysisSuccess",
-    "contents": []
+    "contents": [
+        [
+            "bguard",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh0"
+                        }
+                    ]
+                ]
+            }
+        ]
+    ]
 }

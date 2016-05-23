@@ -1,10 +1,92 @@
 {
-    "tag": "AnalysisError",
-    "contents": {
-        "tag": "ProcessError",
-        "contents": {
-            "tag": "TypeNotFound",
-            "contents": "Type lookup for constructor VariablePattern \"x\" failed"
-        }
-    }
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "extract",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "A",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "B",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "C",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "False",
+                                []
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
+                        }
+                    ]
+                ]
+            }
+        ]
+    ]
 }

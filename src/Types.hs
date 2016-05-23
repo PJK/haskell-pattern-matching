@@ -62,6 +62,7 @@ data FunctionTarget
 instance ToJSON   FunctionTarget
 instance FromJSON FunctionTarget
 
+-- TODO rename to intermediate function result
 data FunctionResult
     = FunctionResult ExecutionTrace
     deriving (Show, Eq, Generic)
@@ -71,12 +72,16 @@ instance FromJSON FunctionResult
 
 type ExecutionTrace = [ClauseCoverage]
 
+-- TODO rename to Function result once the todo on line 65 is resolved
+data SolvedFunctionResult
+    = SolvedFunctionResult SolvedExecutionTrace
+    deriving (Show, Eq, Generic)
 
-{-
-We also have to pass the constraints set: Consider
-f 1 = ... <- We cannot discard the substituted variable equality
-f 2 = ...
--}
+instance ToJSON   SolvedFunctionResult
+instance FromJSON SolvedFunctionResult
+
+type SolvedExecutionTrace = [SolvedClauseCoverage]
+
 data ClauseCoverage = ClauseCoverage
     { capC :: ConditionedValueAbstractionSet
     , capU :: ConditionedValueAbstractionSet
@@ -86,6 +91,15 @@ data ClauseCoverage = ClauseCoverage
 
 instance ToJSON   ClauseCoverage
 instance FromJSON ClauseCoverage
+
+data SolvedClauseCoverage = SolvedClauseCoverage
+    { scapC :: ValueAbstractionSet
+    , scapU :: ValueAbstractionSet
+    , scapD :: ValueAbstractionSet
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON   SolvedClauseCoverage
+instance FromJSON SolvedClauseCoverage
 
 
 type Analyzer = ExceptT AnalyzerError (StateT AnalyzerState (Reader AnalyzerContext))

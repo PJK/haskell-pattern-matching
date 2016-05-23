@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
 
 module DataDefs where
@@ -64,6 +64,8 @@ instance FromJSON Clause
 
 data Constraint
     = BoolExp BoolE
+    | IsBottom Name
+    | VarsEqual Name Name
     | Uncheckable String
   deriving (Show, Eq, Generic, Ord)
 
@@ -72,9 +74,9 @@ instance FromJSON Constraint
 
 data BoolE
     = LitBool Bool
-    | BoolVar String
+    | BoolVar Name
     | BoolNot BoolE
-    | BoolOp BoolBinOp BoolE
+    | BoolOp BoolBinOp BoolE BoolE
     | IntBoolOp IntBoolBinOp IntE IntE
     | FracBoolOp FracBoolBinOp FracE FracE
   deriving (Show, Eq, Generic, Ord)
@@ -94,7 +96,7 @@ instance FromJSON BoolBinOp
 
 data FracE
     = FracLit Rational
-    | FracVar String
+    | FracVar Name
     | FracUnOp FracUnOp FracE
     | FracOp FracBinOp FracE FracE
   deriving (Show, Eq, Generic, Ord)
@@ -145,7 +147,7 @@ instance FromJSON IntBoolBinOp
 
 data IntE
     = IntLit Integer
-    | IntVar String
+    | IntVar Name
     | IntUnOp IntUnOp IntE
     | IntOp IntBinOp IntE IntE
   deriving (Show, Eq, Generic, Ord)

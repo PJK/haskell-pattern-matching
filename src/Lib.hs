@@ -8,17 +8,18 @@ import           Control.Monad.Reader     (runReader)
 import           Control.Monad.State      (evalStateT)
 import           Data.Aeson.Encode.Pretty (encodePretty)
 import qualified Data.ByteString.Lazy     as LB
+import qualified Data.Map                 as Map
 import           Data.Maybe               (mapMaybe)
-import qualified Text.Show.Pretty as Pr
 import           DataDefs
 import           Debug.Trace
+import           Gatherer
 import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
                                            Pretty, Type (..), prettyPrint)
 import           Language.Haskell.Exts    (fromParseResult, parseFile)
-import qualified Data.Map                 as Map
-import           Gatherer
 import           OptParse
 import           OptParse.Types
+import           Oracle
+import qualified Text.Show.Pretty         as Pr
 import           Types
 
 
@@ -50,36 +51,42 @@ processAssignment (AnalysisAssigment _ ast)
             case flip runReader ptcm $ flip evalStateT initState $ runExceptT $ mapM analyzeFunction targets of
                 Left err -> return $ AnalysisError $ ProcessError err
                 Right res -> do
-                    print targets
-                    print res
-                    return $ AnalysisSuccess $ concatMap (uncurry produceRecommendations) $ zip targets res
+                    -- Solve the constraints
+                    sres <- mapM runOracle res
+                    let tups = zip targets sres
+                    return $ AnalysisSuccess $ concatMap (uncurry produceRecommendations) tups
 
 -- TODO actually solve the constraints, now I'm just ignoring them, which is like having an oracle that returns true.
 
 -- TODO replace FunctionResult with (solved Conditioned)ValueAbstractionSet.
-produceRecommendations :: FunctionTarget -> FunctionResult -> [Recommendation]
-produceRecommendations t@(FunctionTarget (Function name _ clss)) (FunctionResult tr)
+produceRecommendations :: FunctionTarget -> SolvedFunctionResult -> [Recommendation]
+produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunctionResult tr)
     =  map (Recommendation name)
     $  findNonExhaustives tr
     ++ findRedundants tr
     ++ findInaccessibleRhss tr
   where
+    findNonExhaustives :: SolvedExecutionTrace -> [RecommendationReason]
     findNonExhaustives [] = []
     findNonExhaustives tr
-        = case capU $ last tr of
+        = case scapU $ last tr of
             [] -> []
-            cvavs ->  [NonExhaustive $ map (Clause . valueAbstraction) cvavs]
+            cvavs ->  [NonExhaustive $ map Clause cvavs]
+
+    findRedundants :: SolvedExecutionTrace -> [RecommendationReason]
     findRedundants tr = mapMaybe checkRedundant $ zip tr clss
         where
-            checkRedundant :: (ClauseCoverage, Clause) -> Maybe RecommendationReason
+            checkRedundant :: (SolvedClauseCoverage, Clause) -> Maybe RecommendationReason
             checkRedundant (cc, c)
-                | null (capC cc) && null (capD cc) = Just $ Redundant c
+                | null (scapC cc) && null (scapD cc) = Just $ Redundant c
                 | otherwise = Nothing
+
+    findInaccessibleRhss :: SolvedExecutionTrace -> [RecommendationReason]
     findInaccessibleRhss tr = mapMaybe checkInaccessibleRhs $ zip tr clss
         where
-            checkInaccessibleRhs :: (ClauseCoverage, Clause) -> Maybe RecommendationReason
+            checkInaccessibleRhs :: (SolvedClauseCoverage, Clause) -> Maybe RecommendationReason
             checkInaccessibleRhs (cc, c)
-                | null (capC cc) && (not . null) (capD cc) = Just $ InaccessibleRhs c
+                | null (scapC cc) && (not . null) (scapD cc) = Just $ InaccessibleRhs c
                 | otherwise = Nothing
 
 
