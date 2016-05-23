@@ -52,9 +52,6 @@ varHandler func x ps uName u us delta gamma
         cvs <- func ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
         return $ patMap (ucon u) cvs
 
---
--- (VariablePattern x:ps)
---     CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
 -- Based on Figure 3 of 'GADTs meet their match'
 
 --
@@ -62,7 +59,7 @@ varHandler func x ps uName u us delta gamma
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
--- coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
+coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}
@@ -97,6 +94,11 @@ coveredValues
 
 
 -- CVar
+coveredValues
+    (VariablePattern x:ps)
+    CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
+    = varHandler coveredValues x ps uName u us delta gamma
+
 coveredValues
     (VariablePattern x:ps)
     CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
