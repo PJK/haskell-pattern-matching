@@ -9,6 +9,7 @@ import           Data.Maybe            (fromJust)
 import qualified Data.Foldable as DFo
 import           DataDefs
 import           Debug.Trace
+import qualified Text.Show.Pretty as Pr
 import           Types
 import           Util
 import           Gatherer
@@ -61,7 +62,7 @@ varHandler func x ps uName u us delta gamma
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
--- coveredValues x y | trace ("C: " ++ show (x, y)) False = error "fail"
+-- coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}
@@ -99,7 +100,7 @@ coveredValues
 coveredValues
     (VariablePattern x:ps)
     CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
-    = varHandler divergentValues x ps uName u us delta gamma
+    = varHandler coveredValues x ps uName u us delta gamma
 
 -- CGuard
 coveredValues
@@ -117,7 +118,7 @@ coveredValues pat values
 --
 uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-uncoveredValues x y | trace ("U: " ++ show (x, y)) False = error "fail"
+-- uncoveredValues x y | trace ("U: " ++ show (x, y)) False = error "fail"
 
 -- UNil
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
@@ -161,7 +162,7 @@ uncoveredValues
 uncoveredValues
     (VariablePattern x:ps)
     CVAV {valueAbstraction=(u@(VariablePattern uName):us), delta=delta, gamma=gamma}
-    = varHandler divergentValues x ps uName u us delta gamma
+    = varHandler uncoveredValues x ps uName u us delta gamma
 
 -- UGuard
 uncoveredValues
