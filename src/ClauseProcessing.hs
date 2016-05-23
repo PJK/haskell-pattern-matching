@@ -50,7 +50,6 @@ varHandler func x ps u us delta gamma
 --        let delta' = addConstraint (VarsEqual x un) delta
         -- TODO this is no longer guaranteed to be a variable
         let delta' = delta
-        uType <- lookupVariableType uName gamma
         let gamma' = Map.insert (varName x') uType gamma
         cvs <- func ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
         return $ patMap (ucon u) cvs
