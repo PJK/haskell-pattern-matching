@@ -191,25 +191,6 @@ data Pattern
     | GuardPattern Pattern Constraint
   deriving (Show, Eq, Generic, Ord)
 
--- We need to annotate all Patterns with the type they represent. Use this for guards
-guardType :: Name
-guardType = "__anonymous_guard_type"
-
--- TODO should we introduce new type for these? seems laborious
--- -- | Patterns that can be processed without desugaring
--- data RestrictedPattern
---     = VariablePattern Name -- ^ Variable: a
---     | LiteralPattern Sign Literal -- ^ Literal: -5
---     | ConstructorPattern Name [Pattern] -- ^ Data constructor: Node Leaf Leaf
---     | TuplePattern [Pattern] -- ^ Tuple: (a, b, ..., z)
---     | ListPattern [Pattern] -- ^ List: [a, b, ..., z]
---     | WildcardPattern
---     | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
---   deriving (Show, Eq, Generic, Ord)
-
--- | Maps type names to lists of their constructors
--- type SimpleTypeMap = Map.Map String [Pattern]
-
 -- | Replaces the previous attemps to provide maps between types and constructors
 -- | Since all the translations are isomorphisms (hopefully), all we need is the type
 -- | information.
