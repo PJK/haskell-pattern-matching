@@ -1,4 +1,37 @@
 {
     "tag": "AnalysisSuccess",
-    "contents": []
+    "contents": [
+        [
+            "odd",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh0"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh0"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh0"
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "VariablePattern",
+                            "contents": "fresh0"
+                        }
+                    ]
+                ]
+            }
+        ]
+    ]
 }

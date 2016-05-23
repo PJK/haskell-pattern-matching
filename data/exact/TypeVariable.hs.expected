@@ -1,10 +1,42 @@
 {
-    "tag": "AnalysisError",
-    "contents": {
-        "tag": "ProcessError",
-        "contents": {
-            "tag": "TypeNotFound",
-            "contents": "Type lookup for constructor VariablePattern \"x\" failed"
-        }
-    }
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "unpack",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ],
+        [
+            "unpack",
+            {
+                "tag": "InaccessibleRhs",
+                "contents": [
+                    {
+                        "tag": "ConstructorPattern",
+                        "contents": [
+                            "ContainerC",
+                            [
+                                {
+                                    "tag": "VariablePattern",
+                                    "contents": "x"
+                                }
+                            ]
+                        ]
+                    }
+                ]
+            }
+        ]
+    ]
 }

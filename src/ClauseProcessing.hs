@@ -4,14 +4,14 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
 
+import qualified Data.Foldable        as DFo
 import qualified Data.Map             as Map
-import           Data.Maybe            (fromJust)
-import qualified Data.Foldable as DFo
+import           Data.Maybe           (fromJust)
 import           DataDefs
 import           Debug.Trace
+import           Gatherer
 import           Types
 import           Util
-import           Gatherer
 
 
 
@@ -40,12 +40,12 @@ guardHandler func p constraint ps us delta gamma
 
 -- | Creates CVar, UVar, DVar implementations
 varHandler :: AnalysisProcessor -> String -> PatternVector -> String -> Pattern -> PatternVector -> ConstraintSet-> Binding -> Analyzer ConditionedValueAbstractionSet
-varHandler func x ps uName u us delta gamma
+varHandler func x ps uName u@(VariablePattern un) us delta gamma
     = do
         -- Substitute x (which depends on the type definition and may occur many times)
         -- with a fresh variable (must have the same meaning)
         x' <- freshVar
-        let delta' = addConstraint (Uncheckable $ x ++ " ~~ " ++ show u) delta
+        let delta' = addConstraint (VarsEqual x un) delta
         uType <- lookupVariableType uName gamma
         let gamma' = Map.insert (varName x') uType gamma
         cvs <- func ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
@@ -211,7 +211,7 @@ divergentValues
             let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show substituted) delta
             let delta'' = addTypeConstraint (varType, constructorType) delta'
 
-            let deltaBot = addConstraint (Uncheckable $ varName ++ "~~" ++ "bottom") delta
+            let deltaBot = addConstraint (IsBottom varName) delta
 
             patternGamma <- substitutedConstructorContext substituted
 

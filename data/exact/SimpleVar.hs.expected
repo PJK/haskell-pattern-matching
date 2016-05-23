@@ -15,43 +15,24 @@
                             ]
                         },
                         {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "B",
-                                []
-                            ]
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
                         }
                     ],
                     [
                         {
                             "tag": "ConstructorPattern",
                             "contents": [
-                                "C",
+                                "B",
                                 []
                             ]
                         },
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "B",
-                                []
-                            ]
-                        }
-                    ],
-                    [
                         {
                             "tag": "ConstructorPattern",
                             "contents": [
                                 "A",
                                 []
                             ]
-                        },
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "C",
-                                []
-                            ]
                         }
                     ],
                     [
@@ -79,11 +60,8 @@
                             ]
                         },
                         {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "C",
-                                []
-                            ]
+                            "tag": "VariablePattern",
+                            "contents": "fresh1"
                         }
                     ]
                 ]

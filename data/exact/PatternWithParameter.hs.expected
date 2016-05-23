@@ -2,47 +2,10 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
+            "extract",
             {
-                "capD": [
-                    [
-                        {
-                            "tag": "VariablePattern",
-                            "contents": "fresh0"
-                        }
-                    ],
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "Sum",
-                                [
-                                    {
-                                        "tag": "VariablePattern",
-                                        "contents": "fresh5"
-                                    }
-                                ]
-                            ]
-                        }
-                    ]
-                ],
-                "capU": [
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "Sum",
-                                [
-                                    {
-                                        "tag": "ConstructorPattern",
-                                        "contents": [
-                                            "A",
-                                            []
-                                        ]
-                                    }
-                                ]
-                            ]
-                        }
-                    ],
+                "tag": "NonExhaustive",
+                "contents": [
                     [
                         {
                             "tag": "ConstructorPattern",
@@ -66,121 +29,6 @@
                             "contents": [
                                 "Nope",
                                 []
-                            ]
-                        }
-                    ]
-                ],
-                "capC": [
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "Sum",
-                                [
-                                    {
-                                        "tag": "ConstructorPattern",
-                                        "contents": [
-                                            "C",
-                                            []
-                                        ]
-                                    }
-                                ]
-                            ]
-                        }
-                    ]
-                ]
-            },
-            {
-                "capD": [
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "Sum",
-                                [
-                                    {
-                                        "tag": "VariablePattern",
-                                        "contents": "fresh8"
-                                    }
-                                ]
-                            ]
-                        }
-                    ],
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "Sum",
-                                [
-                                    {
-                                        "tag": "VariablePattern",
-                                        "contents": "fresh9"
-                                    }
-                                ]
-                            ]
-                        }
-                    ]
-                ],
-                "capU": [
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "Sum",
-                                [
-                                    {
-                                        "tag": "ConstructorPattern",
-                                        "contents": [
-                                            "B",
-                                            []
-                                        ]
-                                    }
-                                ]
-                            ]
-                        }
-                    ],
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "Nope",
-                                []
-                            ]
-                        }
-                    ]
-                ],
-                "capC": [
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "Sum",
-                                [
-                                    {
-                                        "tag": "ConstructorPattern",
-                                        "contents": [
-                                            "A",
-                                            []
-                                        ]
-                                    }
-                                ]
-                            ]
-                        }
-                    ],
-                    [
-                        {
-                            "tag": "ConstructorPattern",
-                            "contents": [
-                                "Sum",
-                                [
-                                    {
-                                        "tag": "ConstructorPattern",
-                                        "contents": [
-                                            "A",
-                                            []
-                                        ]
-                                    }
-                                ]
                             ]
                         }
                     ]
