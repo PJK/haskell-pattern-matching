@@ -10,6 +10,8 @@ import           Data.Maybe           (fromJust)
 import           DataDefs
 -- import           Debug.Trace
 import           Gatherer
+import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
+                                        Pretty, Type (..), prettyPrint)
 import qualified Text.Show.Pretty     as Pr
 import           Types
 import           Util
@@ -64,6 +66,44 @@ addEqualityConstraint (VariablePattern aName) (VariablePattern bName) delta
 addEqualityConstraint a b delta
     = addConstraint (Uncheckable (show a ++ " ~~ " ++ show b)) delta
 
+
+-- TODO we need to create the binding for these variables during the desugaring
+-- | Transforms all patterns into the standard form (See figure 7)
+-- TODO @Pavel, do we also need to make them really fresh or not? (prob but I'm not sure.)
+--  Also, put everything in the analyzer monad to get access to fresh var generation
+-- TODO @Pavel, why is this a vector?
+desugarPattern :: Pattern -> Analyzer PatternVector
+desugarPattern (LiteralPattern sign (Frac f)) = do
+    guard <- desugarGuard (ConstraintGuard $ FracBoolOp FracEQ (FracVar var) (FracLit f))
+    return $ VariablePattern var:guard
+    where
+        var = "__x"
+
+desugarPattern (LiteralPattern sign (Int i)) = do
+    guard <- desugarGuard (ConstraintGuard $ IntBoolOp IntEQ (IntVar var) (IntLit i))
+    return $ VariablePattern var:guard
+    where
+        var = "__x"
+
+desugarPattern (ConstructorPattern name patterns)
+    = [ConstructorPattern name (concatMap desugarPattern patterns)]
+-- TODO these have to generate fresh variables!
+desugarPattern WildcardPattern
+    = [VariablePattern "_"]
+
+desugarPattern x = [x]
+
+
+desugarGuard :: Guard -> Analyzer PatternVector
+desugarGuard (ConstraintGuard constraint)
+    = [GuardPattern  $ BExp constraint]
+desugarGuard _ = error "FIXME: implement lets and patternGuards"
+
+
+desugarPatternVector :: PatternVector -> PatternVector
+desugarPatternVector = concatMap desugarPattern
+
+
 -- Based on Figure 3 of 'GADTs meet their match'
 
 --
@@ -71,7 +111,7 @@ addEqualityConstraint a b delta
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
--- coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
+coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}

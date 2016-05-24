@@ -3,6 +3,7 @@ module Gatherer where
 
 import           Control.Applicative   (liftA2)
 import           Control.Monad         (forM)
+import           Control.Monad.Extra
 import           Data.Foldable         (find)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
@@ -24,30 +25,8 @@ signFact :: Num a => Sign -> a
 signFact Signless = 1
 signFact Negative = -1
 
-
--- TODO we need to create the binding for these variables during the desugaring
--- | Transforms all patterns into the standard form (See figure 7)
--- TODO @Pavel, do we also need to make them really fresh or not? (prob but I'm not sure.)
---  Also, put everything in the analyzer monad to get access to fresh var generation
--- TODO @Pavel, why is this a vector?
-desugarPattern :: Pattern -> PatternVector
-desugarPattern (LiteralPattern sign (Frac f))
-    = VariablePattern var:desugarGuard (ConstraintGuard $ FracBoolOp FracEQ (FracVar var) (FracLit f))
-    where
-        var = "__x"
-
-desugarPattern (LiteralPattern sign (Int i))
-    = VariablePattern var:desugarGuard (ConstraintGuard $ IntBoolOp IntEQ (IntVar var) (IntLit i))
-    where
-        var = "__x"
-
-desugarPattern (ConstructorPattern name patterns)
-    = [ConstructorPattern name (concatMap desugarPattern patterns)]
--- TODO these have to generate fresh variables!
-desugarPattern WildcardPattern
-    = [VariablePattern "_"]
-
-desugarPattern x = [x]
+truePattern :: Pattern
+truePattern = ConstructorPattern "True" []
 
 -- | Recover the original number of parameters before desugaring and guard expansion.
 arity :: Clause -> Int
@@ -55,17 +34,10 @@ arity (Clause (GuardPattern _ _:cs)) = arity (Clause cs)
 arity (Clause (_:cs)) = 1 + arity (Clause cs)
 arity (Clause []) = 0
 
-desugarGuard :: Guard -> PatternVector
-desugarGuard (ConstraintGuard constraint)
-    = [GuardPattern (ConstructorPattern "True" []) $ BExp constraint]
-desugarGuard _ = error "FIXME: implement lets and patternGuards"
 
 getPatternVectors :: Function -> MayFail [PatternVector]
 getPatternVectors (Function _ functionType patterns) = Right $ patternsList patterns
 
-
-desugarPatternVector :: PatternVector -> PatternVector
-desugarPatternVector = concatMap desugarPattern
 
 patternsList :: [Clause] -> [[Pattern]]
 patternsList = map (\xs -> case xs of Clause patterns -> patterns)
@@ -177,7 +149,7 @@ mkClause (Match _ name pats _ (UnGuardedRhs _) _) = (,) <$> mkName name <*> ((\p
 mkClause (Match _ name pats _ (GuardedRhss rhss) _)
     = (,) <$> mkName name <*> forM rhss (\(GuardedRhs _ [Qualifier exp] _) ->
         -- TODO remove the head when the desugarGuard no longer returns vectors
-        (Clause <$> liftA2 snoc (forM pats mkPattern) ((head . desugarGuard . ConstraintGuard) <$> pure (mkBoolE exp))))
+        (Clause <$> liftA2 snoc (forM pats mkPattern) (GuardPattern truePattern . BExp <$> pure (mkBoolE exp))))
 
 -- We assume that guards are well-typed boolean expressions (this is something the typechecker will check anyway).
 --
