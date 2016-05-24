@@ -69,9 +69,6 @@ addEqualityConstraint a b delta
 
 -- TODO we need to create the binding for these variables during the desugaring
 -- | Transforms all patterns into the standard form (See figure 7)
--- TODO @Pavel, do we also need to make them really fresh or not? (prob but I'm not sure.)
---  Also, put everything in the analyzer monad to get access to fresh var generation
--- TODO @Pavel, why is this a vector?
 desugarPattern :: Pattern -> Analyzer PatternVector
 desugarPattern (LiteralPattern sign (Frac f)) = do
     guard <- desugarGuard (ConstraintGuard $ FracBoolOp FracEQ (FracVar var) (FracLit f))

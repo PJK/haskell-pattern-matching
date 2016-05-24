@@ -127,10 +127,11 @@ analyzeFunction (FunctionTarget fun) = do
     freshVars <- replicateM (arity (head clauses)) freshVar
     let Right gamma = initialGamma fun freshVars
     let initialAbstraction = withNoConstraints [freshVars] gamma
+    desugaredPatterns <- mapM desugarPatternVector patterns
     executionTrace <- iteratedVecProc desugaredPatterns initialAbstraction
     return $ trace (Pr.ppShow executionTrace) FunctionResult executionTrace
     where
         Function _ _ clauses = fun
         Right patterns = getPatternVectors fun
-        desugaredPatterns = map desugarPatternVector patterns
+
 
