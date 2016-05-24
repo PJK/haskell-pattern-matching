@@ -9,9 +9,8 @@ import           Types
 
 boolESat :: BoolE -> IO Bool
 boolESat b = do
-    SatResult result <- boolESatResult b
+    SatResult result <- boolESatResult bg
     case result of
-        -- TODO @Pavel is this the correct way to do it to get an over-approximation?
         Unsatisfiable _ -> return False
         _ -> return True
 
