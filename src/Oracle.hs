@@ -75,6 +75,9 @@ resolveVariableEqualities vs
 -- This only works on lists that already have variables resolved
 resolveBottoms :: [Constraint] -> [Constraint]
 resolveBottoms [] = []
+resolveBottoms (c@(BoolExp _):cs)     = c : resolveBottoms cs
+resolveBottoms (c@(VarsEqual _ _):cs) = c : resolveBottoms cs
+resolveBottoms (c@(Uncheckable _):cs) = c : resolveBottoms cs
 resolveBottoms (bc@(IsBottom v):cs)
     = if otherOccurrenceOf v cs
         then bc : resolveBottoms cs

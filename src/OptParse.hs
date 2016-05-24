@@ -1,27 +1,33 @@
 module OptParse (getSettings) where
 
 import           Options.Applicative
+import           System.Environment  (getArgs)
 
 import           OptParse.Types
 
 getSettings :: IO Settings
 getSettings = do
-    args <- parseArgs
+    argv <- getArgs
+    let (command, argss) = case argv of
+            ("dump-results":as) -> (DumpResults, as)
+            _ -> (Analyze, argv)
+    args <- parseArgs argss
     conf <- getConfig args
-    case buildSettings args conf of
+    case buildSettings command args conf of
         Left probl -> error $ "Could not build settings from arguments and config: " ++ probl
         Right sets -> return sets
 
-buildSettings :: Arguments -> Configuration -> Either String Settings
-buildSettings args _ = Right Settings
-    { setsTargetFile = argsTargetFile args
+buildSettings :: Command -> Arguments -> Configuration -> Either String Settings
+buildSettings command args _ = Right Settings
+    { setsCommand = command
+    , setsTargetFile = argsTargetFile args
     }
 
 getConfig :: Arguments -> IO Configuration
 getConfig _ = return Configuration
 
-parseArgs :: IO Arguments
-parseArgs = execParser arguments
+parseArgs :: [String] -> IO Arguments
+parseArgs args = handleParseResult $ execParserPure defaultPrefs arguments args
 
 arguments :: ParserInfo Arguments
 arguments = info (helper <*> argumentsP)

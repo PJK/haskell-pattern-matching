@@ -8,9 +8,9 @@ import qualified Data.Foldable        as DFo
 import qualified Data.Map             as Map
 import           Data.Maybe           (fromJust)
 import           DataDefs
-import           Debug.Trace
-import qualified Text.Show.Pretty as Pr
+-- import           Debug.Trace
 import           Gatherer
+import qualified Text.Show.Pretty     as Pr
 import           Types
 import           Util
 
@@ -28,6 +28,7 @@ patMap f
 
 -- | Creates CGuard, UGuard, DGuard implementations
 -- Syd: Can we do something about all the params?
+-- Pavel: Answer: pass in the CVAV instead of the last three arguments?
 type AnalysisProcessor = PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
 guardHandler :: AnalysisProcessor -> Pattern -> Constraint -> PatternVector -> ValueAbstractionVector -> ConstraintSet-> Binding -> Analyzer ConditionedValueAbstractionSet
@@ -61,7 +62,7 @@ varHandler func x ps u us delta gamma
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
+-- coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}

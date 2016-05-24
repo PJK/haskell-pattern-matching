@@ -27,14 +27,17 @@ signFact Negative = -1
 
 -- TODO we need to create the binding for these variables during the desugaring
 -- | Transforms all patterns into the standard form (See figure 7)
+-- TODO @Pavel, do we also need to make them really fresh or not? (prob but I'm not sure.)
+--  Also, put everything in the analyzer monad to get access to fresh var generation
+-- TODO @Pavel, why is this a vector?
 desugarPattern :: Pattern -> PatternVector
 desugarPattern (LiteralPattern sign (Frac f))
-    = VariablePattern var:desugarGuard (ConstraintGuard $ BoolExp $ FracBoolOp FracEQ (FracVar var) (FracLit f))
+    = VariablePattern var:desugarGuard (ConstraintGuard $ FracBoolOp FracEQ (FracVar var) (FracLit f))
     where
         var = "__x"
 
 desugarPattern (LiteralPattern sign (Int i))
-    = VariablePattern var:desugarGuard (ConstraintGuard $ BoolExp $ IntBoolOp IntEQ (IntVar var) (IntLit i))
+    = VariablePattern var:desugarGuard (ConstraintGuard $ IntBoolOp IntEQ (IntVar var) (IntLit i))
     where
         var = "__x"
 
@@ -54,7 +57,7 @@ arity (Clause []) = 0
 
 desugarGuard :: Guard -> PatternVector
 desugarGuard (ConstraintGuard constraint)
-    = [GuardPattern (ConstructorPattern "True" []) constraint]
+    = [GuardPattern (ConstructorPattern "True" []) $ BoolExp constraint]
 desugarGuard _ = error "FIXME: implement lets and patternGuards"
 
 getPatternVectors :: Function -> MayFail [PatternVector]
@@ -173,10 +176,12 @@ mkClause :: Match -> MayFail (Name, [Clause])
 mkClause (Match _ name pats _ (UnGuardedRhs _) _) = (,) <$> mkName name <*> ((\ps -> [Clause ps]) <$> mapM mkPattern pats)
 mkClause (Match _ name pats _ (GuardedRhss rhss) _)
     = (,) <$> mkName name <*> forM rhss (\(GuardedRhs _ [Qualifier exp] _) ->
-        (Clause <$> liftA2 snoc (forM pats mkPattern) (GuardPattern <$> pure (ConstructorPattern "True" []) <*> mkConstraint exp)))
+        -- TODO remove the head when the desugarGuard no longer returns vectors
+        (Clause <$> liftA2 snoc (forM pats mkPattern) ((head . desugarGuard . ConstraintGuard) <$> mkBoolE exp)))
 
-mkConstraint :: Exp -> MayFail Constraint
-mkConstraint e = return $ Uncheckable $ show e -- TODO parse nicer guards
+-- TODO actually parse the guard
+mkBoolE :: Exp -> MayFail BoolE
+mkBoolE e = return $ BoolVar $ show e
 
 snoc :: [a] -> a -> [a]
 snoc as a = as ++ [a]

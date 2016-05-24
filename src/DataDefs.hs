@@ -61,6 +61,8 @@ data Clause -- No need to include the right-hand side. We're only doing our anal
 instance ToJSON   Clause
 instance FromJSON Clause
 
+instance Pretty Clause where
+    pretty (Clause ps) = unwords $ map pretty ps
 
 data Constraint
     = BoolExp BoolE
@@ -71,6 +73,12 @@ data Constraint
 
 instance ToJSON   Constraint
 instance FromJSON Constraint
+
+instance Pretty Constraint where
+    pretty (BoolExp be)         = show be -- TODO go deeper
+    pretty bc@(IsBottom _)      = show bc
+    pretty (VarsEqual n1 n2)    = n1 ++ " ≈ " ++ n2
+    pretty (Uncheckable s)      = s
 
 data BoolE
     = LitBool Bool
@@ -174,7 +182,7 @@ instance ToJSON   IntBinOp
 instance FromJSON IntBinOp
 
 data Guard
-    = ConstraintGuard Constraint
+    = ConstraintGuard BoolE
     | PatternGuard Pattern Constraint
     | LetGuard Pattern Constraint
   deriving (Show, Eq, Generic, Ord)
@@ -248,7 +256,8 @@ instance Pretty Pattern where
     pretty (TuplePattern pats) = tup $ map pretty pats
     pretty (ListPattern pats) = list $ map pretty pats
     pretty WildcardPattern = "_"
-    pretty (GuardPattern pat const) = "Gbar(" ++ pretty pat ++ ", " ++ show const ++ ")"
+    pretty (GuardPattern (ConstructorPattern "True" []) const) = "| " ++ pretty const
+    pretty (GuardPattern pat const) = "| " ++ pretty pat ++ " <- " ++ pretty const
 
 
 pars :: String -> String

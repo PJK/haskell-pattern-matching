@@ -2,24 +2,24 @@ module Lib where
 
 
 import           ClauseProcessing
-import           Control.Monad            (replicateM)
-import           Control.Monad.Except     (runExceptT)
-import           Control.Monad.Reader     (runReader)
-import           Control.Monad.State      (evalStateT)
-import           Data.Aeson.Encode.Pretty (encodePretty)
-import qualified Data.ByteString.Lazy     as LB
-import qualified Data.Map                 as Map
-import           Data.Maybe               (mapMaybe)
+import           Control.Monad              (forM_, replicateM)
+import           Control.Monad.Except       (runExceptT)
+import           Control.Monad.Reader       (runReader)
+import           Control.Monad.State        (evalStateT)
+import           Data.Aeson.Encode.Pretty   (encodePretty)
+import qualified Data.ByteString.Lazy.Char8 as LB8
+import qualified Data.Map                   as Map
+import           Data.Maybe                 (mapMaybe)
 import           DataDefs
 import           Debug.Trace
 import           Gatherer
-import           Language.Haskell.Exts    hiding (DataOrNew (..), Name (..),
-                                           Pretty, Type (..), prettyPrint)
-import           Language.Haskell.Exts    (fromParseResult, parseFile)
+import           Language.Haskell.Exts      hiding (DataOrNew (..), Name (..),
+                                             Pretty, Type (..), prettyPrint)
+import           Language.Haskell.Exts      (fromParseResult, parseFile)
 import           OptParse
 import           OptParse.Types
 import           Oracle
-import qualified Text.Show.Pretty         as Pr
+import qualified Text.Show.Pretty           as Pr
 import           Types
 
 
@@ -29,8 +29,9 @@ patterns = do
     sets <- getSettings
     -- print sets
     res <- processTarget (setsTargetFile sets)
-    print res
-    LB.putStr $ encodePretty res
+    case setsCommand sets of
+        Analyze -> prettyOutput res
+        DumpResults -> LB8.putStrLn $ encodePretty res
 
 processTarget :: FilePath -> IO AnalysisResult
 processTarget inputFile = do
@@ -47,7 +48,7 @@ processAssignment (AnalysisAssigment _ ast)
         Right (fs, ptcm) -> do
             let targets = map FunctionTarget fs
                 initState = AnalyzerState 0
-            LB.putStr $ encodePretty targets
+            -- LB.putStr $ encodePretty targets
             case flip runReader ptcm $ flip evalStateT initState $ runExceptT $ mapM analyzeFunction targets of
                 Left err -> return $ AnalysisError $ ProcessError err
                 Right res -> do
@@ -89,6 +90,27 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunction
                 | null (scapC cc) && (not . null) (scapD cc) = Just $ InaccessibleRhs c
                 | otherwise = Nothing
 
+prettyOutput :: AnalysisResult -> IO ()
+prettyOutput (AnalysisError err) = print err
+prettyOutput (AnalysisSuccess recs) = forM_ recs $ \(Recommendation n r) -> do
+    putStrLn $ "In function " ++ n ++ ":"
+    case r of
+        Redundant c -> do
+            putStrLn "The following clause _may_ be redundant:"
+            printClause n c
+        InaccessibleRhs c -> do
+            putStrLn "The following clause _may_ have an inaccesible right hand side:"
+            printClause n c
+        NonExhaustive cs -> do
+            putStrLn "The patterns are not exhaustive, the following clauses are missing"
+            mapM_ (printClause n) cs
+    putStrLn ""
+  where
+    printClause :: Name -> Clause -> IO ()
+    printClause n c = do
+        putStr n
+        putStr " "
+        putStrLn $ pretty c
 
 -- | Constructs ConditionedValueAbstractionSet without any conditions on each abstraction
 withNoConstraints :: ValueAbstractionSet -> Binding -> ConditionedValueAbstractionSet
@@ -107,7 +129,7 @@ analyzeFunction (FunctionTarget fun) = do
     let Right gamma = initialGamma fun freshVars
     let initialAbstraction = withNoConstraints [freshVars] gamma
     executionTrace <- iteratedVecProc desugaredPatterns initialAbstraction
-    return $ trace (Pr.ppShow executionTrace) (FunctionResult executionTrace)
+    return $ {- trace (Pr.ppShow executionTrace) -} FunctionResult executionTrace
     where
         Function _ _ clauses = fun
         Right patterns = getPatternVectors fun

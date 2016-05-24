@@ -1,0 +1,43 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "and'",
+            {
+                "tag": "Redundant",
+                "contents": [
+                    {
+                        "tag": "WildcardPattern",
+                        "contents": []
+                    },
+                    {
+                        "tag": "WildcardPattern",
+                        "contents": []
+                    }
+                ]
+            }
+        ],
+        [
+            "and'",
+            {
+                "tag": "InaccessibleRhs",
+                "contents": [
+                    {
+                        "tag": "ConstructorPattern",
+                        "contents": [
+                            "True",
+                            []
+                        ]
+                    },
+                    {
+                        "tag": "ConstructorPattern",
+                        "contents": [
+                            "True",
+                            []
+                        ]
+                    }
+                ]
+            }
+        ]
+    ]
+}
