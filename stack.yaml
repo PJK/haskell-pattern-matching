@@ -31,7 +31,6 @@ extra-deps:
 - crackNum-1.5
 - data-binary-ieee754-0.4.4
 - dlist-0.7.1.2
-- extra-1.4.6
 - fail-4.9.0.0
 - hashable-1.2.4.0
 - haskell-lexer-1.0
