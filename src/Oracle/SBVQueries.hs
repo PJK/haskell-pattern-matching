@@ -9,8 +9,10 @@ import           Types
 
 boolESat :: BoolE -> IO Bool
 boolESat b = do
-    SatResult result <- boolESatResult bg
+    SatResult result <- boolESatResult b
     case result of
+        -- Overapproximation as per section 6.1 -- unless we can prove it unsatisfiable, we must
+        -- assume it may match
         Unsatisfiable _ -> return False
         _ -> return True
 

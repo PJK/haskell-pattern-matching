@@ -49,8 +49,8 @@ myOracle = Oracle { queryOracle = oracleOracleIsThisConditionedValueAbstractionV
 -- Mirror, mirror, on the wall, ...
 oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable :: ConditionedValueAbstractionVector -> IO Bool
 oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}_ delta) = do
-    putStrLn "Before:"
-    putStrLn $ Pr.ppShow delta
+--     putStrLn "Before:"
+--     putStrLn $ Pr.ppShow delta
     let firstRound = resolveBottoms $ resolveVariableEqualities $ termConstraints delta
     secondRound <- resolveTrueBools firstRound
     thirdRound <- resolveSimpleBools secondRound
@@ -58,8 +58,8 @@ oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}
             termConstraints = thirdRound
           , typeConstraints = resolveTrivialTypeEqualities $ typeConstraints delta
         }
-    putStrLn "After:"
-    putStrLn $ Pr.ppShow delta'
+--     putStrLn "After:"
+--     putStrLn $ Pr.ppShow delta'
 
     return $ isUnconstrainedSet delta'
 

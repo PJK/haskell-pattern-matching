@@ -62,7 +62,7 @@ addEqualityConstraint (VariablePattern aName) (VariablePattern bName) delta
     = addConstraint (VarsEqual aName bName) delta
 -- TODO handle other cases and start using this everywhere
 addEqualityConstraint a b delta
-    = addConstraint (Uncheckable (show a) ++ " ~~ " ++ show b) delta
+    = addConstraint (Uncheckable (show a ++ " ~~ " ++ show b)) delta
 
 -- Based on Figure 3 of 'GADTs meet their match'
 
