@@ -1,0 +1,10 @@
+{
+    "tag": "AnalysisError",
+    "contents": {
+        "tag": "ProcessError",
+        "contents": {
+            "tag": "VariableNotBound",
+            "contents": "Type lookup for variable fresh7 failed (searched in fromList [(\"fresh0\",TypeApplication (TypeConstructor \"Tree\") (VariableType \"a\")),(\"fresh4\",VariableType \"a\"),(\"fresh5\",TypeApplication (TypeConstructor \"Tree\") (VariableType \"a\")),(\"fresh6\",TypeApplication (TypeConstructor \"Tree\") (VariableType \"a\"))])"
+        }
+    }
+}
