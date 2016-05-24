@@ -40,7 +40,6 @@ processTarget inputFile = do
     let ass = AnalysisAssigment inputFile ast
     processAssignment ass
 
-    -- TODO name conflicts in variable patterns
 processAssignment :: AnalysisAssigment -> IO AnalysisResult
 processAssignment (AnalysisAssigment _ ast)
     = case (,) <$> getFunctions ast <*> getTypeUniverse ast of

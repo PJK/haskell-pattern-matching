@@ -48,12 +48,21 @@ varHandler func x ps u us delta gamma
         -- with a fresh variable (must have the same meaning)
         x' <- freshVar
         uType <- lookupType u gamma
---        let delta' = addConstraint (VarsEqual x un) delta
-        -- TODO this is no longer guaranteed to be a variable
-        let delta' = delta
+
+        let delta' = addEqualityConstraint x' u delta
         let gamma' = Map.insert (varName x') uType gamma
+
         cvs <- func ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
         return $ patMap (ucon u) cvs
+
+-- | We are not able to add all types of equalities. This function takes any variable and
+-- | a term and either adds the appropriate constraint, or an Uncheckable constraint
+addEqualityConstraint :: Pattern -> Pattern -> ConstraintSet -> ConstraintSet
+addEqualityConstraint (VariablePattern aName) (VariablePattern bName) delta
+    = addConstraint (VarsEqual aName bName) delta
+-- TODO handle other cases and start using this everywhere
+addEqualityConstraint a b delta
+    = addConstraint (Uncheckable (show a) ++ " ~~ " ++ show b) delta
 
 -- Based on Figure 3 of 'GADTs meet their match'
 
