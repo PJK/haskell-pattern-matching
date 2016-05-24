@@ -128,7 +128,7 @@ analyzeFunction (FunctionTarget fun) = do
     let Right gamma = initialGamma fun freshVars
     let initialAbstraction = withNoConstraints [freshVars] gamma
     executionTrace <- iteratedVecProc desugaredPatterns initialAbstraction
-    return $ {- trace (Pr.ppShow executionTrace) -} FunctionResult executionTrace
+    return $ trace (Pr.ppShow executionTrace) FunctionResult executionTrace
     where
         Function _ _ clauses = fun
         Right patterns = getPatternVectors fun
