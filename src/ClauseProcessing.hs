@@ -88,7 +88,7 @@ desugarPattern (ConstructorPattern name patterns) = do
 
 -- TODO these have to generate fresh variables!
 desugarPattern WildcardPattern
-    = return [VariablePattern "_"]
+    = return [] <$> freshVar
 
 desugarPattern x = return [x]
 
