@@ -20,25 +20,17 @@ blackBoxSpec = describe "Black box tests" $ do
 resultFileFor :: FilePath -> FilePath
 resultFileFor fp = fp ++ ".expected"
 
-setupNewResults :: IO ()
-setupNewResults = withCurrentDirectory "data/exact" $ do
-    sfs <- sourceFiles "."
-    forM_ sfs $ \fp -> do
-        let rfp = resultFileFor fp
-        resultsExist <- doesFileExist rfp
-        unless resultsExist $ do
-            putStrLn $ "Setting up new expected results file for " ++ fp
-            results <- processTarget fp
-            let resultsBS = encodePretty results
-            LB.writeFile rfp resultsBS
-
 blackBoxExactTests :: Spec
 blackBoxExactTests = describe "Black box tests" $ do
-    runIO setupNewResults
     sfs <- runIO $ sourceFiles "data/exact"
     forM_ sfs $ \fp -> do
         let rfp = resultFileFor fp
+        rfpexists <- runIO $ doesFileExist rfp
         it fp $ do
-            eC <- LB.readFile rfp
-            actual <- processTarget fp
-            eitherDecode eC `shouldBe` Right actual -- This implicitly checks that decoding succeeds.
+            if rfpexists
+            then do
+                eC <- LB.readFile rfp
+                actual <- processTarget fp
+                eitherDecode eC `shouldBe` Right actual -- This implicitly checks that decoding succeeds.
+            else
+                pendingWith $ "results for " ++ fp ++ " are missing, generate them with 'patterns dump-results " ++ fp ++ " > " ++ rfp ++ "'"

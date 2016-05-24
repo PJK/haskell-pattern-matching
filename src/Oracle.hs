@@ -49,12 +49,12 @@ myOracle = Oracle { queryOracle = oracleOracleIsThisConditionedValueAbstractionV
 -- Mirror, mirror, on the wall, ...
 oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable :: ConditionedValueAbstractionVector -> IO Bool
 oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}_ delta) = do
-    putStrLn "Before:"
-    putStrLn $ Pr.ppShow delta
+    -- putStrLn "Before:"
+    -- putStrLn $ Pr.ppShow delta
     let firstRound = resolveBottoms $ resolveVariableEqualities $ termConstraints delta
     if any isBottom firstRound
-    then do
-        putStrLn "Unsat because of bottom that occurs in other constraints too"
+    then -- do
+        -- putStrLn "Unsat because of bottom that occurs in other constraints too"
         return False
     else do
         secondRound <- resolveSatBools firstRound
@@ -62,8 +62,8 @@ oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}
                 termConstraints = secondRound
               , typeConstraints = resolveTrivialTypeEqualities $ typeConstraints delta
             }
-        putStrLn "After:"
-        putStrLn $ Pr.ppShow delta'
+        -- putStrLn "After:"
+        -- putStrLn $ Pr.ppShow delta'
 
         return $ isUnconstrainedSet delta'
 

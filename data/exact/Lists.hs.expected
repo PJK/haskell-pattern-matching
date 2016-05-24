@@ -1,7 +1,0 @@
-{
-    "tag": "AnalysisError",
-    "contents": {
-        "tag": "GatherError",
-        "contents": "Tried to use a special name qualification, not sure what to do with that yet."
-    }
-}
