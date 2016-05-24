@@ -71,24 +71,22 @@ addEqualityConstraint a b delta
 -- | Transforms all patterns into the standard form (See figure 7)
 desugarPattern :: Pattern -> Analyzer PatternVector
 desugarPattern (LiteralPattern sign (Frac f)) = do
-    guard <- desugarGuard (ConstraintGuard $ FracBoolOp FracEQ (FracVar var) (FracLit f))
-    return $ VariablePattern var:guard
-    where
-        var = "__x"
+    var <- freshVar
+    guard <- desugarGuard (ConstraintGuard $ FracBoolOp FracEQ (FracVar (variableName var)) (FracLit f))
+    return $ var:guard
 
 desugarPattern (LiteralPattern sign (Int i)) = do
-    guard <- desugarGuard (ConstraintGuard $ IntBoolOp IntEQ (IntVar var) (IntLit i))
-    return $ VariablePattern var:guard
-    where
-        var = "__x"
+    var <- freshVar
+    guard <- desugarGuard (ConstraintGuard $ IntBoolOp IntEQ (IntVar (variableName var)) (IntLit i))
+    return $ var:guard
 
 desugarPattern (ConstructorPattern name patterns) = do
     params <- concatMapM desugarPattern patterns
     return [ConstructorPattern name params]
 
--- TODO these have to generate fresh variables!
-desugarPattern WildcardPattern
-    = return [] <$> freshVar
+desugarPattern WildcardPattern = do
+    var <- freshVar
+    return [var]
 
 desugarPattern x = return [x]
 
@@ -351,6 +349,11 @@ freshVar = do
     i <- gets nextFreshVarName
     modify (\s -> s { nextFreshVarName = i + 1 })
     return $ VariablePattern $ "fresh" ++ show i
+
+
+variableName :: Pattern -> String
+variableName (VariablePattern name) = name
+variableName _                      = error "Not a Variable"
 
 -- | Replace PlaceHolderPatterns with appropriate fresh variables
 substituteFreshParameters :: Pattern -> Analyzer Pattern
