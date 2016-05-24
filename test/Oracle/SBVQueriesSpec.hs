@@ -23,7 +23,7 @@ shouldBeUnsatisfiable b = do
     res <- boolESatResult b
     case res of
         SatResult (Unsatisfiable _) -> return ()
-        r -> expectationFailure $ show b ++ " has not been found to be unsatisfiable: " ++ show r
+        r -> expectationFailure $ show b ++ " has not been found to be unsatisfiable:\n" ++ show r
 
 shouldResolveTo :: BoolE -> Bool -> IO ()
 shouldResolveTo be True = shouldBeSatisfiable be
@@ -45,6 +45,11 @@ spec = do
             shouldBeSatisfiable   $ BoolNot (LitBool False)
             shouldBeUnsatisfiable $ BoolNot (LitBool True)
             shouldBeSatisfiable   $ BoolNot (BoolVar "x")
+
+        it "figures out that a boolean variable can't be both true and false" $ do
+            shouldBeUnsatisfiable
+                $ BoolOp BoolAnd (BoolOp BoolEQ (BoolVar "x") (LitBool True))
+                                 (BoolOp BoolEQ (BoolVar "x") (LitBool False))
 
         it "figures out the correct answer to these 'or' queries" $ do
             shouldBeSatisfiable   $ BoolOp BoolOr (LitBool False) (LitBool True)

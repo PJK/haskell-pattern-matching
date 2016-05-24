@@ -65,8 +65,7 @@ instance Pretty Clause where
     pretty (Clause ps) = unwords $ map pretty ps
 
 data Constraint
-    = BoolExp BoolE
-    | IsBottom Name
+    = IsBottom Name
     | VarsEqual Name Name
     | VarEqualsBool Name BoolE
     | VarEqualsCons Name Name [Pattern]
@@ -77,7 +76,6 @@ instance ToJSON   Constraint
 instance FromJSON Constraint
 
 instance Pretty Constraint where
-    pretty (BoolExp be)         = show be -- TODO go deeper
     pretty bc@(IsBottom _)      = show bc
     pretty (VarsEqual n1 n2)    = n1 ++ " ≈ " ++ n2
     pretty (Uncheckable s)      = s

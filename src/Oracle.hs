@@ -3,6 +3,7 @@ module Oracle where
 import           Data.List         (find)
 import           Data.Maybe        (catMaybes)
 import           DataDefs
+import           Debug.Trace
 import           Oracle.SBVQueries
 import qualified Text.Show.Pretty  as Pr
 import           Types
@@ -10,7 +11,6 @@ import           Types
 data Oracle
     = Oracle
     { queryOracle :: ConditionedValueAbstractionVector -> IO Bool }
-
 
 -- TODO make the oracle a separate datatype instead of a builtin function so we can try out using other ones
 -- and partially order them? muhaha
@@ -52,16 +52,20 @@ oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}
     putStrLn "Before:"
     putStrLn $ Pr.ppShow delta
     let firstRound = resolveBottoms $ resolveVariableEqualities $ termConstraints delta
-    secondRound <- resolveTrueBools firstRound
-    thirdRound <- resolveSimpleBools secondRound
-    let delta' = delta {
-            termConstraints = thirdRound
-          , typeConstraints = resolveTrivialTypeEqualities $ typeConstraints delta
-        }
-    putStrLn "After:"
-    putStrLn $ Pr.ppShow delta'
+    if any isBottom firstRound
+    then do
+        putStrLn "Unsat because of bottom that occurs in other constraints too"
+        return False
+    else do
+        secondRound <- resolveSatBools firstRound
+        let delta' = delta {
+                termConstraints = secondRound
+              , typeConstraints = resolveTrivialTypeEqualities $ typeConstraints delta
+            }
+        putStrLn "After:"
+        putStrLn $ Pr.ppShow delta'
 
-    return $ isUnconstrainedSet delta'
+        return $ isUnconstrainedSet delta'
 
 
 isUnconstrainedSet :: ConstraintSet -> Bool
@@ -75,9 +79,11 @@ resolveTrivialTypeEqualities = filter (uncurry (/=))
 resolveVariableEqualities :: [Constraint] -> [Constraint]
 resolveVariableEqualities [] = []
 resolveVariableEqualities vs
-    = case filter isVarEquality vs of
-        [] -> vs
-        VarsEqual v1 v2 : vs' -> resolveVariableEqualities $ replaceVars v1 v2 vs'
+    = case find isVarEquality vs of
+        Nothing -> vs
+        Just c@(VarsEqual v1 v2) ->
+            let filtered = filter (/= c) vs
+            in resolveVariableEqualities $ replaceVars v1 v2 filtered
   where
     vareqs = filter isVarEquality vs
 
@@ -115,7 +121,6 @@ otherOccurrenceOf var = any occurrence
     occurrence (IsBottom ovar)
             | ovar == var = True
             | otherwise   = False
-    occurrence (BoolExp be) = notElem var $ varsInBE be
     occurrence (VarEqualsBool ovar _)
             | ovar == var = True
             | otherwise   = False
@@ -123,85 +128,50 @@ otherOccurrenceOf var = any occurrence
             | ovar == var = True
             | otherwise   = False
 
--- | Solve boolean expressions that have to be true
---
--- We solve a pair of constraints of the following form with a SAT solver and remove both if the boolean expression is satisfiable.
--- This works best if variable equalities are resolved.
--- Unresolved bottoms don't matter.
---
--- We also assume that all constraints are unique, this is fine because A ∧ A <=> A holds anyway
---
--- TODO maybe cache queries, we'll need them three times per query anyway...
-resolveTrueBools :: [Constraint] -> IO [Constraint]
-resolveTrueBools cs = case filter isVarsEqualBoolConstraint cs of
-    [] -> return cs
-    vareq@(VarEqualsBool var be):_ -> do
-        let isMatchingConsTrueConstraint (VarEqualsCons ovar "True" []) = var == ovar
-            isMatchingConsTrueConstraint _ = False
-        case find isMatchingConsTrueConstraint cs of
-            Nothing -> return cs
-            Just conseq -> do
-                sat <- boolESat $ BoolOp BoolEQ (LitBool True) be
-                let leftout = filter (\c -> c /= vareq && c /= conseq) cs
-                if sat
-                then resolveSimpleBools leftout
-                else do
-                    rest <- resolveSimpleBools leftout
-                    return $ vareq:conseq:rest
 
--- | Solve independent boolean constraints
---
--- If a constraint @VarEqualsBool var be@ occurs such that @var@ doesn't occur in any other constraint, then we can try to SAT-solve @be to satisfy the constraint
--- This has to happen after resolving variable equalities
-resolveSimpleBools :: [Constraint] -> IO [Constraint]
-resolveSimpleBools [] = return []
-resolveSimpleBools cs =
-    case find isVarsEqualBoolConstraint cs of
-        Nothing -> return cs
-        Just c@(VarEqualsBool var be) -> do
-            let filtered = filter (/= c) cs
-            if otherOccurrenceOf var filtered
-            then (c :) <$> resolveSimpleBools filtered
-            else do
-                sat <- boolESat be
-                if sat
-                then resolveSimpleBools filtered
-                else (c :) <$> resolveSimpleBools filtered
+resolveSatBools :: [Constraint] -> IO [Constraint]
+resolveSatBools cs
+    | not (sattable cs) = return cs
+    | otherwise = do
+        let clauses = map convertToBoolE cs
+        let be = foldl (BoolOp BoolAnd) (LitBool True) clauses
+        sat <- boolESat $ BoolOp BoolEQ (LitBool True) be
+        return $ if sat
+                    then []
+                    else cs
+  where
+    -- The most literal translation possible, for now.
+    convertToBoolE (IsBottom be) = error "cannot occur as per 'not (sattable cs)'"
+    convertToBoolE (VarsEqual v1 v2) = BoolOp BoolEQ (BoolVar v1) (BoolVar v2)
+    convertToBoolE (VarEqualsBool v be) = BoolOp BoolEQ (BoolVar v) be
+    convertToBoolE (VarEqualsCons v "True" []) = BoolOp BoolEQ (BoolVar v) (LitBool True)
+    convertToBoolE (VarEqualsCons v "False" []) = BoolOp BoolEQ (BoolVar v) (LitBool False)
+    convertToBoolE (VarEqualsCons _ _ _) = error "cannot occur either"
+    convertToBoolE (Uncheckable _) = error "cannot occur either"
 
 
-
-
-
+sattable :: [Constraint] -> Bool
+sattable = all convertibleToSat
+  where
+    convertibleToSat (IsBottom _) = False
+    convertibleToSat (VarsEqual _ _) = True
+    convertibleToSat (VarEqualsBool _ _) = True
+    convertibleToSat (VarEqualsCons _ "True" []) = True
+    convertibleToSat (VarEqualsCons _ "False" []) = True
+    convertibleToSat (VarEqualsCons _ _ _) = False
+    convertibleToSat (Uncheckable _) = False
 
 isVarsEqualBoolConstraint (VarEqualsBool var boolE) = True
 isVarsEqualBoolConstraint _ = False
 
-varsInBE :: BoolE -> [Name]
-varsInBE (LitBool _)            = []
-varsInBE (BoolNot be)           = varsInBE be
-varsInBE (BoolOp _ be1 be2)     = varsInBE be1 ++ varsInBE be2
-varsInBE (IntBoolOp _ ie1 ie2)  = varsInIE ie1 ++ varsInIE ie2
-varsInBE (FracBoolOp _ fe1 fe2) = varsInFE fe1 ++ varsInFE fe2
-varsInBE (BoolVar var)          = [var]
-
-varsInIE :: IntE -> [Name]
-varsInIE (IntLit _)             = []
-varsInIE (IntUnOp _ ie)         = varsInIE ie
-varsInIE (IntOp _ ie1 ie2)      = varsInIE ie1 ++ varsInIE ie2
-varsInIE (IntVar var)           = [var]
-
-varsInFE :: FracE -> [Name]
-varsInFE (FracLit _)            = []
-varsInFE (FracUnOp _ fe)        = varsInFE fe
-varsInFE (FracOp _ fe1 fe2)     = varsInFE fe1 ++ varsInFE fe2
-varsInFE (FracVar var)          = [var]
-
 -- TODO move these to Oracle.Utils
 
 mapVarConstraint :: (Name -> Name) -> Constraint -> Constraint
-mapVarConstraint f (BoolExp be) = BoolExp $ mapVarBE f be
+-- mapVarConstraint f (BoolExp be) = BoolExp $ mapVarBE f be
 mapVarConstraint f (IsBottom var) = IsBottom $ f var
 mapVarConstraint f (VarsEqual v1 v2) = VarsEqual (f v1) (f v2)
+mapVarConstraint f (VarEqualsBool n be) = VarEqualsBool (f n) (mapVarBE f be)
+mapVarConstraint f (VarEqualsCons n1 n2 ps) = VarEqualsCons (f n1) n2 ps
 mapVarConstraint _ uc@(Uncheckable _) = uc
 
 mapVarBE :: (Name -> Name) -> BoolE -> BoolE
@@ -217,9 +187,6 @@ mapVarIE = undefined
 
 mapVarFE :: (Name -> Name) -> FracE -> FracE
 mapVarFE = undefined
-
-
-
 
 
 

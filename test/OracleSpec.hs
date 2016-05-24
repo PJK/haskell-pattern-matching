@@ -16,7 +16,7 @@ spec = do
         it "leaves empty lists alone" $ do
             resolveTrivialTypeEqualities [] `shouldBe` []
 
-        it "Clears any list of only trivial constraints" $ do
+        it "clears any list of only trivial constraints" $ do
             pending
             -- property $ \vs -> --
             --     resolveTrivialTypeEqualities (map (\t -> (t, t)) vs) `shouldBe` []
@@ -25,17 +25,45 @@ spec = do
         it "leaves empty lists alone" $ do
             resolveVariableEqualities [] `shouldBe` []
 
-        it "Removes any single variable equality because that's definitely satisfiable" $ do
+        it "removes any single variable equality because that's definitely satisfiable" $ do
             property $ \(v1, v2) -> resolveVariableEqualities [VarsEqual v1 v2] `shouldBe` []
 
-        it "Removes all constraints if they only consist of variable equalities" $ do
+        it "removes all constraints if they only consist of variable equalities" $ do
             property $ \vts -> -- variable tuples
                 resolveVariableEqualities (map (uncurry VarsEqual) vts) `shouldBe` []
+
+        it "correcly resolves this unit test" $ do
+            resolveVariableEqualities
+                [ IsBottom "x"
+                , VarsEqual "x" "y"
+                , VarEqualsBool "y" (BoolOp BoolOr (LitBool True) (BoolVar "y"))
+                , VarsEqual "y" "z"
+                , VarEqualsCons "z" "True" []
+                , Uncheckable "teehee"
+                ]
+              `shouldBe`
+                [ IsBottom "x"
+                , VarEqualsBool "x" (BoolOp BoolOr (LitBool True) (BoolVar "x"))
+                , VarEqualsCons "x" "True" []
+                , Uncheckable "teehee"
+                ]
 
     describe "resolveBottoms" $ do
         it "leaves empty lists alone" $ do
             resolveBottoms [] `shouldBe` []
 
-        it "Removes any single IsBottom constraint because that's definitely satisfiable" $ do
+        it "removes any single IsBottom constraint because that's definitely satisfiable" $ do
             property $ \v -> resolveBottoms [IsBottom v] `shouldBe` []
+
+
+    describe "resolveSatBools" $ do
+        it "leaves empty lists alone" $ do
+            resolveSatBools [] `shouldReturn` []
+
+        it "correctly resolves this unit test" $ do
+            let ls =
+                    [ VarEqualsBool "x" (LitBool True)
+                    , VarEqualsBool "x" (LitBool False)
+                    ]
+            resolveSatBools ls `shouldReturn` ls -- Not satisfiable
 
