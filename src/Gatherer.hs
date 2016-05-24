@@ -3,7 +3,6 @@ module Gatherer where
 
 import           Control.Applicative   (liftA2)
 import           Control.Monad         (forM)
-import           Control.Monad.Extra
 import           Data.Foldable         (find)
 import           Data.List             (nub)
 import qualified Data.Map              as Map

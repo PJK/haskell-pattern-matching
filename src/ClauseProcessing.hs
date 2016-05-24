@@ -3,12 +3,12 @@ module ClauseProcessing where
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
-
+import           Control.Monad.Extra  (concatMapM)
 import qualified Data.Foldable        as DFo
 import qualified Data.Map             as Map
 import           Data.Maybe           (fromJust)
+import           Debug.Trace
 import           DataDefs
--- import           Debug.Trace
 import           Gatherer
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
@@ -85,23 +85,25 @@ desugarPattern (LiteralPattern sign (Int i)) = do
     where
         var = "__x"
 
-desugarPattern (ConstructorPattern name patterns)
-    = [ConstructorPattern name (concatMap desugarPattern patterns)]
+desugarPattern (ConstructorPattern name patterns) = do
+    params <- concatMapM desugarPattern patterns
+    return [ConstructorPattern name params]
+
 -- TODO these have to generate fresh variables!
 desugarPattern WildcardPattern
-    = [VariablePattern "_"]
+    = return [VariablePattern "_"]
 
-desugarPattern x = [x]
+desugarPattern x = return [x]
 
 
 desugarGuard :: Guard -> Analyzer PatternVector
 desugarGuard (ConstraintGuard constraint)
-    = [GuardPattern  $ BExp constraint]
+    = return [GuardPattern truePattern (BExp constraint)]
 desugarGuard _ = error "FIXME: implement lets and patternGuards"
 
 
-desugarPatternVector :: PatternVector -> PatternVector
-desugarPatternVector = concatMap desugarPattern
+desugarPatternVector :: PatternVector -> Analyzer PatternVector
+desugarPatternVector = concatMapM desugarPattern
 
 
 -- Based on Figure 3 of 'GADTs meet their match'
