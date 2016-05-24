@@ -129,7 +129,8 @@ coveredValues pat values
 --
 uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
--- uncoveredValues x y | trace ("U: " ++ show (x, y)) False = error "fail"
+--
+-- uncoveredValues x y | trace ("U: " ++ Pr.ppShow (x, y)) False = error "fail"
 
 -- UNil
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
@@ -145,7 +146,11 @@ uncoveredValues
             return $ patMap (kcon k) uvs
         | otherwise      = do
             substitute <- substituteFreshParameters kv
-            return [CVAV {valueAbstraction = substitute:us, delta = delta, gamma = gamma}]
+
+            subGamma <- substitutedConstructorContext substitute
+            let gamma' = Map.union gamma subGamma
+
+            return [CVAV {valueAbstraction = substitute:us, delta = delta, gamma = gamma'}]
 
 -- UConVar
 uncoveredValues
@@ -292,7 +297,7 @@ iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer
 iteratedVecProc [] _ = return []
 iteratedVecProc (ps:pss) s = do
     res <- patVecProc ps s
-    rest <- iteratedVecProc pss (capU res)
+    rest <- trace ("C: " ++ Pr.ppShow res) iteratedVecProc pss (capU res)
     return $ res : rest
 
 -- |Coverage vector concatenation
