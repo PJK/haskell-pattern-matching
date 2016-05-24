@@ -12,7 +12,16 @@ import           Types
 
 spec :: Spec
 spec = do
-    describe "resorveVaribleEqualities" $ do
+    describe "resolveTrivialTypeEqualities" $ do
+        it "leaves empty lists alone" $ do
+            resolveTrivialTypeEqualities [] `shouldBe` []
+
+        it "Clears any list of only trivial constraints" $ do
+            pending
+            -- property $ \vs -> --
+            --     resolveTrivialTypeEqualities (map (\t -> (t, t)) vs) `shouldBe` []
+
+    describe "resolveVaribleEqualities" $ do
         it "leaves empty lists alone" $ do
             resolveVariableEqualities [] `shouldBe` []
 
@@ -30,4 +39,3 @@ spec = do
         it "Removes any single IsBottom constraint because that's definitely satisfiable" $ do
             property $ \v -> resolveBottoms [IsBottom v] `shouldBe` []
 
-        -- TODO more exhaustive tests here please

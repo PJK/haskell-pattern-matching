@@ -1,7 +1,8 @@
 module Oracle where
 
-import           Data.Maybe (catMaybes)
+import           Data.Maybe       (catMaybes)
 import           DataDefs
+import qualified Text.Show.Pretty as Pr
 import           Types
 
 data Oracle
@@ -44,12 +45,23 @@ myOracle = Oracle { queryOracle = oracleOracleIsThisConditionedValueAbstractionV
 -- Mirror, mirror, on the wall, ...
 oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable :: ConditionedValueAbstractionVector -> IO Bool
 oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}_ delta) = do
-    let delta' = delta { termConstraints = resolveBottoms $ resolveVariableEqualities $ termConstraints delta }
+    putStrLn "Before:"
+    putStrLn $ Pr.ppShow delta
+    let delta' = delta {
+            termConstraints = resolveBottoms $ resolveVariableEqualities $ termConstraints delta
+          , typeConstraints = resolveTrivialTypeEqualities $ typeConstraints delta
+        }
+    putStrLn "After:"
+    putStrLn $ Pr.ppShow delta'
+
     return $ isUnconstrainedSet delta'
 
 
 isUnconstrainedSet :: ConstraintSet -> Bool
 isUnconstrainedSet d = null (typeConstraints d) && null (termConstraints d)
+
+resolveTrivialTypeEqualities :: [TypeConstraint] -> [TypeConstraint]
+resolveTrivialTypeEqualities = filter (uncurry (/=))
 
 -- | Resolve variable equalities
 -- That is, for every @VarsEqual v1 v2@, replace all occurrences of v2 with v1 in all the other constraints

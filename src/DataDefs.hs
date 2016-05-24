@@ -96,7 +96,7 @@ data BoolBinOp
     = BoolAnd
     | BoolOr
     | BoolEQ
-    | BoolNEQ
+    | BoolNEQ -- XOR
   deriving (Show, Eq, Generic, Ord)
 
 instance ToJSON   BoolBinOp
