@@ -57,7 +57,7 @@ arity (Clause []) = 0
 
 desugarGuard :: Guard -> PatternVector
 desugarGuard (ConstraintGuard constraint)
-    = [GuardPattern (ConstructorPattern "True" []) $ BoolExp constraint]
+    = [GuardPattern (ConstructorPattern "True" []) $ BExp constraint]
 desugarGuard _ = error "FIXME: implement lets and patternGuards"
 
 getPatternVectors :: Function -> MayFail [PatternVector]
@@ -177,11 +177,36 @@ mkClause (Match _ name pats _ (UnGuardedRhs _) _) = (,) <$> mkName name <*> ((\p
 mkClause (Match _ name pats _ (GuardedRhss rhss) _)
     = (,) <$> mkName name <*> forM rhss (\(GuardedRhs _ [Qualifier exp] _) ->
         -- TODO remove the head when the desugarGuard no longer returns vectors
-        (Clause <$> liftA2 snoc (forM pats mkPattern) ((head . desugarGuard . ConstraintGuard) <$> mkBoolE exp)))
+        (Clause <$> liftA2 snoc (forM pats mkPattern) ((head . desugarGuard . ConstraintGuard) <$> pure (mkBoolE exp))))
 
--- TODO actually parse the guard
-mkBoolE :: Exp -> MayFail BoolE
-mkBoolE e = return $ BoolVar $ show e
+-- We assume that guards are well-typed boolean expressions (this is something the typechecker will check anyway).
+--
+-- Unknown (but known to be Boolean) (sub)expressions are overestimated to be an arbitrary boolean variable.
+--
+-- For example, if we have a function myFunc as follows ...
+--
+--   myFunc :: Weird -> Bool
+--
+-- ... there is a guard as follows, then "myFunc f" will be regarded as a variable on its own.
+--
+--   fun :: Weird -> Weird
+--   fun x | myFunc x = x
+--
+-- Yes, I know these are hardcoded. It's all just for a non-trivial oracle. We didn't say the oracle was genius.
+--
+mkBoolE :: Exp -> BoolE
+-- The simplest form is a Boolean literal
+mkBoolE (Con (UnQual (H.Ident "True")))  = LitBool True
+mkBoolE (Con (UnQual (H.Ident "False"))) = LitBool False
+-- Then the aliases for boolean literals
+mkBoolE (Var (UnQual (H.Ident "otherwise"))) = Otherwise
+-- Then a boolean variable
+mkBoolE (Var (UnQual (H.Ident var))) = BoolVar var
+-- Then we have the unary composite: not
+mkBoolE (App (Var (UnQual (H.Ident "not"))) be) = BoolNot $ mkBoolE be
+
+-- TODO and, or, ==, numbers, etc
+mkBoolE e = BoolVar $ show e
 
 snoc :: [a] -> a -> [a]
 snoc as a = as ++ [a]

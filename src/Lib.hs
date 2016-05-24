@@ -96,13 +96,13 @@ prettyOutput (AnalysisSuccess recs) = forM_ recs $ \(Recommendation n r) -> do
     putStrLn $ "In function " ++ n ++ ":"
     case r of
         Redundant c -> do
-            putStrLn "The following clause _may_ be redundant:"
+            putStrLn "The following clause is redundant:"
             printClause n c
         InaccessibleRhs c -> do
-            putStrLn "The following clause _may_ have an inaccesible right hand side:"
+            putStrLn "The following clause has an inaccesible right hand side:"
             printClause n c
         NonExhaustive cs -> do
-            putStrLn "The patterns are not exhaustive, the following clauses are missing"
+            putStrLn "The patterns may not be exhaustive, the following clauses are missing"
             mapM_ (printClause n) cs
     putStrLn ""
   where

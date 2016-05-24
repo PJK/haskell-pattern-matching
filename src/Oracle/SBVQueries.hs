@@ -7,12 +7,21 @@ import qualified Text.Show.Pretty as Pr
 import           Types
 
 
-boolESat :: BoolE -> IO SatResult
-boolESat b = sat $ buildSBool b
+boolESat :: BoolE -> IO Bool
+boolESat b = do
+    SatResult result <- boolESatResult b
+    case result of
+        -- TODO @Pavel is this the correct way to do it to get an over-approximation?
+        Unsatisfiable _ -> return False
+        _ -> return True
+
+boolESatResult :: BoolE -> IO SatResult
+boolESatResult b = sat $ buildSBool b
 
 buildSBool :: BoolE -> Symbolic SBool
 buildSBool (LitBool True)  = return true
 buildSBool (LitBool False) = return false
+buildSBool Otherwise = return true
 buildSBool (BoolVar v) = sBool v
 buildSBool (BoolNot be) = bnot <$> buildSBool be
 buildSBool (BoolOp bo bv1 bv2) = do

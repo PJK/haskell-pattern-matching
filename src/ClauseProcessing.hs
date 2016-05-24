@@ -31,7 +31,7 @@ patMap f
 -- Pavel: Answer: pass in the CVAV instead of the last three arguments?
 type AnalysisProcessor = PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-guardHandler :: AnalysisProcessor -> Pattern -> Constraint -> PatternVector -> ValueAbstractionVector -> ConstraintSet-> Binding -> Analyzer ConditionedValueAbstractionSet
+guardHandler :: AnalysisProcessor -> Pattern -> Expression -> PatternVector -> ValueAbstractionVector -> ConstraintSet -> Binding -> Analyzer ConditionedValueAbstractionSet
 guardHandler func p constraint ps us delta gamma
     = do
         z <- freshVar
@@ -82,7 +82,7 @@ coveredValues
     (k@(ConstructorPattern _ _):ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
-        substituted <- substituteFreshParameters k
+        substituted@(ConstructorPattern consName conspats) <- substituteFreshParameters k
 
         patternGamma <- substitutedConstructorContext substituted
         let gamma' = Map.union gamma patternGamma
@@ -90,7 +90,7 @@ coveredValues
         varType <- lookupVariableType varName gamma
         constructorType <- dataTypeToType <$> lookupDataType k
 
-        let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show substituted) delta
+        let delta' = addConstraint (VarEqualsCons varName consName conspats) delta
         let delta'' = addTypeConstraint (varType, constructorType) delta'
 
         coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
@@ -241,9 +241,14 @@ divergentValues pat values
     $ "divergentValues: unsupported pattern " ++ show pat ++ " with values " ++ show values
 
 
-addGuardConstraint :: Pattern -> Constraint -> ConstraintSet -> ConstraintSet
-addGuardConstraint (VariablePattern varName) constraint ConstraintSet {termConstraints=termC, typeConstraints=typeC}
-    = ConstraintSet { termConstraints = (Uncheckable $ varName ++ " ~~ " ++ show constraint):termC
+addGuardConstraint :: Pattern -> Expression -> ConstraintSet -> ConstraintSet
+addGuardConstraint (VariablePattern varName) expression ConstraintSet {termConstraints=termC, typeConstraints=typeC}
+    = let cons
+            = case expression of
+                UnknownExp exp -> Uncheckable $ varName ++ " ~~ " ++ show expression
+                BExp be -> VarEqualsBool varName be
+      in
+        ConstraintSet { termConstraints = cons:termC
                     , typeConstraints = typeC
                     }
 addGuardConstraint _ _ _ = error "Can only require equality on variables"

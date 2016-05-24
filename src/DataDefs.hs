@@ -68,6 +68,8 @@ data Constraint
     = BoolExp BoolE
     | IsBottom Name
     | VarsEqual Name Name
+    | VarEqualsBool Name BoolE
+    | VarEqualsCons Name Name [Pattern]
     | Uncheckable String
   deriving (Show, Eq, Generic, Ord)
 
@@ -82,6 +84,7 @@ instance Pretty Constraint where
 
 data BoolE
     = LitBool Bool
+    | Otherwise
     | BoolVar Name
     | BoolNot BoolE
     | BoolOp BoolBinOp BoolE BoolE
@@ -196,8 +199,20 @@ data Pattern
     | InfixConstructorPattern Pattern Name Pattern -- Name will be a symbol, this is used for lists, for example.
     | WildcardPattern
     -- | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
-    | GuardPattern Pattern Constraint
+    | GuardPattern Pattern Expression
   deriving (Show, Eq, Generic, Ord)
+
+data Expression
+    = UnknownExp String
+    | BExp BoolE
+  deriving (Show, Eq, Generic, Ord)
+
+instance ToJSON   Expression
+instance FromJSON Expression
+
+instance Pretty Expression where
+    pretty (UnknownExp s) = s
+    pretty (BExp be) = show be -- TODO Actually show pretty be
 
 -- | Replaces the previous attemps to provide maps between types and constructors
 -- | Since all the translations are isomorphisms (hopefully), all we need is the type

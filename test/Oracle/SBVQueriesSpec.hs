@@ -13,14 +13,14 @@ import           Types
 
 shouldBeSatisfiable :: BoolE -> IO ()
 shouldBeSatisfiable b = do
-    res <- boolESat b
+    res <- boolESatResult b
     case res of
         SatResult (Satisfiable _ _) -> return ()
         r -> expectationFailure $ show b ++ " has not been found to be satisfiable: " ++ show r
 
 shouldBeUnsatisfiable :: BoolE -> IO ()
 shouldBeUnsatisfiable b = do
-    res <- boolESat b
+    res <- boolESatResult b
     case res of
         SatResult (Unsatisfiable _) -> return ()
         r -> expectationFailure $ show b ++ " has not been found to be unsatisfiable: " ++ show r

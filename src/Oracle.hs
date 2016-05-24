@@ -1,8 +1,10 @@
 module Oracle where
 
-import           Data.Maybe       (catMaybes)
+import           Data.List         (find)
+import           Data.Maybe        (catMaybes)
 import           DataDefs
-import qualified Text.Show.Pretty as Pr
+import           Oracle.SBVQueries
+import qualified Text.Show.Pretty  as Pr
 import           Types
 
 data Oracle
@@ -39,6 +41,8 @@ runSingleVectorOracle cvav = do
 trivialOracle :: Oracle
 trivialOracle = Oracle (\_ -> return True)
 
+
+-- FIXME This whole thing is unsound. For each constraint we need to set it to Unsat, Sat, or Dunno, and then only leave a constraint if it is definitely unsat.
 myOracle :: Oracle
 myOracle = Oracle { queryOracle = oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable }
 
@@ -47,8 +51,11 @@ oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable :: ConditionedVal
 oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}_ delta) = do
     putStrLn "Before:"
     putStrLn $ Pr.ppShow delta
+    let firstRound = resolveBottoms $ resolveVariableEqualities $ termConstraints delta
+    secondRound <- resolveTrueBools firstRound
+    thirdRound <- resolveSimpleBools secondRound
     let delta' = delta {
-            termConstraints = resolveBottoms $ resolveVariableEqualities $ termConstraints delta
+            termConstraints = thirdRound
           , typeConstraints = resolveTrivialTypeEqualities $ typeConstraints delta
         }
     putStrLn "After:"
@@ -87,21 +94,84 @@ resolveVariableEqualities vs
 -- This only works on lists that already have variables resolved
 resolveBottoms :: [Constraint] -> [Constraint]
 resolveBottoms [] = []
-resolveBottoms (c@(BoolExp _):cs)     = c : resolveBottoms cs
-resolveBottoms (c@(VarsEqual _ _):cs) = c : resolveBottoms cs
-resolveBottoms (c@(Uncheckable _):cs) = c : resolveBottoms cs
+resolveBottoms (c@(VarEqualsCons _ _ _):cs) = c : resolveBottoms cs
+resolveBottoms (c@(VarEqualsBool _ _):cs)   = c : resolveBottoms cs
+resolveBottoms (c@(BoolExp _):cs)           = c : resolveBottoms cs
+resolveBottoms (c@(VarsEqual _ _):cs)       = c : resolveBottoms cs
+resolveBottoms (c@(Uncheckable _):cs)       = c : resolveBottoms cs
 resolveBottoms (bc@(IsBottom v):cs)
     = if otherOccurrenceOf v cs
         then bc : resolveBottoms cs
         else resolveBottoms cs
+
+otherOccurrenceOf :: Name -> [Constraint] -> Bool
+otherOccurrenceOf var = any occurrence
   where
-    otherOccurrenceOf :: Name -> [Constraint] -> Bool
-    otherOccurrenceOf var = any occurrence
-      where
-        occurrence (Uncheckable _) = False
-        occurrence (VarsEqual _ _) = error "Variables have to be resolved first"
-        occurrence (IsBottom _) = False
-        occurrence (BoolExp be) = notElem var $ varsInBE be
+    occurrence (Uncheckable _) = False
+    occurrence (VarsEqual _ _) = error "Variables have to be resolved first"
+    occurrence (IsBottom ovar)
+            | ovar == var = True
+            | otherwise   = False
+    occurrence (BoolExp be) = notElem var $ varsInBE be
+    occurrence (VarEqualsBool ovar _)
+            | ovar == var = True
+            | otherwise   = False
+    occurrence (VarEqualsCons ovar _ _)
+            | ovar == var = True
+            | otherwise   = False
+
+-- | Solve boolean expressions that have to be true
+--
+-- We solve a pair of constraints of the following form with a SAT solver and remove both if the boolean expression is satisfiable.
+-- This works best if variable equalities are resolved.
+-- Unresolved bottoms don't matter.
+--
+-- We also assume that all constraints are unique, this is fine because A ∧ A <=> A holds anyway
+--
+-- TODO maybe cache queries, we'll need them three times per query anyway...
+resolveTrueBools :: [Constraint] -> IO [Constraint]
+resolveTrueBools cs = case filter isVarsEqualBoolConstraint cs of
+    [] -> return cs
+    vareq@(VarEqualsBool var be):_ -> do
+        let isMatchingConsTrueConstraint (VarEqualsCons ovar "True" []) = var == ovar
+            isMatchingConsTrueConstraint _ = False
+        case find isMatchingConsTrueConstraint cs of
+            Nothing -> return cs
+            Just conseq -> do
+                sat <- boolESat $ BoolOp BoolEQ (LitBool True) be
+                let leftout = filter (\c -> c /= vareq && c /= conseq) cs
+                if sat
+                then resolveSimpleBools leftout
+                else do
+                    rest <- resolveSimpleBools leftout
+                    return $ vareq:conseq:rest
+
+-- | Solve independent boolean constraints
+--
+-- If a constraint @VarEqualsBool var be@ occurs such that @var@ doesn't occur in any other constraint, then we can try to SAT-solve @be to satisfy the constraint
+-- This has to happen after resolving variable equalities
+resolveSimpleBools :: [Constraint] -> IO [Constraint]
+resolveSimpleBools [] = return []
+resolveSimpleBools cs =
+    case find isVarsEqualBoolConstraint cs of
+        Nothing -> return cs
+        Just c@(VarEqualsBool var be) -> do
+            let filtered = filter (/= c) cs
+            if otherOccurrenceOf var filtered
+            then (c :) <$> resolveSimpleBools filtered
+            else do
+                sat <- boolESat be
+                if sat
+                then resolveSimpleBools filtered
+                else (c :) <$> resolveSimpleBools filtered
+
+
+
+
+
+
+isVarsEqualBoolConstraint (VarEqualsBool var boolE) = True
+isVarsEqualBoolConstraint _ = False
 
 varsInBE :: BoolE -> [Name]
 varsInBE (LitBool _)            = []
