@@ -1,7 +1,6 @@
 module ClauseProcessing where
 
 import           Control.Monad.Except
-import           Control.Monad.Extra   (concatMapM)
 import           Control.Monad.Reader
 import           Control.Monad.State
 import qualified Data.Foldable         as DFo
@@ -65,41 +64,6 @@ addEqualityConstraint (VariablePattern aName) (VariablePattern bName) delta
 -- TODO handle other cases and start using this everywhere
 addEqualityConstraint a b delta
     = addConstraint (Uncheckable (show a ++ " ~~ " ++ show b)) delta
-
-
--- TODO we need to create the binding for these variables during the desugaring
--- | Transforms all patterns into the standard form (See figure 7)
-desugarPattern :: Pattern -> Analyzer PatternVector
-desugarPattern (LiteralPattern sign (Frac f)) = do
-    var <- freshVar
-    guard <- desugarGuard (ConstraintGuard $ FracBoolOp FracEQ (FracVar (variableName var)) (FracLit f))
-    return $ var:guard
-
-desugarPattern (LiteralPattern sign (Int i)) = do
-    var <- freshVar
-    guard <- desugarGuard (ConstraintGuard $ IntBoolOp IntEQ (IntVar (variableName var)) (IntLit i))
-    return $ var:guard
-
-desugarPattern (ConstructorPattern name patterns) = do
-    params <- concatMapM desugarPattern patterns
-    return [ConstructorPattern name params]
-
-desugarPattern WildcardPattern = do
-    var <- freshVar
-    return [var]
-
-desugarPattern x = return [x]
-
-
-desugarGuard :: Guard -> Analyzer PatternVector
-desugarGuard (ConstraintGuard constraint)
-    = return [GuardPattern truePattern (BExp constraint)]
-desugarGuard _ = error "FIXME: implement lets and patternGuards"
-
-
-desugarPatternVector :: PatternVector -> Analyzer PatternVector
-desugarPatternVector = concatMapM desugarPattern
-
 
 -- Based on Figure 3 of 'GADTs meet their match'
 
@@ -349,11 +313,6 @@ freshVar = do
     i <- gets nextFreshVarName
     modify (\s -> s { nextFreshVarName = i + 1 })
     return $ VariablePattern $ "fresh" ++ show i
-
-
-variableName :: Pattern -> String
-variableName (VariablePattern name) = name
-variableName _                      = error "Not a Variable"
 
 -- | Replace PlaceHolderPatterns with appropriate fresh variables
 substituteFreshParameters :: Pattern -> Analyzer Pattern
