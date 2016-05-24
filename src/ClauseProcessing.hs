@@ -1,18 +1,18 @@
 module ClauseProcessing where
 
 import           Control.Monad.Except
+import           Control.Monad.Extra   (concatMapM)
 import           Control.Monad.Reader
 import           Control.Monad.State
-import           Control.Monad.Extra  (concatMapM)
-import qualified Data.Foldable        as DFo
-import qualified Data.Map             as Map
-import           Data.Maybe           (fromJust)
-import           Debug.Trace
+import qualified Data.Foldable         as DFo
+import qualified Data.Map              as Map
+import           Data.Maybe            (fromJust)
 import           DataDefs
+import           Debug.Trace
 import           Gatherer
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
-import qualified Text.Show.Pretty     as Pr
+import qualified Text.Show.Pretty      as Pr
 import           Types
 import           Util
 
@@ -110,7 +110,7 @@ desugarPatternVector = concatMapM desugarPattern
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
+-- coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}
