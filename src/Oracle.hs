@@ -93,22 +93,25 @@ resolveVariableEqualities vs
 --
 -- This only works on lists that already have variables resolved
 resolveBottoms :: [Constraint] -> [Constraint]
-resolveBottoms [] = []
-resolveBottoms (c@(VarEqualsCons _ _ _):cs) = c : resolveBottoms cs
-resolveBottoms (c@(VarEqualsBool _ _):cs)   = c : resolveBottoms cs
-resolveBottoms (c@(BoolExp _):cs)           = c : resolveBottoms cs
-resolveBottoms (c@(VarsEqual _ _):cs)       = c : resolveBottoms cs
-resolveBottoms (c@(Uncheckable _):cs)       = c : resolveBottoms cs
-resolveBottoms (bc@(IsBottom v):cs)
-    = if otherOccurrenceOf v cs
-        then bc : resolveBottoms cs
-        else resolveBottoms cs
+resolveBottoms cs =
+    case find isBottom cs of
+        Nothing -> cs
+        Just c@(IsBottom var) -> do
+            let filtered = filter (/= c) cs
+            if otherOccurrenceOf var filtered
+            then c : resolveBottoms filtered
+            else resolveBottoms filtered
+
+isBottom (IsBottom _) = True
+isBottom _ = False
 
 otherOccurrenceOf :: Name -> [Constraint] -> Bool
 otherOccurrenceOf var = any occurrence
   where
     occurrence (Uncheckable _) = False
-    occurrence (VarsEqual _ _) = error "Variables have to be resolved first"
+    occurrence (VarsEqual ovar1 ovar2)
+            | ovar1 == var || ovar2 == var = True
+            | otherwise                    = False
     occurrence (IsBottom ovar)
             | ovar == var = True
             | otherwise   = False
