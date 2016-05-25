@@ -2,6 +2,7 @@ module Oracle where
 
 import           Data.List         (find)
 import           Data.Maybe        (catMaybes)
+import           Data.SBV
 import           DataDefs
 import           Debug.Trace
 import           Oracle.SBVQueries
@@ -10,10 +11,9 @@ import           Types
 
 data Oracle
     = Oracle
-    { queryOracle :: ConditionedValueAbstractionVector -> IO Bool }
+    { queryOracle :: ConditionedValueAbstractionVector -> IO OracleResult }
+-- TODO Chance bool to Ternary
 
--- TODO make the oracle a separate datatype instead of a builtin function so we can try out using other ones
--- and partially order them? muhaha
 
 -- Just IO?
 runOracle :: FunctionResult -> IO SolvedFunctionResult
@@ -33,13 +33,13 @@ runSingleVectorOracle :: ConditionedValueAbstractionVector -> IO (Maybe ValueAbs
 runSingleVectorOracle cvav = do
     let oracle = myOracle
     satisfiable <- queryOracle oracle cvav
-    if satisfiable
-    then return $ Just $ valueAbstraction cvav
-    else return Nothing
+    case satisfiable of
+        DefinitelyUnsatisfiable -> return Nothing
+        _ -> return $ Just $ valueAbstraction cvav
 
 
 trivialOracle :: Oracle
-trivialOracle = Oracle (\_ -> return True)
+trivialOracle = Oracle (\_ -> return DontReallyKnow)
 
 
 -- FIXME This whole thing is unsound. For each constraint we need to set it to Unsat, Sat, or Dunno, and then only leave a constraint if it is definitely unsat.
@@ -47,7 +47,7 @@ myOracle :: Oracle
 myOracle = Oracle { queryOracle = oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable }
 
 -- Mirror, mirror, on the wall, ...
-oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable :: ConditionedValueAbstractionVector -> IO Bool
+oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable :: ConditionedValueAbstractionVector -> IO OracleResult
 oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}_ delta) = do
     -- putStrLn "Before:"
     -- putStrLn $ Pr.ppShow delta
@@ -55,21 +55,22 @@ oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}
     if any isBottom firstRound
     then -- do
         -- putStrLn "Unsat because of bottom that occurs in other constraints too"
-        return False
+        return DefinitelyUnsatisfiable
     else do
-        secondRound <- resolveSatBools firstRound
-        let delta' = delta {
-                termConstraints = secondRound
-              , typeConstraints = resolveTrivialTypeEqualities $ typeConstraints delta
-            }
-        -- putStrLn "After:"
-        -- putStrLn $ Pr.ppShow delta'
+        -- We solve term constraints first
+        SatResult satResult <- resolveSatBools firstRound
+        case satResult of
+            Unsatisfiable _ -> return DefinitelyUnsatisfiable
+            Unknown _ _ -> return DontReallyKnow
+            ProofError _ _ -> return DontReallyKnow
+            TimeOut _ -> return DontReallyKnow
+            Satisfiable _ _ ->
+                -- Only if term constraints are definitely satisfiable, then we solve type constraints
+                -- Currently we only do trivial type constraint checking
+                return $ if null $ resolveTrivialTypeEqualities $ typeConstraints delta
+                            then DefinitelySatisfiable
+                            else DontReallyKnow
 
-        return $ isUnconstrainedSet delta'
-
-
-isUnconstrainedSet :: ConstraintSet -> Bool
-isUnconstrainedSet d = null (typeConstraints d) && null (termConstraints d)
 
 resolveTrivialTypeEqualities :: [TypeConstraint] -> [TypeConstraint]
 resolveTrivialTypeEqualities = filter (uncurry (/=))
@@ -129,16 +130,13 @@ otherOccurrenceOf var = any occurrence
             | otherwise   = False
 
 
-resolveSatBools :: [Constraint] -> IO [Constraint]
+resolveSatBools :: [Constraint] -> IO SatResult
 resolveSatBools cs
-    | not (sattable cs) = return cs
+    | not (sattable cs) = return $ SatResult (Unknown undefined undefined) -- It should have been sattable by now
     | otherwise = do
         let clauses = map convertToBoolE cs
         let be = foldl (BoolOp BoolAnd) (LitBool True) clauses
-        sat <- boolESat $ BoolOp BoolEQ (LitBool True) be
-        return $ if sat
-                    then []
-                    else cs
+        boolESatResult $ BoolOp BoolEQ (LitBool True) be
   where
     -- The most literal translation possible, for now.
     convertToBoolE (IsBottom be) = error "cannot occur as per 'not (sattable cs)'"

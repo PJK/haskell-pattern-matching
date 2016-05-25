@@ -120,3 +120,9 @@ data AnalyzerState
     }
 
 type AnalyzerContext = TypeUniverse
+
+
+data OracleResult
+    = DefinitelySatisfiable
+    | DefinitelyUnsatisfiable
+    | DontReallyKnow

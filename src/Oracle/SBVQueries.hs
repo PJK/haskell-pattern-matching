@@ -10,14 +10,14 @@ import qualified Text.Show.Pretty          as Pr
 import           Types
 
 
-boolESat :: BoolE -> IO Bool
-boolESat b = do
-    SatResult result <- boolESatResult b
-    case result of
-        -- Overapproximation as per section 6.1 -- unless we can prove it unsatisfiable, we must
-        -- assume it may match
-        Unsatisfiable _ -> return False
-        _ -> return True
+-- boolESat :: BoolE -> IO Bool
+-- boolESat b = do
+--     SatResult result <- boolESatResult b
+--     case result of
+--         -- Overapproximation as per section 6.1 -- unless we can prove it unsatisfiable, we must
+--         -- assume it may match
+--         Unsatisfiable _ -> return False
+--         _ -> return True
 
 boolESatResult :: BoolE -> IO SatResult
 boolESatResult b = sat $ flip evalStateT initState $ buildSBool b
