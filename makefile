@@ -18,11 +18,10 @@ pedantic: FORCE
         -fwarn-unused-do-bind \
         -fno-warn-name-shadowing \
         -fno-warn-overlapping-patterns \
-        -fno-warn-orphans" \
-    --test \
-    --test-arguments="\
-      --dry-run \
-      "\
+        -fno-warn-orphans"
+
+test: FORCE
+	stack test
 
 love:
 	@echo "not war"
