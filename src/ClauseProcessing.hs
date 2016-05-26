@@ -175,6 +175,12 @@ uncoveredValues
 
             return [CVAV {valueAbstraction = substitute:us, delta = delta, gamma = gamma'}]
 
+uncoveredValues
+    (TuplePattern pp:ps)
+    CVAV {valueAbstraction=(TuplePattern up:us), delta=delta, gamma=gamma}
+        = return []
+
+
 -- UConVar
 uncoveredValues
     (pat@(ConstructorPattern consname conspats):ps)
@@ -196,6 +202,24 @@ uncoveredValues
             let delta'' = addConstraint (VarEqualsCons varName consname conspats) delta' in
                 uncoveredValues (pat:ps) CVAV {valueAbstraction=constructor:us, delta=delta', gamma = gamma'}
         return $ concat uvs
+
+uncoveredValues
+    (k@(TuplePattern _):ps)
+    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
+    = do
+        -- There is only one constructor for tuples, saving our asses
+        substituted@(TuplePattern conspats) <- substituteFreshParameters k
+
+        varType <- lookupVariableType varName gamma
+        let patternGamma = substitutedPatternContext substituted varType
+
+        let gamma' = Map.union gamma patternGamma
+
+        -- TODO
+        let delta' = addConstraint (Uncheckable  ((show k) ++ "~~" ++ varName)) delta
+        ---let delta'' = addTypeConstraint (varType, constructorType) delta'
+
+        uncoveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
 
 -- UVar
 uncoveredValues
@@ -238,28 +262,57 @@ divergentValues
             return $ patMap (kcon (ConstructorPattern pname args)) cvs
         | otherwise      = return []
 
+divergentValues
+    (TuplePattern pp:ps)
+    CVAV {valueAbstraction=(TuplePattern up:us), delta=delta, gamma=gamma}
+        -- TODO
+        = return []
 
 -- DConVar
 divergentValues
     (p@(ConstructorPattern consname conspats):ps)
     CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
     = do
-            substituted <- substituteFreshParameters p
+        substituted <- substituteFreshParameters p
 
-            varType <- lookupVariableType varName gamma
-            constructorType <- dataTypeToType <$> lookupDataType p
+        varType <- lookupVariableType varName gamma
+        constructorType <- dataTypeToType <$> lookupDataType p
 
-            let delta' = addConstraint (VarEqualsCons varName consname conspats) delta
-            let delta'' = addTypeConstraint (varType, constructorType) delta'
+        let delta' = addConstraint (VarEqualsCons varName consname conspats) delta
+        let delta'' = addTypeConstraint (varType, constructorType) delta'
 
-            let deltaBot = addConstraint (IsBottom varName) delta
+        let deltaBot = addConstraint (IsBottom varName) delta
 
-            patternGamma <- substitutedConstructorContext substituted
+        patternGamma <- substitutedConstructorContext substituted
 
-            let gamma' = Map.union gamma patternGamma
+        let gamma' = Map.union gamma patternGamma
 
-            dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
-            return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
+        dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
+        return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
+
+
+divergentValues
+    (p@(TuplePattern _):ps)
+    CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
+    = do
+       substituted <- substituteFreshParameters p
+
+       varType <- lookupVariableType varName gamma
+       -- constructorType <- dataTypeToType <$> lookupDataType p
+
+       -- let delta' = addConstraint (VarEqualsCons varName consname conspats) delta
+       -- let delta'' = addTypeConstraint (varType, constructorType) delta
+
+       let deltaBot = addConstraint (IsBottom varName) delta
+
+       let patternGamma = substitutedPatternContext substituted varType
+
+       let gamma' = Map.union gamma patternGamma
+
+       dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta, gamma = gamma'}
+       return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
+
+
 
 -- DVar
 divergentValues
