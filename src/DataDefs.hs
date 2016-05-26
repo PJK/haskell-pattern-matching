@@ -193,7 +193,7 @@ data Pattern
     | LiteralPattern Sign Literal -- ^ Literal: -5
     | ConstructorPattern Name [Pattern] -- ^ Data constructor: Node Leaf Leaf
     | TuplePattern [Pattern] -- ^ Tuple: (a, b, ..., z)
-    | ListPattern [Pattern] -- ^ List: [a, b, ..., z]
+    | EmptyListPattern -- ^ List: [a, b, ..., z]
     | InfixConstructorPattern Pattern Name Pattern -- Name will be a symbol, this is used for lists, for example.
     | WildcardPattern
     -- | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
@@ -267,7 +267,7 @@ instance Pretty Pattern where
     pretty (ConstructorPattern n []) = n
     pretty (ConstructorPattern n pats) = pars $ unwords $ n : map pretty pats
     pretty (TuplePattern pats) = tup $ map pretty pats
-    pretty (ListPattern pats) = list $ map pretty pats
+    pretty EmptyListPattern = "[]"
     pretty WildcardPattern = "_"
     pretty (GuardPattern (ConstructorPattern "True" []) const) = "| " ++ pretty const
     pretty (GuardPattern pat const) = "| " ++ pretty pat ++ " <- " ++ pretty const

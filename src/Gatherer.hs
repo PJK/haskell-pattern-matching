@@ -240,13 +240,20 @@ mkPattern (PVar n) = VariablePattern <$> mkName n
 mkPattern (PLit sign lit) = return $ LiteralPattern sign lit
 mkPattern (PApp name pats) = ConstructorPattern <$> mkQname name <*> mapM mkPattern pats
 mkPattern (PTuple _ pats) = TuplePattern <$> mapM mkPattern pats
-mkPattern (PList pats) = ListPattern <$> mapM mkPattern pats
+mkPattern (PList pats) = desugarList pats
 mkPattern (PAsPat _ pat) = mkPattern pat
 mkPattern PWildCard = return WildcardPattern
 mkPattern (PBangPat pat) = mkPattern pat
 mkPattern (PParen pat) = mkPattern pat
 mkPattern (PInfixApp h cons t) = InfixConstructorPattern <$> mkPattern h <*> mkQname cons <*> mkPattern t
 mkPattern a = err $ "Unsupported pattern: " ++ show a
+
+desugarList :: [Pat] -> MayFail Pattern
+desugarList [] = return EmptyListPattern
+desugarList (p:ps) = do
+    left <- mkPattern p
+    right <- desugarList ps
+    return $ InfixConstructorPattern left ":" right
 
 -- Compile the base datatypes into the binary.
 -- Yes, this uses unsafe functions, but it'll start failing tests

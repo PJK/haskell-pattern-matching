@@ -97,7 +97,7 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunction
     makeVarsWildcards l@(LiteralPattern _ _) = l
     makeVarsWildcards (ConstructorPattern n ps) = ConstructorPattern n $ map makeVarsWildcards ps
     makeVarsWildcards (TuplePattern ps) = TuplePattern $ map makeVarsWildcards ps
-    makeVarsWildcards (ListPattern ps) = ListPattern $ map makeVarsWildcards ps
+    makeVarsWildcards EmptyListPattern = EmptyListPattern
     makeVarsWildcards WildcardPattern = WildcardPattern
     makeVarsWildcards (GuardPattern p e) = GuardPattern (makeVarsWildcards p) e
 
@@ -137,7 +137,7 @@ withNoConstraints vas gamma
 
 analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
 analyzeFunction (FunctionTarget fun) = do
-    freshVars <- replicateM (arity (head clauses)) freshVar
+    freshVars <- trace (Pr.ppShow fun) $ replicateM (arity (head clauses)) freshVar
     let Right gamma = initialGamma fun freshVars
     let initialAbstraction = withNoConstraints [freshVars] gamma
     executionTrace <- iteratedVecProc desugaredPatterns initialAbstraction
