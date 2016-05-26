@@ -386,6 +386,12 @@ divergentValues
             dvs <- divergentValues (pp ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
             return $ patMap (kcon k) dvs
 
+divergentValues
+    (k@(InfixConstructorPattern p1 ":" p2):ps)
+    CVAV {valueAbstraction=(InfixConstructorPattern u1 ":" u2:us), delta=delta, gamma=gamma}
+        = do
+            dvs <- divergentValues (p1:p1:ps) CVAV {valueAbstraction = u1:u2:us, delta = delta, gamma = gamma}
+            return $ patMap (kcon k) dvs
 
 -- DConVar
 divergentValues
@@ -412,6 +418,27 @@ divergentValues
 
 divergentValues
     (p@(TuplePattern _):ps)
+    CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
+    = do
+       substituted <- substituteFreshParameters p
+
+       varType <- lookupVariableType varName gamma
+       -- constructorType <- dataTypeToType <$> lookupDataType p
+
+       -- let delta' = addConstraint (VarEqualsCons varName consname conspats) delta
+       -- let delta'' = addTypeConstraint (varType, constructorType) delta
+
+       let deltaBot = addConstraint (IsBottom varName) delta
+
+       let patternGamma = substitutedPatternContext substituted varType
+
+       let gamma' = Map.union gamma patternGamma
+
+       dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta, gamma = gamma'}
+       return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
+
+divergentValues
+    (p@(InfixConstructorPattern p1 ":" p2):ps)
     CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
     = do
        substituted <- substituteFreshParameters p
@@ -509,6 +536,9 @@ kcon (TuplePattern parameters) ws =
         TuplePattern (take arity ws):drop arity ws
     where
         arity = length parameters
+kcon (InfixConstructorPattern _ name _) (a:b:ws) =
+        InfixConstructorPattern a name b:ws
+kcon EmptyListPattern ws = EmptyListPattern:ws
 kcon _ _ = error "Only constructor patterns"
 
 freshVar :: Analyzer Pattern
@@ -543,6 +573,11 @@ lookupType (VariablePattern name) binding
 lookupType pat@(ConstructorPattern _ _) _ = do
     dataType <- lookupDataType pat
     return $ dataTypeToType dataType
+-- This is list specific.
+lookupType (InfixConstructorPattern p1 ":" _) binding = do
+    elemType <- lookupType p1 binding
+    return $ ListType elemType
+lookupType x _ = trace (show x) (error "Cannot lookup non-contructors or variables")
 
 lookupDataType :: Pattern -> Analyzer DataType
 lookupDataType constructor@(ConstructorPattern constructorName _) = do
