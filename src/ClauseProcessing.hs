@@ -485,6 +485,22 @@ divergentValues
        dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta, gamma = gamma'}
        return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
 
+divergentValues
+    (EmptyListPattern:ps)
+    CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
+    = do
+
+       varType <- lookupVariableType varName gamma
+       -- constructorType <- dataTypeToType <$> lookupDataType p
+
+       -- let delta' = addConstraint (VarEqualsCons varName consname conspats) delta
+       -- let delta'' = addTypeConstraint (varType, constructorType) delta
+
+       let deltaBot = addConstraint (IsBottom varName) delta
+
+       dvs <- divergentValues (EmptyListPattern:ps) CVAV {valueAbstraction = EmptyListPattern:us, delta = delta, gamma = gamma}
+       return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
+
 
 -- DVar
 divergentValues
