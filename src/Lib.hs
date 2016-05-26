@@ -100,6 +100,7 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunction
     makeVarsWildcards EmptyListPattern = EmptyListPattern
     makeVarsWildcards WildcardPattern = WildcardPattern
     makeVarsWildcards (GuardPattern p e) = GuardPattern (makeVarsWildcards p) e
+    makeVarsWildcards (InfixConstructorPattern p1 name p2) = InfixConstructorPattern (makeVarsWildcards p1) name (makeVarsWildcards p2)
 
 
 prettyOutput :: AnalysisResult -> IO ()

@@ -266,6 +266,7 @@ instance Pretty Pattern where
     pretty (LiteralPattern Negative l) = '-' : H.prettyPrint l
     pretty (ConstructorPattern n []) = n
     pretty (ConstructorPattern n pats) = pars $ unwords $ n : map pretty pats
+    pretty (InfixConstructorPattern p1 name p2) = pretty p1 ++ name ++ pretty p2
     pretty (TuplePattern pats) = tup $ map pretty pats
     pretty EmptyListPattern = "[]"
     pretty WildcardPattern = "_"
