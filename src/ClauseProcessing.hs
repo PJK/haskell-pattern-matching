@@ -382,8 +382,7 @@ iteratedVecProc (ps:pss) s = do
     rest <- trace ("C: " ++ Pr.ppShow res) iteratedVecProc pss (capU res)
     return $ res : rest
 
--- |Coverage vector concatenation
--- TODO: Add the term constraints merging
+-- | Coverage vector concatenation
 ucon :: Pattern -> ValueAbstractionVector -> ValueAbstractionVector
 ucon x xs = x:xs
 
@@ -413,10 +412,9 @@ substituteFreshParameters (ConstructorPattern name placeholders) = do
 substituteFreshParameters (TuplePattern placeholders) = do
     subs <- substitutePatterns placeholders
     return $ TuplePattern subs
--- TODO add lists and tuples
+-- TODO add lists
 substituteFreshParameters _ = error "No substitution available"
 
--- TODO check these are PlaceHolderPatterns only
 substitutePatterns :: [Pattern] -> Analyzer [Pattern]
 substitutePatterns xs = replicateM (length xs) freshVar
 
@@ -441,7 +439,6 @@ lookupDataType constructor@(ConstructorPattern constructorName _) = do
         containsConstructor (DataType _ _ constructors)
             = any (\(Constructor name _) -> name == constructorName) constructors
 
--- TODO I'm not sure if this makes sense?
 dataTypeToType :: DataType -> Type
 dataTypeToType (DataType name _ _) = TypeConstructor name
 
