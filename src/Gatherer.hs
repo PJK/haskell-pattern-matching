@@ -25,10 +25,7 @@ signFact Signless = 1
 signFact Negative = -1
 
 
--- TODO we need to create the binding for these variables during the desugaring
 -- | Transforms all patterns into the standard form (See figure 7)
--- TODO @Pavel, do we also need to make them really fresh or not? (prob but I'm not sure.)
---  Also, put everything in the analyzer monad to get access to fresh var generation
 -- TODO @Pavel, why is this a vector?
 desugarPattern :: Pattern -> PatternVector
 desugarPattern (LiteralPattern sign (Frac f))
@@ -43,10 +40,10 @@ desugarPattern (LiteralPattern sign (Int i))
 
 desugarPattern (ConstructorPattern name patterns)
     = [ConstructorPattern name (concatMap desugarPattern patterns)]
--- TODO these have to generate fresh variables!
+desugarPattern (TuplePattern patterns)
+    = [TuplePattern (concatMap desugarPattern patterns)]
 desugarPattern WildcardPattern
     = [VariablePattern "_"]
-
 desugarPattern x = [x]
 
 -- | Recover the original number of parameters before desugaring and guard expansion.
