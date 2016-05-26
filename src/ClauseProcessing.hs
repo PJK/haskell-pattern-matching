@@ -95,7 +95,31 @@ coveredValues
         cvs <- coveredValues (pp ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
         return $ patMap (kcon (TuplePattern pp)) cvs
 
+coveredValues
+    (InfixConstructorPattern p1 ":" p2:ps)
+    CVAV {valueAbstraction=(InfixConstructorPattern u1 ":" u2:us), delta=delta, gamma=gamma}
+    = do
+        cvs <- coveredValues (p1:p2:ps) CVAV {valueAbstraction = u1:u2:us, delta = delta, gamma = gamma}
+        return $ patMap (kcon (InfixConstructorPattern p1 ":" p2)) cvs
+
 -- CConVar
+coveredValues
+    (k@(ConstructorPattern _ _):ps)
+    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
+    = do
+        substituted@(ConstructorPattern consName conspats) <- substituteFreshParameters k
+
+        patternGamma <- substitutedConstructorContext substituted
+        let gamma' = Map.union gamma patternGamma
+
+        varType <- lookupVariableType varName gamma
+        constructorType <- dataTypeToType <$> lookupDataType k
+
+        let delta' = addConstraint (VarEqualsCons varName consName conspats) delta
+        let delta'' = addTypeConstraint (varType, constructorType) delta'
+
+        coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
+
 coveredValues
     (k@(TuplePattern _):ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
@@ -114,22 +138,21 @@ coveredValues
         coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
 
 coveredValues
-    (k@(ConstructorPattern _ _):ps)
+    (k@(InfixConstructorPattern p1 ":" p2):ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
-        substituted@(ConstructorPattern consName conspats) <- substituteFreshParameters k
-
-        patternGamma <- substitutedConstructorContext substituted
-        let gamma' = Map.union gamma patternGamma
+        substituted@(InfixConstructorPattern s1 ":" s2) <- substituteFreshParameters k
 
         varType <- lookupVariableType varName gamma
-        constructorType <- dataTypeToType <$> lookupDataType k
+        let patternGamma = substitutedPatternContext substituted varType
 
-        let delta' = addConstraint (VarEqualsCons varName consName conspats) delta
-        let delta'' = addTypeConstraint (varType, constructorType) delta'
+        let gamma' = Map.union gamma patternGamma
 
-        coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
+        -- TODO
+        let delta' = addConstraint (Uncheckable  ((show k) ++ "~~" ++ varName)) delta
+        ---let delta'' = addTypeConstraint (varType, constructorType) delta'
 
+        coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
 
 -- CVar
 coveredValues
@@ -412,7 +435,10 @@ substituteFreshParameters (ConstructorPattern name placeholders) = do
 substituteFreshParameters (TuplePattern placeholders) = do
     subs <- substitutePatterns placeholders
     return $ TuplePattern subs
--- TODO add lists
+substituteFreshParameters (InfixConstructorPattern _ name _) = do
+    s1 <- freshVar
+    s2 <- freshVar
+    return $ InfixConstructorPattern s1 name s2
 substituteFreshParameters _ = error "No substitution available"
 
 substitutePatterns :: [Pattern] -> Analyzer [Pattern]
@@ -473,6 +499,8 @@ substitutedPatternContext (TuplePattern varsToAnnotate) (TupleType types)
     = Map.fromList (zip varNames types)
     where
         varNames = map varName varsToAnnotate
+substitutedPatternContext (InfixConstructorPattern p1 _ p2) lt@(ListType t)
+    = Map.fromList [(varName p1, t), (varName p2, lt)]
 
 lookupVariableType :: String -> Binding -> Analyzer Type
 lookupVariableType name gamma
