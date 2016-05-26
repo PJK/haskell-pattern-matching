@@ -561,7 +561,7 @@ iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer
 iteratedVecProc [] _ = return []
 iteratedVecProc (ps:pss) s = do
     res <- patVecProc ps s
-    rest <- trace ("C: " ++ Pr.ppShow res) iteratedVecProc pss (capU res)
+    rest <- {- -trace ("C: " ++ Pr.ppShow res) -} iteratedVecProc pss (capU res)
     return $ res : rest
 
 -- | Coverage vector concatenation
