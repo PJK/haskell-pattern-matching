@@ -91,7 +91,9 @@ coveredValues
 coveredValues
     (TuplePattern pp:ps)
     CVAV {valueAbstraction=(TuplePattern up:us), delta=delta, gamma=gamma}
-        = return []
+    = do
+        cvs <- coveredValues (pp ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
+        return $ patMap (kcon (TuplePattern pp)) cvs
 
 -- CConVar
 coveredValues
