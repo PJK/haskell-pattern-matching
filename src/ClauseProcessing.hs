@@ -241,6 +241,15 @@ uncoveredValues
         uvs <- uncoveredValues (p1:p2:ps) CVAV {valueAbstraction = u1:u2:us, delta = delta, gamma = gamma}
         return $ patMap (kcon k) uvs
 
+uncoveredValues
+    (InfixConstructorPattern {}:ps)
+    cvav@CVAV {valueAbstraction=(EmptyListPattern:us), delta=delta, gamma=gamma}
+        = return [cvav]
+
+uncoveredValues
+    (EmptyListPattern:ps)
+    cvav@CVAV {valueAbstraction=(InfixConstructorPattern {}:us), delta=delta, gamma=gamma}
+        = return [cvav]
 
 -- UConVar
 uncoveredValues
@@ -301,7 +310,30 @@ uncoveredValues
         -- Consider :
         withConcat <- uncoveredValues (k:ps) CVAV {valueAbstraction=substituted:us, delta=deltaCons, gamma = gamma'}
         -- Consider []
-        withEmpty <- uncoveredValues (k:ps) CVAV {valueAbstraction=EmptyListPattern:us, delta=deltaCons, gamma = gamma'}
+        withEmpty <- uncoveredValues (k:ps) CVAV {valueAbstraction=EmptyListPattern:us, delta=deltaEmpty, gamma = gamma'}
+
+        return $ withConcat ++ withEmpty
+
+uncoveredValues
+    (EmptyListPattern:ps)
+    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
+    = do
+        s1 <- freshVar
+        s2 <- freshVar
+        let substituted = InfixConstructorPattern s1 ":" s2
+        varType <- lookupVariableType varName gamma
+        let patternGamma = substitutedPatternContext substituted varType
+
+        let gamma' = Map.union gamma patternGamma
+
+        -- TODO
+        let deltaCons = addConstraint (Uncheckable  ((show substituted) ++ "~~" ++ varName)) delta
+        let deltaEmpty = addConstraint (Uncheckable  ("[]" ++ "~~" ++ varName)) delta
+
+        -- Consider :
+        withConcat <- uncoveredValues (EmptyListPattern:ps) CVAV {valueAbstraction=substituted:us, delta=deltaCons, gamma = gamma'}
+        -- Consider []
+        withEmpty <- uncoveredValues (EmptyListPattern:ps) CVAV {valueAbstraction=EmptyListPattern:us, delta=deltaEmpty, gamma = gamma'}
 
         return $ withConcat ++ withEmpty
 
