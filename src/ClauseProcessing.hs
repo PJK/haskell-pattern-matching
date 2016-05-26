@@ -178,9 +178,11 @@ uncoveredValues
             return [CVAV {valueAbstraction = substitute:us, delta = delta, gamma = gamma'}]
 
 uncoveredValues
-    (TuplePattern pp:ps)
+    (k@(TuplePattern pp):ps)
     CVAV {valueAbstraction=(TuplePattern up:us), delta=delta, gamma=gamma}
-        = return []
+    = do
+        uvs <- uncoveredValues (pp ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
+        return $ patMap (kcon k) uvs
 
 
 -- UConVar
