@@ -26,7 +26,7 @@ signFact Negative = -1
 
 
 -- | Transforms all patterns into the standard form (See figure 7)
--- TODO @Pavel, why is this a vector?
+-- | This is a vector because we need to handle guards
 desugarPattern :: Pattern -> PatternVector
 desugarPattern (LiteralPattern sign (Frac f))
     = VariablePattern var:desugarGuard (ConstraintGuard $ FracBoolOp FracEQ (FracVar var) (FracLit f))
@@ -44,6 +44,12 @@ desugarPattern (TuplePattern patterns)
     = [TuplePattern (concatMap desugarPattern patterns)]
 desugarPattern WildcardPattern
     = [VariablePattern "_"]
+desugarPattern (InfixConstructorPattern p1 name p2)
+    -- Trick: if we got extra guards, append them
+    = [InfixConstructorPattern s1 name s2] ++ ss1 ++ ss2
+    where
+        (s1:ss1) = desugarPattern p1
+        (s2:ss2) = desugarPattern p2
 desugarPattern x = [x]
 
 -- | Recover the original number of parameters before desugaring and guard expansion.

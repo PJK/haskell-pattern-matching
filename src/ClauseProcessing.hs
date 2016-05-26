@@ -96,9 +96,16 @@ coveredValues
         return $ patMap (kcon (TuplePattern pp)) cvs
 
 coveredValues
-    (InfixConstructorPattern p1 ":" p2:ps)
-    CVAV {valueAbstraction=(InfixConstructorPattern u1 ":" u2:us), delta=delta, gamma=gamma}
+    (EmptyListPattern:ps)
+    CVAV {valueAbstraction=(EmptyListPattern:us), delta=delta, gamma=gamma}
     = do
+        cvs <- coveredValues ps CVAV {valueAbstraction = us, delta = delta, gamma = gamma}
+        return $ patMap (kcon EmptyListPattern) cvs
+
+coveredValues
+     (InfixConstructorPattern p1 ":" p2:ps)
+     CVAV {valueAbstraction=(InfixConstructorPattern u1 ":" u2:us), delta=delta, gamma=gamma}
+     = do
         cvs <- coveredValues (p1:p2:ps) CVAV {valueAbstraction = u1:u2:us, delta = delta, gamma = gamma}
         return $ patMap (kcon (InfixConstructorPattern p1 ":" p2)) cvs
 
@@ -154,6 +161,19 @@ coveredValues
 
         coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
 
+coveredValues
+    (EmptyListPattern:ps)
+    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
+    = do
+        varType <- lookupVariableType varName gamma
+
+        -- TODO
+        let delta' = addConstraint (Uncheckable ((show EmptyListPattern) ++ "~~" ++ varName)) delta
+        ---let delta'' = addTypeConstraint (varType, constructorType) delta'
+
+        coveredValues (EmptyListPattern:ps) CVAV {valueAbstraction = EmptyListPattern:us, delta = delta', gamma = gamma}
+
+
 -- CVar
 coveredValues
     (VariablePattern x:ps)
@@ -205,6 +225,20 @@ uncoveredValues
     CVAV {valueAbstraction=(TuplePattern up:us), delta=delta, gamma=gamma}
     = do
         uvs <- uncoveredValues (pp ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
+        return $ patMap (kcon k) uvs
+
+uncoveredValues
+    (EmptyListPattern:ps)
+    CVAV {valueAbstraction=(EmptyListPattern:us), delta=delta, gamma=gamma}
+    = do
+        uvs <- uncoveredValues ps CVAV {valueAbstraction = us, delta = delta, gamma = gamma}
+        return $ patMap (kcon EmptyListPattern) uvs
+
+uncoveredValues
+    (k@(InfixConstructorPattern p1 ":" p2):ps)
+    CVAV {valueAbstraction=(InfixConstructorPattern u1 ":" u2:us), delta=delta, gamma=gamma}
+    = do
+        uvs <- uncoveredValues (p1:p2:ps) CVAV {valueAbstraction = u1:u2:us, delta = delta, gamma = gamma}
         return $ patMap (kcon k) uvs
 
 
