@@ -71,14 +71,14 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunction
     findNonExhaustives tr
         = case scapU $ last tr of
             [] -> []
-            cvavs ->  [NonExhaustive $ map Clause cvavs]
+            cvavs ->  [NonExhaustive $ map (makePrettyClause . Clause) cvavs]
 
     findRedundants :: SolvedExecutionTrace -> [RecommendationReason]
     findRedundants tr = mapMaybe checkRedundant $ zip tr clss
         where
             checkRedundant :: (SolvedClauseCoverage, Clause) -> Maybe RecommendationReason
             checkRedundant (cc, c)
-                | null (scapC cc) && null (scapD cc) = Just $ Redundant c
+                | null (scapC cc) && null (scapD cc) = Just $ Redundant $ makePrettyClause c
                 | otherwise = Nothing
 
     findInaccessibleRhss :: SolvedExecutionTrace -> [RecommendationReason]
@@ -86,8 +86,21 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunction
         where
             checkInaccessibleRhs :: (SolvedClauseCoverage, Clause) -> Maybe RecommendationReason
             checkInaccessibleRhs (cc, c)
-                | null (scapC cc) && (not . null) (scapD cc) = Just $ InaccessibleRhs c
+                | null (scapC cc) && (not . null) (scapD cc) = Just $ InaccessibleRhs $ makePrettyClause c
                 | otherwise = Nothing
+
+    makePrettyClause :: Clause -> Clause
+    makePrettyClause (Clause ps) = Clause $ map makeVarsWildcards ps
+
+    makeVarsWildcards :: Pattern -> Pattern
+    makeVarsWildcards (VariablePattern n) = WildcardPattern
+    makeVarsWildcards l@(LiteralPattern _ _) = l
+    makeVarsWildcards (ConstructorPattern n ps) = ConstructorPattern n $ map makeVarsWildcards ps
+    makeVarsWildcards (TuplePattern ps) = TuplePattern $ map makeVarsWildcards ps
+    makeVarsWildcards (ListPattern ps) = ListPattern $ map makeVarsWildcards ps
+    makeVarsWildcards WildcardPattern = WildcardPattern
+    makeVarsWildcards (GuardPattern p e) = GuardPattern (makeVarsWildcards p) e
+
 
 prettyOutput :: AnalysisResult -> IO ()
 prettyOutput (AnalysisError err) = print err

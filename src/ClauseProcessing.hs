@@ -154,7 +154,7 @@ uncoveredValues
 
 -- UConVar
 uncoveredValues
-    (pat@(ConstructorPattern _ _):ps)
+    (pat@(ConstructorPattern consname conspats):ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
         constructorType <- lookupDataType pat
@@ -170,7 +170,7 @@ uncoveredValues
         let delta' = addTypeConstraint (varType, constructorType) delta
 
         uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
-            let delta'' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show constructor) delta' in
+            let delta'' = addConstraint (VarEqualsCons varName consname conspats) delta' in
                 uncoveredValues (pat:ps) CVAV {valueAbstraction=constructor:us, delta=delta', gamma = gamma'}
         return $ concat uvs
 
@@ -218,7 +218,7 @@ divergentValues
 
 -- DConVar
 divergentValues
-    (p@(ConstructorPattern _ _):ps)
+    (p@(ConstructorPattern consname conspats):ps)
     CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
     = do
             substituted <- substituteFreshParameters p
@@ -226,7 +226,7 @@ divergentValues
             varType <- lookupVariableType varName gamma
             constructorType <- dataTypeToType <$> lookupDataType p
 
-            let delta' = addConstraint (Uncheckable $ varName ++ " ~~ " ++ show substituted) delta
+            let delta' = addConstraint (VarEqualsCons varName consname conspats) delta
             let delta'' = addTypeConstraint (varType, constructorType) delta'
 
             let deltaBot = addConstraint (IsBottom varName) delta

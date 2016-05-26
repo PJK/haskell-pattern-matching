@@ -50,6 +50,7 @@ desugarPattern WildcardPattern
 desugarPattern x = [x]
 
 -- | Recover the original number of parameters before desugaring and guard expansion.
+-- FIXME @Pavel, shouldn't you just count this before desugaring?
 arity :: Clause -> Int
 arity (Clause (GuardPattern _ _:cs)) = arity (Clause cs)
 arity (Clause (_:cs)) = 1 + arity (Clause cs)
@@ -214,7 +215,12 @@ snoc as a = as ++ [a]
 
 mkQname :: H.QName -> MayFail Name
 mkQname (UnQual n) = mkName n
-mkQname (Special _) = err "Tried to use a special name qualification, not sure what to do with that yet."
+mkQname (Special UnitCon) = return "()"
+mkQname (Special ListCon) = return "[]"
+mkQname (Special FunCon) = return "->"
+mkQname (Special (TupleCon _ i)) = return $ "(" ++ replicate (i - 1) ',' ++ ")"
+mkQname (Special Cons) = return ":"
+mkQname (Special UnboxedSingleCon) = err "Unsupported name, wtf is this even?"
 mkQname a = err $ "Unsupported name qualification: " ++ show a
 
 mkName :: H.Name -> MayFail Name

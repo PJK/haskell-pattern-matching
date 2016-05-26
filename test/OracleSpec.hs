@@ -5,6 +5,7 @@ import qualified Data.Set              as S
 import           DataDefs
 import           Language.Haskell.Exts (fromParseResult, parseFile)
 import           Oracle
+import           Oracle.TestUtils
 import           Test.Hspec
 import           Test.QuickCheck
 import           TestUtils
@@ -57,13 +58,12 @@ spec = do
 
 
     describe "resolveSatBools" $ do
-        it "leaves empty lists alone" $ do
-            resolveSatBools [] `shouldReturn` []
+        it "says empty lists are satisfiable" $ do
+            constraintsShouldBeSatisfiable []
 
         it "correctly resolves this unit test" $ do
-            let ls =
+            constraintsShouldBeUnsatisfiable
                     [ VarEqualsBool "x" (LitBool True)
                     , VarEqualsBool "x" (LitBool False)
                     ]
-            resolveSatBools ls `shouldReturn` ls -- Not satisfiable
 

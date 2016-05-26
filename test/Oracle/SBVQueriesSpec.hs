@@ -6,28 +6,11 @@ import qualified Data.Set              as S
 import           DataDefs
 import           Language.Haskell.Exts (fromParseResult, parseFile)
 import           Oracle.SBVQueries
+import           Oracle.TestUtils
 import           Test.Hspec
 import           Test.QuickCheck
 import           TestUtils
 import           Types
-
-shouldBeSatisfiable :: BoolE -> IO ()
-shouldBeSatisfiable b = do
-    res <- boolESatResult b
-    case res of
-        SatResult (Satisfiable _ _) -> return ()
-        r -> expectationFailure $ show b ++ " has not been found to be satisfiable: " ++ show r
-
-shouldBeUnsatisfiable :: BoolE -> IO ()
-shouldBeUnsatisfiable b = do
-    res <- boolESatResult b
-    case res of
-        SatResult (Unsatisfiable _) -> return ()
-        r -> expectationFailure $ show b ++ " has not been found to be unsatisfiable:\n" ++ show r
-
-shouldResolveTo :: BoolE -> Bool -> IO ()
-shouldResolveTo be True = shouldBeSatisfiable be
-shouldResolveTo be False = shouldBeUnsatisfiable be
 
 spec :: Spec
 spec = do
