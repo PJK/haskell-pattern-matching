@@ -109,6 +109,16 @@ coveredValues
         cvs <- coveredValues (p1:p2:ps) CVAV {valueAbstraction = u1:u2:us, delta = delta, gamma = gamma}
         return $ patMap (kcon (InfixConstructorPattern p1 ":" p2)) cvs
 
+coveredValues
+     (InfixConstructorPattern {}:_)
+     CVAV {valueAbstraction=(EmptyListPattern:_)}
+     = return []
+
+coveredValues
+     (EmptyListPattern:_)
+     CVAV {valueAbstraction=(InfixConstructorPattern {}:_)}
+     = return []
+
 -- CConVar
 coveredValues
     (k@(ConstructorPattern _ _):ps)
@@ -393,6 +403,23 @@ divergentValues
             dvs <- divergentValues (p1:p1:ps) CVAV {valueAbstraction = u1:u2:us, delta = delta, gamma = gamma}
             return $ patMap (kcon k) dvs
 
+divergentValues
+    (EmptyListPattern:ps)
+    CVAV {valueAbstraction=(EmptyListPattern:us), delta=delta, gamma=gamma}
+    = do
+        cvs <- coveredValues ps CVAV {valueAbstraction = us, delta = delta, gamma = gamma}
+        return $ patMap (kcon EmptyListPattern) cvs
+
+divergentValues
+     (InfixConstructorPattern {}:_)
+     CVAV {valueAbstraction=(EmptyListPattern:_)}
+     = return []
+
+divergentValues
+     (EmptyListPattern:_)
+     CVAV {valueAbstraction=(InfixConstructorPattern {}:_)}
+     = return []
+
 -- DConVar
 divergentValues
     (p@(ConstructorPattern consname conspats):ps)
@@ -457,7 +484,6 @@ divergentValues
 
        dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta, gamma = gamma'}
        return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
-
 
 
 -- DVar
