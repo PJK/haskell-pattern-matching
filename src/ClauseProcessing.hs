@@ -72,7 +72,7 @@ addEqualityConstraint a b delta
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
--- coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
+coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}
@@ -87,7 +87,30 @@ coveredValues
             return $ patMap (kcon (ConstructorPattern pname args)) cvs
         | otherwise      = return []
 
+
+coveredValues
+    (TuplePattern pp:ps)
+    CVAV {valueAbstraction=(TuplePattern up:us), delta=delta, gamma=gamma}
+        = return []
+
 -- CConVar
+coveredValues
+    (k@(TuplePattern _):ps)
+    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
+    = do
+        substituted@(TuplePattern conspats) <- substituteFreshParameters k
+
+        varType <- lookupVariableType varName gamma
+        let patternGamma = substitutedPatternContext substituted varType
+
+        let gamma' = Map.union gamma patternGamma
+
+        -- TODO
+        let delta' = addConstraint (Uncheckable  ((show k) ++ "~~" ++ varName)) delta
+        ---let delta'' = addTypeConstraint (varType, constructorType) delta'
+
+        coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
+
 coveredValues
     (k@(ConstructorPattern _ _):ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
@@ -324,6 +347,9 @@ substituteFreshParameters :: Pattern -> Analyzer Pattern
 substituteFreshParameters (ConstructorPattern name placeholders) = do
     subs <- substitutePatterns placeholders
     return $ ConstructorPattern name subs
+substituteFreshParameters (TuplePattern placeholders) = do
+    subs <- substitutePatterns placeholders
+    return $ TuplePattern subs
 -- TODO add lists and tuples
 substituteFreshParameters _ = error "No substitution available"
 
@@ -381,6 +407,12 @@ substitutedConstructorContext construtorPattern@(ConstructorPattern name vars) =
     Constructor _ types <- lookupConstructorDefinition construtorPattern
     let varNames = map varName vars
     return $ Map.fromList (zip varNames types)
+
+substitutedPatternContext :: Pattern -> Type -> Binding
+substitutedPatternContext (TuplePattern varsToAnnotate) (TupleType types)
+    = Map.fromList (zip varNames types)
+    where
+        varNames = map varName varsToAnnotate
 
 lookupVariableType :: String -> Binding -> Analyzer Type
 lookupVariableType name gamma
