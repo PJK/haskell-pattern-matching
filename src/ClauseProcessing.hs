@@ -577,6 +577,7 @@ lookupType pat@(ConstructorPattern _ _) _ = do
 lookupType (InfixConstructorPattern p1 ":" _) binding = do
     elemType <- lookupType p1 binding
     return $ ListType elemType
+lookupType EmptyListPattern _ = return $ ListType (VariableType "a")
 lookupType x _ = trace (show x) (error "Cannot lookup non-contructors or variables")
 
 lookupDataType :: Pattern -> Analyzer DataType
