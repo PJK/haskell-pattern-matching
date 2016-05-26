@@ -280,7 +280,31 @@ uncoveredValues
         let delta' = addConstraint (Uncheckable  ((show k) ++ "~~" ++ varName)) delta
         ---let delta'' = addTypeConstraint (varType, constructorType) delta'
 
+        -- There is only one constructor for tuples
         uncoveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
+
+uncoveredValues
+    (k@(InfixConstructorPattern p1 ":" p2):ps)
+    CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
+    = do
+        substituted@(InfixConstructorPattern s1 ":" s2) <- substituteFreshParameters k
+
+        varType <- lookupVariableType varName gamma
+        let patternGamma = substitutedPatternContext substituted varType
+
+        let gamma' = Map.union gamma patternGamma
+
+        -- TODO
+        let deltaCons = addConstraint (Uncheckable  ((show k) ++ "~~" ++ varName)) delta
+        let deltaEmpty = addConstraint (Uncheckable  ("[]" ++ "~~" ++ varName)) delta
+
+        -- Consider :
+        withConcat <- uncoveredValues (k:ps) CVAV {valueAbstraction=substituted:us, delta=deltaCons, gamma = gamma'}
+        -- Consider []
+        withEmpty <- uncoveredValues (k:ps) CVAV {valueAbstraction=EmptyListPattern:us, delta=deltaCons, gamma = gamma'}
+
+        return $ withConcat ++ withEmpty
+
 
 -- UVar
 uncoveredValues
