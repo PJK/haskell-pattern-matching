@@ -267,10 +267,12 @@ divergentValues
         | otherwise      = return []
 
 divergentValues
-    (TuplePattern pp:ps)
+    (k@(TuplePattern pp):ps)
     CVAV {valueAbstraction=(TuplePattern up:us), delta=delta, gamma=gamma}
-        -- TODO
-        = return []
+        = do
+            dvs <- divergentValues (pp ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
+            return $ patMap (kcon k) dvs
+
 
 -- DConVar
 divergentValues
