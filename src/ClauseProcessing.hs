@@ -72,7 +72,7 @@ addEqualityConstraint a b delta
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
-coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
+-- coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}

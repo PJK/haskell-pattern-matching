@@ -19,9 +19,7 @@ blackBoxParseTests = do
     describe "Parse tests" $ do
         describe "Expected successful parses" $ do
             forSourcesInDirs
-                [ "data/shouldParse"
-                , "data/exact"
-                ]
+                ["data/exact"]
                 $ \fp -> do
                 ast <- fromParseResult <$> parseFile fp
                 getTypes ast `shouldSatisfy` isRight
