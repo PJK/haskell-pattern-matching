@@ -389,6 +389,10 @@ kcon (ConstructorPattern name parameters) ws =
         ConstructorPattern name (take arity ws):drop arity ws
     where
         arity = length parameters
+kcon (TuplePattern parameters) ws =
+        TuplePattern (take arity ws):drop arity ws
+    where
+        arity = length parameters
 kcon _ _ = error "Only constructor patterns"
 
 freshVar :: Analyzer Pattern
