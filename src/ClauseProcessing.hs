@@ -564,8 +564,10 @@ extractValueAbstractions = id
 iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
 iteratedVecProc [] _ = return []
 iteratedVecProc (ps:pss) s = do
+    -- debug $ "Clause processing pattern vector ps = " ++ Pr.ppShow ps
     res <- patVecProc ps s
-    rest <- {- -trace ("C: " ++ Pr.ppShow res) -} iteratedVecProc pss (capU res)
+    -- debug $ "Resulting conditioned value abstraction set res = " ++ Pr.ppShow res
+    rest <- iteratedVecProc pss (capU res)
     return $ res : rest
 
 -- | Coverage vector concatenation

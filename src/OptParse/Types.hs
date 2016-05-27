@@ -5,11 +5,13 @@ module OptParse.Types where
 data Settings = Settings
     { setsCommand    :: Command
     , setsTargetFile :: FilePath -- ^ File to analyze
+    , setsDebug      :: Bool
     } deriving (Show, Eq)
 
 -- | Command-line arguments
 data Arguments = Arguments
     { argsTargetFile :: FilePath -- ^ File to analyze
+    , argsDebug      :: Bool
     } deriving (Show, Eq)
 
 -- | Configuration, from config file

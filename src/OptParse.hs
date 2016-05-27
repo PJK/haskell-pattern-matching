@@ -21,6 +21,7 @@ buildSettings :: Command -> Arguments -> Configuration -> Either String Settings
 buildSettings command args _ = Right Settings
     { setsCommand = command
     , setsTargetFile = argsTargetFile args
+    , setsDebug = argsDebug args
     }
 
 getConfig :: Arguments -> IO Configuration
@@ -40,3 +41,7 @@ argumentsP
     = Arguments
     <$> strArgument
         ( help "analysis target" )
+    <*> switch
+        ( short 'd'
+        <> long "debug"
+        <> help "turn on debug information")

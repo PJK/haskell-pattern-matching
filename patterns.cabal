@@ -57,8 +57,10 @@ test-suite patterns-test
   main-is:             MainTest.hs
   other-modules:       LibSpec
                        GathererSpec
+                       ClauseProcessingSpec
                        OracleSpec
                        Oracle.SBVQueriesSpec
+                       Oracle.TestUtils
                        TestUtils
   build-depends:       base
                      , patterns

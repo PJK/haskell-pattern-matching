@@ -19,7 +19,7 @@ data AnalysisAssigment
     deriving (Show, Eq)
 
 data AnalysisResult
-    = AnalysisError AnalysisError
+    = AnalysisError [AnalysisError]
     | AnalysisSuccess [Recommendation] -- TODO add the evaluatedness of functions
     deriving (Show, Eq, Generic)
 

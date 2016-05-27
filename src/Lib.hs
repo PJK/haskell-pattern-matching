@@ -2,12 +2,14 @@ module Lib where
 
 
 import           ClauseProcessing
-import           Control.Monad              (forM_, replicateM)
+import           Control.Monad              (forM, forM_, replicateM)
 import           Control.Monad.Except       (runExceptT)
-import           Control.Monad.Reader       (runReader)
+import           Control.Monad.IO.Class
+import           Control.Monad.Reader       (ReaderT (..), runReader)
 import           Control.Monad.State        (evalStateT)
 import           Data.Aeson.Encode.Pretty   (encodePretty)
 import qualified Data.ByteString.Lazy.Char8 as LB8
+import           Data.Either                (lefts, rights)
 import qualified Data.Map                   as Map
 import           Data.Maybe                 (mapMaybe)
 import           DataDefs
@@ -21,6 +23,7 @@ import           OptParse.Types
 import           Oracle
 import qualified Text.Show.Pretty           as Pr
 import           Types
+import           Util
 
 
 patterns :: IO ()
@@ -28,33 +31,51 @@ patterns = do
     -- svbTest
     sets <- getSettings
     -- print sets
-    res <- processTarget (setsTargetFile sets)
+    res <- flip runReaderT sets $ processTarget (setsTargetFile sets)
     case setsCommand sets of
         Analyze -> prettyOutput res
         DumpResults -> LB8.putStrLn $ encodePretty res
 
-processTarget :: FilePath -> IO AnalysisResult
+type Configured = ReaderT Settings IO
+
+processTarget :: FilePath -> Configured AnalysisResult
 processTarget inputFile = do
-    ast <- fromParseResult <$> parseFile inputFile
+    ast <- liftIO $ fromParseResult <$> parseFile inputFile
     -- print ast
     let ass = AnalysisAssigment inputFile ast
     processAssignment ass
 
-processAssignment :: AnalysisAssigment -> IO AnalysisResult
+processAssignment :: AnalysisAssigment -> Configured AnalysisResult
 processAssignment (AnalysisAssigment _ ast)
     = case (,) <$> getFunctions ast <*> getTypeUniverse ast of
-        Left err -> return $ AnalysisError $ GatherError err
+        Left err -> return $ AnalysisError [GatherError err]
         Right (fs, ptcm) -> do
             let targets = map FunctionTarget fs
                 initState = AnalyzerState 0
             -- LB.putStr $ encodePretty targets
-            case flip runReader ptcm $ flip evalStateT initState $ runExceptT $ mapM analyzeFunction targets of
-                Left err -> return $ AnalysisError $ ProcessError err
-                Right res -> do
-                    -- Solve the constraints
-                    sres <- mapM runOracle res
-                    let tups = zip targets sres
-                    return $ AnalysisSuccess $ concatMap (uncurry produceRecommendations) tups
+            ress <- forM targets $ \target -> do
+                debug "Analysing target:"
+                debugShow target
+                case flip runReader ptcm
+                        $ flip evalStateT initState
+                        $ runExceptT
+                        $ analyzeFunction target
+                    of
+                    Left err -> do
+                        debug "Something went wrong while analyzing this target:"
+                        debugShow err
+                        return $ Left err
+                    Right res -> do
+                        debug "Trace gathered during analysis:"
+                        debugShow res
+                        -- Solve the constraints
+                        sres <- liftIO $ runOracle res
+                        debug "Result oracle consultation:"
+                        debugShow sres
+                        return $ Right $ produceRecommendations target sres
+            case lefts ress of
+                [] -> return $ AnalysisSuccess $ concat $ rights ress
+                rs -> return $ AnalysisError $ map ProcessError rs
 
 -- TODO actually solve the constraints, now I'm just ignoring them, which is like having an oracle that returns true.
 
@@ -142,7 +163,7 @@ analyzeFunction (FunctionTarget fun) = do
     let Right gamma = initialGamma fun freshVars
     let initialAbstraction = withNoConstraints [freshVars] gamma
     executionTrace <- iteratedVecProc desugaredPatterns initialAbstraction
-    return $ {- trace (Pr.ppShow executionTrace) -} FunctionResult executionTrace
+    return $ FunctionResult executionTrace
     where
         Function _ _ clauses = fun
         Right patterns = getPatternVectors fun
