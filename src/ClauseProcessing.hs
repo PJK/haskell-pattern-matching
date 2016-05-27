@@ -340,7 +340,7 @@ uncoveredValues
 -- UVar
 uncoveredValues
     (VariablePattern _:ps)
-    CVAV {valueAbstraction=(u@(VariablePattern _):us), delta=delta, gamma=gamma}
+    CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
     = varHandler uncoveredValues ps u us delta gamma
 
 
