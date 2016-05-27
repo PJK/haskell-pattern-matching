@@ -1,0 +1,29 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "unzip",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        {
+                            "tag": "InfixConstructorPattern",
+                            "contents": [
+                                {
+                                    "tag": "WildcardPattern",
+                                    "contents": []
+                                },
+                                ":",
+                                {
+                                    "tag": "EmptyListPattern",
+                                    "contents": []
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ]
+}

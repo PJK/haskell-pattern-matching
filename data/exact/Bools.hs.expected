@@ -1,0 +1,29 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "and'",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "True",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "False",
+                                []
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ]
+}
