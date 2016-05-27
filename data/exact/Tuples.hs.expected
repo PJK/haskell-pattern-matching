@@ -1,0 +1,26 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "snd",
+            {
+                "tag": "Redundant",
+                "contents": [
+                    {
+                        "tag": "TuplePattern",
+                        "contents": [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    ]
+}
