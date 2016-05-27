@@ -159,11 +159,11 @@ coveredValues
     = do
         substituted@(InfixConstructorPattern s1 ":" s2) <- substituteFreshParameters k
 
-        consType <- lookupType k gamma
         varType <- lookupVariableType varName gamma
         let patternGamma = substitutedPatternContext substituted varType
 
         let gamma' = Map.union gamma patternGamma
+        consType <- lookupType substituted gamma'
 
         let delta' = addConstraint (VarEqualsPat varName k) delta
         let delta'' = addTypeConstraint (varType, consType) delta'
@@ -176,9 +176,7 @@ coveredValues
     = do
         varType <- lookupVariableType varName gamma
 
-        -- TODO
-        let delta' = addConstraint (Uncheckable ((show EmptyListPattern) ++ "~~" ++ varName)) delta
-        ---let delta'' = addTypeConstraint (varType, constructorType) delta'
+        let delta' = addConstraint (VarEqualsPat varName EmptyListPattern) delta
 
         coveredValues (EmptyListPattern:ps) CVAV {valueAbstraction = EmptyListPattern:us, delta = delta', gamma = gamma}
 
@@ -251,13 +249,13 @@ uncoveredValues
         return $ patMap (kcon k) uvs
 
 uncoveredValues
-    (InfixConstructorPattern {}:ps)
-    cvav@CVAV {valueAbstraction=(EmptyListPattern:us), delta=delta, gamma=gamma}
+    (InfixConstructorPattern {}:_)
+    cvav@CVAV {valueAbstraction=(EmptyListPattern:_)}
         = return [cvav]
 
 uncoveredValues
-    (EmptyListPattern:ps)
-    cvav@CVAV {valueAbstraction=(InfixConstructorPattern {}:us), delta=delta, gamma=gamma}
+    (EmptyListPattern:_)
+    cvav@CVAV {valueAbstraction=(InfixConstructorPattern {}:_)}
         = return [cvav]
 
 -- UConVar
@@ -291,11 +289,11 @@ uncoveredValues
 
         varType <- lookupVariableType varName gamma
         let patternGamma = substitutedPatternContext substituted varType
-
         let gamma' = Map.union gamma patternGamma
+        consType <- lookupType substituted gamma'
 
         -- TODO
-        let delta' = addConstraint (Uncheckable  ((show k) ++ "~~" ++ varName)) delta
+        let delta' = addConstraint (VarEqualsPat varName k) delta
         ---let delta'' = addTypeConstraint (varType, constructorType) delta'
 
         -- There is only one constructor for tuples
@@ -619,6 +617,9 @@ lookupType (InfixConstructorPattern p1 ":" _) binding = do
     elemType <- lookupType p1 binding
     return $ ListType elemType
 lookupType EmptyListPattern _ = return $ ListType (VariableType "a")
+lookupType (TuplePattern pats) binding = do
+    types <- forM pats (`lookupType` binding)
+    return $ TupleType types
 lookupType x _ = trace (show x) (error "Cannot lookup non-contructors or variables")
 
 lookupDataType :: Pattern -> Analyzer DataType

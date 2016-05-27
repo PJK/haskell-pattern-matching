@@ -157,6 +157,7 @@ sattable = all convertibleToSat
     convertibleToSat (VarEqualsCons _ "True" []) = True
     convertibleToSat (VarEqualsCons _ "False" []) = True
     convertibleToSat (VarEqualsCons _ _ _) = False
+    convertibleToSat (VarEqualsPat _ _) = False
     convertibleToSat (Uncheckable _) = False
 
 isVarsEqualBoolConstraint (VarEqualsBool var boolE) = True
@@ -170,6 +171,7 @@ mapVarConstraint f (IsBottom var) = IsBottom $ f var
 mapVarConstraint f (VarsEqual v1 v2) = VarsEqual (f v1) (f v2)
 mapVarConstraint f (VarEqualsBool n be) = VarEqualsBool (f n) (mapVarBE f be)
 mapVarConstraint f (VarEqualsCons n1 n2 ps) = VarEqualsCons (f n1) n2 ps
+mapVarConstraint f uc@(VarEqualsPat n p) = uc -- TODO @Syd can we do better here?
 mapVarConstraint _ uc@(Uncheckable _) = uc
 
 mapVarBE :: (Name -> Name) -> BoolE -> BoolE
