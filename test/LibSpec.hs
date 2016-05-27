@@ -1,10 +1,12 @@
 module LibSpec (spec) where
 
 import           Control.Monad            (forM_, unless)
+import           Control.Monad.Reader     (runReaderT)
 import           Data.Aeson               (eitherDecode)
 import           Data.Aeson.Encode.Pretty (encodePretty)
 import qualified Data.ByteString.Lazy     as LB
 import           Lib
+import           OptParse
 import           System.Directory         (doesFileExist, withCurrentDirectory)
 import           Test.Hspec
 import           TestUtils
@@ -30,7 +32,7 @@ blackBoxExactTests = describe "Black box tests" $ do
             if rfpexists
             then do
                 eC <- LB.readFile rfp
-                actual <- processTarget fp
+                actual <- flip runReaderT defaultSettings $ processTarget fp
                 eitherDecode eC `shouldBe` Right actual -- This implicitly checks that decoding succeeds.
             else
                 pendingWith $ "results for " ++ fp ++ " are missing, generate them with 'patterns dump-results " ++ fp ++ " > " ++ rfp ++ "'"
