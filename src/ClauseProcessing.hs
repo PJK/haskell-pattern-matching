@@ -679,6 +679,9 @@ substitutedPatternContext (TuplePattern varsToAnnotate) (TupleType types)
         varNames = map varName varsToAnnotate
 substitutedPatternContext (InfixConstructorPattern p1 _ p2) lt@(ListType t)
     = Map.fromList [(varName p1, t), (varName p2, lt)]
+substitutedPatternContext EmptyListPattern _
+    = Map.empty
+
 
 lookupVariableType :: String -> Binding -> Analyzer Type
 lookupVariableType name gamma
