@@ -18,9 +18,7 @@ blackBoxParseTests :: Spec
 blackBoxParseTests = do
     describe "Parse tests" $ do
         describe "Expected successful parses" $ do
-            forSourcesInDirs
-                ["data/exact"]
-                $ \fp -> do
+            forSourcesIn "data/exact" $ \fp -> do
                 ast <- fromParseResult <$> parseFile fp
                 getTypes ast `shouldSatisfy` isRight
                 getFunctions ast `shouldSatisfy` isRight

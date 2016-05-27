@@ -1,17 +1,20 @@
 module TestUtils where
 
 import           Control.Monad         (forM_)
-import           System.Directory      (listDirectory)
+import           System.Directory      (doesDirectoryExist, listDirectory)
 import           System.FilePath.Posix (takeExtension, (</>))
 import           Test.Hspec
 
 
 -- List the source files in a given directory
 sourceFiles :: FilePath -> IO [FilePath]
-sourceFiles dir
-    =   map (\f -> dir </> f)
-    <$> filter (\f -> takeExtension f == ".hs")
-    <$> listDirectory dir
+sourceFiles dir = do
+    direxists <- doesDirectoryExist dir
+    if direxists
+    then map (\f -> dir </> f)
+        <$> filter (\f -> takeExtension f == ".hs")
+        <$> listDirectory dir
+    else return []
 
 
 -- | Sets up a test case for every sourcefile in the given dir path
