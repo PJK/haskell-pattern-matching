@@ -54,7 +54,7 @@ varHandler func ps u us delta gamma
         let gamma' = Map.insert (varName x') uType gamma
 
         cvs <- func ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
-        return $ trace ("cvs " ++ show cvs ++ show u ) $ patMap (ucon u) cvs
+        return $ patMap (ucon u) cvs
 
 -- | We are not able to add all types of equalities. This function takes any variable and
 -- | a term and either adds the appropriate constraint, or an Uncheckable constraint
@@ -205,7 +205,7 @@ coveredValues pat values
 uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
 --
-uncoveredValues x y | trace ("U: " ++ Pr.ppShow (x, y)) False = error "fail"
+-- uncoveredValues x y | trace ("U: " ++ Pr.ppShow (x, y)) False = error "fail"
 
 -- UNil
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
@@ -270,9 +270,9 @@ uncoveredValues
 
         let delta' = addTypeConstraint (varType, constructorType) delta
 
-        uvs <- forM allConstructorsWithFreshParameters $ \constructor ->
+        uvs <- forM allConstructorsWithFreshParameters $ \constructor@(ConstructorPattern consname conspats)->
             let delta'' = addConstraint (VarEqualsCons varName consname conspats) delta' in
-                uncoveredValues (pat:ps) CVAV {valueAbstraction=constructor:us, delta=delta', gamma = gamma'}
+                uncoveredValues (pat:ps) CVAV {valueAbstraction=constructor:us, delta=delta'', gamma = gamma'}
         return $ concat uvs
 
 uncoveredValues
