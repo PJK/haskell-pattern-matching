@@ -1,0 +1,48 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "quadrupleAnd",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        {
+                            "tag": "TuplePattern",
+                            "contents": [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "True",
+                                        []
+                                    ]
+                                },
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "True",
+                                        []
+                                    ]
+                                },
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "True",
+                                        []
+                                    ]
+                                },
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "False",
+                                        []
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ]
+}
