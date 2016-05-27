@@ -1,0 +1,74 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "extract",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "A",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "True",
+                                []
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Sum",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "B",
+                                            []
+                                        ]
+                                    }
+                                ]
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "True",
+                                []
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Nope",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "WildcardPattern",
+                            "contents": []
+                        }
+                    ]
+                ]
+            }
+        ]
+    ]
+}
