@@ -292,12 +292,11 @@ uncoveredValues
         let gamma' = Map.union gamma patternGamma
         consType <- lookupType substituted gamma'
 
-        -- TODO
         let delta' = addConstraint (VarEqualsPat varName k) delta
-        ---let delta'' = addTypeConstraint (varType, constructorType) delta'
+        let delta'' = addTypeConstraint (varType, consType) delta'
 
         -- There is only one constructor for tuples
-        uncoveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
+        uncoveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
 
 uncoveredValues
     (k@(InfixConstructorPattern p1 ":" p2):ps)
@@ -310,9 +309,8 @@ uncoveredValues
 
         let gamma' = Map.union gamma patternGamma
 
-        -- TODO
-        let deltaCons = addConstraint (Uncheckable  ((show k) ++ "~~" ++ varName)) delta
-        let deltaEmpty = addConstraint (Uncheckable  ("[]" ++ "~~" ++ varName)) delta
+        let deltaCons = addConstraint (VarEqualsPat varName k) delta
+        let deltaEmpty = addConstraint (VarEqualsPat varName EmptyListPattern) delta
 
         -- Consider :
         withConcat <- uncoveredValues (k:ps) CVAV {valueAbstraction=substituted:us, delta=deltaCons, gamma = gamma'}
@@ -333,9 +331,8 @@ uncoveredValues
 
         let gamma' = Map.union gamma patternGamma
 
-        -- TODO
-        let deltaCons = addConstraint (Uncheckable  ((show substituted) ++ "~~" ++ varName)) delta
-        let deltaEmpty = addConstraint (Uncheckable  ("[]" ++ "~~" ++ varName)) delta
+        let deltaCons = addConstraint (VarEqualsPat varName substituted) delta
+        let deltaEmpty = addConstraint (VarEqualsPat varName EmptyListPattern) delta
 
         -- Consider :
         withConcat <- uncoveredValues (EmptyListPattern:ps) CVAV {valueAbstraction=substituted:us, delta=deltaCons, gamma = gamma'}
@@ -372,7 +369,7 @@ uncoveredValues pat values
 divergentValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
 -- DNil
-divergentValues [] CVAV {valueAbstraction=[], delta=_}
+divergentValues [] CVAV {valueAbstraction=[]}
     = return [] -- Important! This is different than coveredValues
 
 -- DConCon
@@ -445,20 +442,19 @@ divergentValues
     CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
     = do
        substituted <- substituteFreshParameters p
-
        varType <- lookupVariableType varName gamma
-       -- constructorType <- dataTypeToType <$> lookupDataType p
 
-       -- let delta' = addConstraint (VarEqualsCons varName consname conspats) delta
-       -- let delta'' = addTypeConstraint (varType, constructorType) delta
+       let patternGamma = substitutedPatternContext substituted varType
+       let gamma' = Map.union gamma patternGamma
+
+       constructorType <- lookupType substituted gamma'
+
+       let delta' = addConstraint (VarEqualsPat varName substituted) delta
+       let delta'' = addTypeConstraint (varType, constructorType) delta
 
        let deltaBot = addConstraint (IsBottom varName) delta
 
-       let patternGamma = substitutedPatternContext substituted varType
-
-       let gamma' = Map.union gamma patternGamma
-
-       dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta, gamma = gamma'}
+       dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
        return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
 
 divergentValues
