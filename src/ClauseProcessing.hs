@@ -461,38 +461,49 @@ divergentValues
     (p@(InfixConstructorPattern p1 ":" p2):ps)
     CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
     = do
-       substituted <- substituteFreshParameters p
+        substituted <- substituteFreshParameters p
 
-       varType <- lookupVariableType varName gamma
-       -- constructorType <- dataTypeToType <$> lookupDataType p
+        varType <- lookupVariableType varName gamma
+        let patternGamma = substitutedPatternContext substituted varType
+        let gamma' = Map.union gamma patternGamma
 
-       -- let delta' = addConstraint (VarEqualsCons varName consname conspats) delta
-       -- let delta'' = addTypeConstraint (varType, constructorType) delta
+        constructorType <- lookupType substituted gamma'
 
-       let deltaBot = addConstraint (IsBottom varName) delta
+        let delta' = addConstraint (VarEqualsPat varName substituted) delta
+        let delta'' = addTypeConstraint (varType, constructorType) delta
 
-       let patternGamma = substitutedPatternContext substituted varType
+        let deltaBot = addConstraint (IsBottom varName) delta
 
-       let gamma' = Map.union gamma patternGamma
+        let patternGamma = substitutedPatternContext substituted varType
 
-       dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta, gamma = gamma'}
-       return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
+        let gamma' = Map.union gamma patternGamma
+
+        dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta, gamma = gamma'}
+        return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
 
 divergentValues
-    (EmptyListPattern:ps)
+    (p@EmptyListPattern:ps)
     CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
     = do
+        substituted <- substituteFreshParameters p
 
-       varType <- lookupVariableType varName gamma
-       -- constructorType <- dataTypeToType <$> lookupDataType p
+        varType <- lookupVariableType varName gamma
+        let patternGamma = substitutedPatternContext substituted varType
+        let gamma' = Map.union gamma patternGamma
 
-       -- let delta' = addConstraint (VarEqualsCons varName consname conspats) delta
-       -- let delta'' = addTypeConstraint (varType, constructorType) delta
+        constructorType <- lookupType substituted gamma'
 
-       let deltaBot = addConstraint (IsBottom varName) delta
+        let delta' = addConstraint (VarEqualsPat varName substituted) delta
+        let delta'' = addTypeConstraint (varType, constructorType) delta
 
-       dvs <- divergentValues (EmptyListPattern:ps) CVAV {valueAbstraction = EmptyListPattern:us, delta = delta, gamma = gamma}
-       return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
+        let deltaBot = addConstraint (IsBottom varName) delta
+
+        let patternGamma = substitutedPatternContext substituted varType
+
+        let gamma' = Map.union gamma patternGamma
+
+        dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta, gamma = gamma'}
+        return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
 
 
 -- DVar
@@ -594,6 +605,7 @@ substituteFreshParameters (InfixConstructorPattern _ name _) = do
     s1 <- freshVar
     s2 <- freshVar
     return $ InfixConstructorPattern s1 name s2
+substituteFreshParameters EmptyListPattern = return EmptyListPattern
 substituteFreshParameters _ = error "No substitution available"
 
 substitutePatterns :: [Pattern] -> Analyzer [Pattern]
