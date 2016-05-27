@@ -27,12 +27,13 @@ signFact Negative = -1
 
 -- TODO we need to create the binding for these variables during the desugaring
 -- | Transforms all patterns into the standard form (See figure 7)
--- TODO @Pavel, do we also need to make them really fresh or not? (prob but I'm not sure.)
+-- TODO @Pavel, do we also need to make them really fresh or not? are you REALLY sure this var doesn't have to be fresh?
 --  Also, put everything in the analyzer monad to get access to fresh var generation
 -- TODO @Pavel, why is this a vector?
 desugarPattern :: Pattern -> PatternVector
 desugarPattern (LiteralPattern sign (Frac f))
-    = VariablePattern var:desugarGuard (ConstraintGuard $ FracBoolOp FracEQ (FracVar var) (FracLit f))
+    -- We cannot actually handle frac's correctly
+    = VariablePattern var:desugarGuard (ConstraintGuard $ BoolVar $ var ++ " == " ++ show f) -- (ConstraintGuard $ FracBoolOp FracEQ (FracVar var) (FracLit f))
     where
         var = "__x"
 
@@ -205,13 +206,38 @@ mkBoolE (Var (UnQual (H.Ident "otherwise"))) = Otherwise
 mkBoolE (Var (UnQual (H.Ident var))) = BoolVar var
 -- Then we have the unary composite: not
 mkBoolE (App (Var (UnQual (H.Ident "not"))) be) = BoolNot $ mkBoolE be
+-- Then binary boolean operators: and, or, ==
+mkBoolE e@(InfixApp e1 (QVarOp (UnQual (H.Symbol binop))) e2)
+    = case binop of
+        "&&" -> BoolOp BoolAnd (mkBoolE e1) (mkBoolE e2)
+        "||" -> BoolOp BoolOr  (mkBoolE e1) (mkBoolE e2)
+        "==" -> IntBoolOp IntEQ  (mkIntE e1) (mkIntE e2) -- We only support == for integers :(
+        "/=" -> IntBoolOp IntNEQ (mkIntE e1) (mkIntE e2)
+        "<"  -> IntBoolOp IntLT (mkIntE e1) (mkIntE e2)
+        ">"  -> IntBoolOp IntGT (mkIntE e1) (mkIntE e2)
+        "<=" -> IntBoolOp IntLE (mkIntE e1) (mkIntE e2)
+        ">=" -> IntBoolOp IntGE (mkIntE e1) (mkIntE e2)
+        _    -> BoolVar $ show $ traceShowId e
 
--- TODO and, or, ==, numbers, etc
-mkBoolE e = BoolVar $ show e
+mkBoolE e = BoolVar $ show $ traceShowId e
+
+mkIntE :: Exp -> IntE
+mkIntE (Lit (Int x)) = IntLit x
+mkIntE (Var (UnQual (H.Ident v))) = IntVar v
+mkIntE e@(InfixApp e1 (QVarOp (UnQual binop)) e2)
+    = case binop of
+        (H.Symbol "+")   -> IntOp IntPlus (mkIntE e1) (mkIntE e2)
+        (H.Symbol "-")   -> IntOp IntMinus (mkIntE e1) (mkIntE e2)
+        (H.Symbol "*")   -> IntOp IntTimes (mkIntE e1) (mkIntE e2)
+        (H.Ident "mod")  -> IntOp IntMod (mkIntE e1) (mkIntE e2)
+        (H.Ident "rem")  -> IntOp IntMod (mkIntE e1) (mkIntE e2)
+        (H.Ident "quot") -> IntOp IntDiv (mkIntE e1) (mkIntE e2)
+        (H.Ident "div")  -> IntOp IntDiv (mkIntE e1) (mkIntE e2)
+        _ -> IntVar $ show $ traceShowId e
+mkIntE e = IntVar $ show $ traceShowId e
 
 snoc :: [a] -> a -> [a]
 snoc as a = as ++ [a]
-
 
 mkQname :: H.QName -> MayFail Name
 mkQname (UnQual n) = mkName n

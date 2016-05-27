@@ -12,7 +12,6 @@ import           Types
 data Oracle
     = Oracle
     { queryOracle :: ConditionedValueAbstractionVector -> IO OracleResult }
--- TODO Chance bool to Ternary
 
 
 -- Just IO?
@@ -49,12 +48,9 @@ myOracle = Oracle { queryOracle = oracleOracleIsThisConditionedValueAbstractionV
 -- Mirror, mirror, on the wall, ...
 oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable :: ConditionedValueAbstractionVector -> IO OracleResult
 oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}_ delta) = do
-    -- putStrLn "Before:"
-    -- putStrLn $ Pr.ppShow delta
     let firstRound = resolveBottoms $ resolveVariableEqualities $ termConstraints delta
     if any isBottom firstRound
     then -- do
-        -- putStrLn "Unsat because of bottom that occurs in other constraints too"
         return DefinitelyUnsatisfiable
     else do
         -- We solve term constraints first
@@ -173,18 +169,25 @@ mapVarConstraint f (VarEqualsCons n1 n2 ps) = VarEqualsCons (f n1) n2 ps
 mapVarConstraint _ uc@(Uncheckable _) = uc
 
 mapVarBE :: (Name -> Name) -> BoolE -> BoolE
+mapVarBE _ b@(LitBool _) = b
+mapVarBE _ Otherwise = Otherwise
 mapVarBE f (BoolVar var) = BoolVar $ f var
 mapVarBE f (BoolNot bn) = BoolNot $ mapVarBE f bn
 mapVarBE f (BoolOp bo be1 be2) = BoolOp bo (mapVarBE f be1) (mapVarBE f be2)
 mapVarBE f (IntBoolOp ibo ie1 ie2) = IntBoolOp ibo (mapVarIE f ie1) (mapVarIE f ie2)
-mapVarBE f (FracBoolOp fbo fe1 fe2) = FracBoolOp fbo (mapVarFE f fe1) (mapVarFE f fe2)
-mapVarBE _ b = b
+-- mapVarBE f (FracBoolOp fbo fe1 fe2) = FracBoolOp fbo (mapVarFE f fe1) (mapVarFE f fe2)
 
 mapVarIE :: (Name -> Name) -> IntE -> IntE
-mapVarIE = undefined
-
-mapVarFE :: (Name -> Name) -> FracE -> FracE
-mapVarFE = undefined
+mapVarIE _ i@(IntLit _) = i
+mapVarIE f (IntVar n) = IntVar $ f n
+mapVarIE f (IntUnOp IntNeg ie) = IntUnOp IntNeg $ mapVarIE f ie
+mapVarIE f (IntOp io ie1 ie2) = IntOp io (mapVarIE f ie1) (mapVarIE f ie2)
+--
+-- mapVarFE :: (Name -> Name) -> FracE -> FracE
+-- mapVarFE _ f@(FracLit _) = f
+-- mapVarFE f (FracVar n) = FracVar $ f n
+-- mapVarFE f (FracUnOp FracNeg ie) = FracUnOp FracNeg $ mapVarFE f ie
+-- mapVarFE f (FracOp io ie1 ie2) = FracOp io (mapVarFE f ie1) (mapVarFE f ie2)
 
 
 

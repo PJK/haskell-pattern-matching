@@ -36,7 +36,6 @@ patterns = do
 processTarget :: FilePath -> IO AnalysisResult
 processTarget inputFile = do
     ast <- fromParseResult <$> parseFile inputFile
-    -- print ast
     let ass = AnalysisAssigment inputFile ast
     processAssignment ass
 

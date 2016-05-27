@@ -7,7 +7,6 @@ import qualified Data.Foldable         as DFo
 import qualified Data.Map              as Map
 import           Data.Maybe            (fromJust)
 import           DataDefs
-import           Debug.Trace
 import           Gatherer
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
@@ -72,8 +71,6 @@ addEqualityConstraint a b delta
 --
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
--- coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
-
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}
     = return [vav] -- Important: one empty set to start with, keep constraints
@@ -128,9 +125,6 @@ coveredValues pat values
 -- Implements the 'U' helper function
 --
 uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
-
---
--- uncoveredValues x y | trace ("U: " ++ Pr.ppShow (x, y)) False = error "fail"
 
 -- UNil
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
@@ -297,7 +291,7 @@ iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer
 iteratedVecProc [] _ = return []
 iteratedVecProc (ps:pss) s = do
     res <- patVecProc ps s
-    rest <- trace ("C: " ++ Pr.ppShow res) iteratedVecProc pss (capU res)
+    rest <- iteratedVecProc pss $ capU res
     return $ res : rest
 
 -- |Coverage vector concatenation

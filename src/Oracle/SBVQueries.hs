@@ -22,7 +22,7 @@ import           Types
 boolESatResult :: BoolE -> IO SatResult
 boolESatResult b = sat $ flip evalStateT initState $ buildSBool b
   where
-    initState = SBuilderState { boolVars = [], integerVars = [] }
+    initState = SBuilderState { boolVars = [], integerVars = [] } -- , realVars = []}
 
 
 buildSBool :: BoolE -> SymbolicBuilder SBool
@@ -53,7 +53,17 @@ buildSBool (IntBoolOp op ie1 ie2) = do
             IntNEQ -> (./=)
     return $ i1 `o` i2
 
-buildSBool (FracBoolOp _ _ _) = error "fractions are not supported yet."
+-- buildSBool (FracBoolOp op fe1 fe2) = do
+--     f1 <- buildSFrac fe1
+--     f2 <- buildSFrac fe2
+--     let o = case op of
+--             FracLT  -> (.<)
+--             FracLE  -> (.<=)
+--             FracGT  -> (.>)
+--             FracGE  -> (.>=)
+--             FracEQ  -> (.==)
+--             FracNEQ -> (./=)
+--     return $ f1 `o` f2
 
 buildSInt :: IntE -> SymbolicBuilder SInteger
 buildSInt (IntLit i) = return $ literal i
@@ -72,12 +82,28 @@ buildSInt (IntOp io iv1 iv2) = do
             IntMod -> sMod
     return $ i1 `o` i2
 
+-- buildSFrac :: FracE -> SymbolicBuilder SDouble
+-- buildSFrac (FracLit f) = return $ literal $ fromRational f
+-- buildSFrac (FracVar v) = realVar v
+-- buildSFrac (FracUnOp FracNeg f) = do
+--     sf <- buildSFrac f
+--     return $ - sf
+-- buildSFrac (FracOp fo fv1 fv2) = do
+--     f1 <- buildSFrac fv1
+--     f2 <- buildSFrac fv2
+--     let o = case fo of
+--             FracPlus -> (+)
+--             FracTimes -> (*)
+--             FracMinus -> (-)
+--             FracDiv -> fpDiv $ literal RoundNearestTiesToEven
+--     return $ f1 `o` f2
+
 varsInBE :: BoolE -> [Name]
 varsInBE (LitBool _)            = []
 varsInBE (BoolNot be)           = varsInBE be
 varsInBE (BoolOp _ be1 be2)     = varsInBE be1 ++ varsInBE be2
 varsInBE (IntBoolOp _ ie1 ie2)  = varsInIE ie1 ++ varsInIE ie2
-varsInBE (FracBoolOp _ fe1 fe2) = varsInFE fe1 ++ varsInFE fe2
+-- varsInBE (FracBoolOp _ fe1 fe2) = varsInFE fe1 ++ varsInFE fe2
 varsInBE (BoolVar var)          = [var]
 
 varsInIE :: IntE -> [Name]
@@ -86,11 +112,11 @@ varsInIE (IntUnOp _ ie)         = varsInIE ie
 varsInIE (IntOp _ ie1 ie2)      = varsInIE ie1 ++ varsInIE ie2
 varsInIE (IntVar var)           = [var]
 
-varsInFE :: FracE -> [Name]
-varsInFE (FracLit _)            = []
-varsInFE (FracUnOp _ fe)        = varsInFE fe
-varsInFE (FracOp _ fe1 fe2)     = varsInFE fe1 ++ varsInFE fe2
-varsInFE (FracVar var)          = [var]
+-- varsInFE :: FracE -> [Name]
+-- varsInFE (FracLit _)            = []
+-- varsInFE (FracUnOp _ fe)        = varsInFE fe
+-- varsInFE (FracOp _ fe1 fe2)     = varsInFE fe1 ++ varsInFE fe2
+-- varsInFE (FracVar var)          = [var]
 
 
 type SymbolicBuilder = StateT SBuilderState Symbolic
@@ -98,6 +124,7 @@ type SymbolicBuilder = StateT SBuilderState Symbolic
 data SBuilderState = SBuilderState
     { boolVars    :: [(String, SBool)]
     , integerVars :: [(String, SInteger)]
+    -- , realVars    :: [(String, SDouble)]
     }
 
 boolVar :: String -> SymbolicBuilder SBool
@@ -105,6 +132,9 @@ boolVar = lookupVar boolVars sBool (\name v -> modify (\s -> s { boolVars = (nam
 
 integerVar :: String -> SymbolicBuilder SInteger
 integerVar = lookupVar integerVars sInteger (\name v -> modify (\s -> s { integerVars = (name, v) : integerVars s } ) )
+
+-- realVar :: String -> SymbolicBuilder SDouble
+-- realVar = lookupVar realVars sDouble (\name v -> modify (\s -> s { realVars = (name, v) : realVars s } ) )
 
 lookupVar :: (SBuilderState -> [(String, a)]) -- To lookup
          -> (String -> Symbolic a) -- To generate a new one if there isn't one yet
