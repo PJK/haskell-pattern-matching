@@ -268,7 +268,7 @@ instance Pretty Pattern where
     pretty (ConstructorPattern n []) = n
     pretty (ConstructorPattern n pats) = pars $ unwords $ n : map pretty pats
     pretty l@(InfixConstructorPattern _ ":" _)
-        = "[" ++ intercalate ", " items ++ "]"
+        = "(" ++ intercalate ":" items ++ ")"
         where
             items = map pretty (collectListItems l)
     pretty (InfixConstructorPattern p1 name p2) = pretty p1 ++ name ++ pretty p2
@@ -282,6 +282,8 @@ instance Pretty Pattern where
 collectListItems :: Pattern -> [Pattern]
 collectListItems (InfixConstructorPattern p1 ":" p2) = p1:collectListItems p2
 collectListItems EmptyListPattern = []
+collectListItems WildcardPattern = []
+collectListItems a = error $ "not a list item: " ++ show a
 
 pars :: String -> String
 pars s = "(" ++ s ++ ")"
