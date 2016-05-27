@@ -148,9 +148,8 @@ coveredValues
 
         let gamma' = Map.union gamma patternGamma
 
-        -- TODO
-        let delta' = addConstraint (Uncheckable  ((show k) ++ "~~" ++ varName)) delta
-        ---let delta'' = addTypeConstraint (varType, constructorType) delta'
+        let delta' = addConstraint (VarEqualsPat varName k) delta
+        -- TC would be trivial, skip it
 
         coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
 
@@ -160,16 +159,16 @@ coveredValues
     = do
         substituted@(InfixConstructorPattern s1 ":" s2) <- substituteFreshParameters k
 
+        consType <- lookupType k gamma
         varType <- lookupVariableType varName gamma
         let patternGamma = substitutedPatternContext substituted varType
 
         let gamma' = Map.union gamma patternGamma
 
-        -- TODO
-        let delta' = addConstraint (Uncheckable  ((show k) ++ "~~" ++ varName)) delta
-        ---let delta'' = addTypeConstraint (varType, constructorType) delta'
+        let delta' = addConstraint (VarEqualsPat varName k) delta
+        let delta'' = addTypeConstraint (varType, consType) delta'
 
-        coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
+        coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
 
 coveredValues
     (EmptyListPattern:ps)

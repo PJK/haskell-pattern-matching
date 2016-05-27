@@ -69,6 +69,7 @@ data Constraint
     | VarsEqual Name Name
     | VarEqualsBool Name BoolE
     | VarEqualsCons Name Name [Pattern]
+    | VarEqualsPat Name Pattern -- ^ There are constructs that don't have constructor Name
     | Uncheckable String
   deriving (Show, Eq, Generic, Ord)
 
