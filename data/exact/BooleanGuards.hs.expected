@@ -1,0 +1,19 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "bguard",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        {
+                            "tag": "WildcardPattern",
+                            "contents": []
+                        }
+                    ]
+                ]
+            }
+        ]
+    ]
+}
