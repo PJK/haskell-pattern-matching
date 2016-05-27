@@ -1,4 +1,4 @@
-module OptParse (getSettings) where
+module OptParse where
 
 import           Options.Applicative
 import           System.Environment  (getArgs)
@@ -22,6 +22,13 @@ buildSettings command args _ = Right Settings
     { setsCommand = command
     , setsTargetFile = argsTargetFile args
     , setsDebug = argsDebug args
+    }
+
+defaultSettings :: Settings
+defaultSettings = Settings
+    { setsCommand = Analyze
+    , setsTargetFile = undefined
+    , setsDebug = False
     }
 
 getConfig :: Arguments -> IO Configuration
