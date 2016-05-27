@@ -162,7 +162,7 @@ analyzeFunction (FunctionTarget fun) = do
     freshVars <- {- trace (Pr.ppShow fun) $ -} replicateM (arity (head clauses)) freshVar
     let Right gamma = initialGamma fun freshVars
     let initialAbstraction = withNoConstraints [freshVars] gamma
-    executionTrace <- iteratedVecProc desugaredPatterns initialAbstraction
+    executionTrace <- {- trace (Pr.ppShow desugaredPatterns) $ -} iteratedVecProc desugaredPatterns initialAbstraction
     return $ FunctionResult executionTrace
     where
         Function _ _ clauses = fun

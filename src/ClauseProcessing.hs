@@ -205,7 +205,7 @@ coveredValues pat values
 uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
 --
--- uncoveredValues x y | trace ("U: " ++ Pr.ppShow (x, y)) False = error "fail"
+uncoveredValues x y | trace ("U: " ++ Pr.ppShow (x, y)) False = error "fail"
 
 -- UNil
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
@@ -220,12 +220,7 @@ uncoveredValues
             uvs <- uncoveredValues (pargs ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
             return $ patMap (kcon k) uvs
         | otherwise      = do
-            substitute <- substituteFreshParameters kv
-
-            subGamma <- substitutedConstructorContext substitute
-            let gamma' = Map.union gamma subGamma
-
-            return [CVAV {valueAbstraction = substitute:us, delta = delta, gamma = gamma'}]
+            return [CVAV {valueAbstraction = kv:us, delta = delta, gamma = gamma}]
 
 uncoveredValues
     (k@(TuplePattern pp):ps)
