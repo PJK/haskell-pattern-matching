@@ -4,14 +4,31 @@
         [
             "bguard",
             {
-                "tag": "NonExhaustive",
+                "tag": "Redundant",
                 "contents": [
-                    [
-                        {
-                            "tag": "WildcardPattern",
-                            "contents": []
-                        }
-                    ]
+                    {
+                        "tag": "WildcardPattern",
+                        "contents": []
+                    },
+                    {
+                        "tag": "GuardPattern",
+                        "contents": [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "True",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "BExp",
+                                "contents": {
+                                    "tag": "Otherwise",
+                                    "contents": []
+                                }
+                            }
+                        ]
+                    }
                 ]
             }
         ]
