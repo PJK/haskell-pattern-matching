@@ -219,7 +219,7 @@ uncoveredValues
         | pname == vname = do
             uvs <- uncoveredValues (pargs ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
             return $ patMap (kcon k) uvs
-        | otherwise      = do
+        | otherwise      =
             return [CVAV {valueAbstraction = kv:us, delta = delta, gamma = gamma}]
 
 uncoveredValues
