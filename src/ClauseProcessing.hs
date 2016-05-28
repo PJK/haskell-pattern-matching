@@ -69,6 +69,8 @@ addEqualityConstraint a b delta
 --
 -- Implements the 'C' helper function
 --
+
+{-# ANN module "HLint: ignore Reduce duplication" #-}
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
 -- CNil
@@ -133,6 +135,7 @@ coveredValues
         let delta'' = addTypeConstraint (varType, constructorType) delta'
 
         coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
+
 
 coveredValues
     (k@(TuplePattern _):ps)
