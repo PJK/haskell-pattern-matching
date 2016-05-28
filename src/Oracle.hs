@@ -183,10 +183,13 @@ mapVarBE f (FracBoolOp fbo fe1 fe2) = FracBoolOp fbo (mapVarFE f fe1) (mapVarFE 
 mapVarBE _ b = b
 
 mapVarIE :: (Name -> Name) -> IntE -> IntE
-mapVarIE = undefined
+mapVarIE _ i@(IntLit _) = i
+mapVarIE f (IntVar v) = IntVar $ f v
+mapVarIE f (IntUnOp IntNeg ie) = IntUnOp IntNeg $ mapVarIE f ie
+mapVarIE f (IntOp ibo ie1 ie2) = IntOp ibo (mapVarIE f ie1) (mapVarIE f ie2)
 
-mapVarFE :: (Name -> Name) -> FracE -> FracE
-mapVarFE = undefined
+-- mapVarFE :: (Name -> Name) -> FracE -> FracE
+-- mapVarFE = undefined
 
 
 

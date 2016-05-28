@@ -88,7 +88,7 @@ data BoolE
     | BoolNot BoolE
     | BoolOp BoolBinOp BoolE BoolE
     | IntBoolOp IntBoolBinOp IntE IntE
-    | FracBoolOp FracBoolBinOp FracE FracE
+    -- | FracBoolOp FracBoolBinOp FracE FracE
   deriving (Show, Eq, Generic, Ord)
 
 instance ToJSON   BoolE
@@ -104,44 +104,44 @@ data BoolBinOp
 instance ToJSON   BoolBinOp
 instance FromJSON BoolBinOp
 
-data FracE
-    = FracLit Rational
-    | FracVar Name
-    | FracUnOp FracUnOp FracE
-    | FracOp FracBinOp FracE FracE
-  deriving (Show, Eq, Generic, Ord)
-
-instance ToJSON   FracE
-instance FromJSON FracE
-
-data FracUnOp
-    = FracNeg
-  deriving (Show, Eq, Generic, Ord)
-
-instance ToJSON   FracUnOp
-instance FromJSON FracUnOp
-
-data FracBinOp
-    = FracPlus
-    | FracMin
-    | FracTimes
-    | FracDiv
-  deriving (Show, Eq, Generic, Ord)
-
-instance ToJSON   FracBinOp
-instance FromJSON FracBinOp
-
-data FracBoolBinOp
-    = FracLT
-    | FracLE
-    | FracGT
-    | FracGE
-    | FracEQ
-    | FracNEQ
-  deriving (Show, Eq, Generic, Ord)
-
-instance ToJSON   FracBoolBinOp
-instance FromJSON FracBoolBinOp
+-- data FracE
+--     = FracLit Rational
+--     | FracVar Name
+--     | FracUnOp FracUnOp FracE
+--     | FracOp FracBinOp FracE FracE
+--   deriving (Show, Eq, Generic, Ord)
+--
+-- instance ToJSON   FracE
+-- instance FromJSON FracE
+--
+-- data FracUnOp
+--     = FracNeg
+--   deriving (Show, Eq, Generic, Ord)
+--
+-- instance ToJSON   FracUnOp
+-- instance FromJSON FracUnOp
+--
+-- data FracBinOp
+--     = FracPlus
+--     | FracMin
+--     | FracTimes
+--     | FracDiv
+--   deriving (Show, Eq, Generic, Ord)
+--
+-- instance ToJSON   FracBinOp
+-- instance FromJSON FracBinOp
+--
+-- data FracBoolBinOp
+--     = FracLT
+--     | FracLE
+--     | FracGT
+--     | FracGE
+--     | FracEQ
+--     | FracNEQ
+--   deriving (Show, Eq, Generic, Ord)
+--
+-- instance ToJSON   FracBoolBinOp
+-- instance FromJSON FracBoolBinOp
 
 data IntBoolBinOp
     = IntLT
