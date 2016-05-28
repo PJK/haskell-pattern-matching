@@ -70,6 +70,8 @@ addEqualityConstraint a b delta
 --
 -- Implements the 'C' helper function
 --
+
+{-# ANN module "HLint: ignore Reduce duplication" #-}
 coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
 
 -- coveredValues x y | trace ("C: " ++ Pr.ppShow (x, y)) False = error "fail"
@@ -136,6 +138,7 @@ coveredValues
         let delta'' = addTypeConstraint (varType, constructorType) delta'
 
         coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
+
 
 coveredValues
     (k@(TuplePattern _):ps)
@@ -219,7 +222,7 @@ uncoveredValues
         | pname == vname = do
             uvs <- uncoveredValues (pargs ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
             return $ patMap (kcon k) uvs
-        | otherwise      = do
+        | otherwise      =
             return [CVAV {valueAbstraction = kv:us, delta = delta, gamma = gamma}]
 
 uncoveredValues
