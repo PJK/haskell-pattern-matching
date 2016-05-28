@@ -1,0 +1,19 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "f",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        {
+                            "tag": "WildcardPattern",
+                            "contents": []
+                        }
+                    ]
+                ]
+            }
+        ]
+    ]
+}

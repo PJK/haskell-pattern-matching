@@ -77,10 +77,9 @@ instance ToJSON   Constraint
 instance FromJSON Constraint
 
 instance Pretty Constraint where
-    pretty (IsBottom v)         = v ++ "= ⊥"
-    pretty (VarsEqual n1 n2)    = n1 ++ " = " ++ n2
+    pretty bc@(IsBottom _)      = show bc
+    pretty (VarsEqual n1 n2)    = n1 ++ " ≈ " ++ n2
     pretty (Uncheckable s)      = s
-    pretty (VarEqualsBool v be) = v ++ " = " ++ pretty be
 
 data BoolE
     = LitBool Bool
@@ -89,18 +88,14 @@ data BoolE
     | BoolNot BoolE
     | BoolOp BoolBinOp BoolE BoolE
     | IntBoolOp IntBoolBinOp IntE IntE
+<<<<<<< HEAD
+    -- | FracBoolOp FracBoolBinOp FracE FracE
+=======
+>>>>>>> sk-oracle
   deriving (Show, Eq, Generic, Ord)
 
 instance ToJSON   BoolE
 instance FromJSON BoolE
-
-instance Pretty BoolE where
-    pretty (LitBool b) = show b
-    pretty Otherwise = "otherwise"
-    pretty (BoolVar v) = v
-    pretty (BoolNot n) = "not " ++ pretty n
-    pretty (BoolOp bo be1 be2) = unwords [pretty be1, pretty bo, pretty be2]
-    pretty (IntBoolOp ibo ie1 ie2) = unwords [pretty ie1, pretty ibo, pretty ie2]
 
 data BoolBinOp
     = BoolAnd
@@ -112,12 +107,48 @@ data BoolBinOp
 instance ToJSON   BoolBinOp
 instance FromJSON BoolBinOp
 
-instance Pretty BoolBinOp where
-    pretty BoolAnd = "&&"
-    pretty BoolOr = "||"
-    pretty BoolEQ = "=="
-    pretty BoolNEQ = "/="
+<<<<<<< HEAD
+-- data FracE
+--     = FracLit Rational
+--     | FracVar Name
+--     | FracUnOp FracUnOp FracE
+--     | FracOp FracBinOp FracE FracE
+--   deriving (Show, Eq, Generic, Ord)
+--
+-- instance ToJSON   FracE
+-- instance FromJSON FracE
+--
+-- data FracUnOp
+--     = FracNeg
+--   deriving (Show, Eq, Generic, Ord)
+--
+-- instance ToJSON   FracUnOp
+-- instance FromJSON FracUnOp
+--
+-- data FracBinOp
+--     = FracPlus
+--     | FracMin
+--     | FracTimes
+--     | FracDiv
+--   deriving (Show, Eq, Generic, Ord)
+--
+-- instance ToJSON   FracBinOp
+-- instance FromJSON FracBinOp
+--
+-- data FracBoolBinOp
+--     = FracLT
+--     | FracLE
+--     | FracGT
+--     | FracGE
+--     | FracEQ
+--     | FracNEQ
+--   deriving (Show, Eq, Generic, Ord)
+--
+-- instance ToJSON   FracBoolBinOp
+-- instance FromJSON FracBoolBinOp
 
+=======
+>>>>>>> sk-oracle
 data IntBoolBinOp
     = IntLT
     | IntLE
@@ -130,14 +161,6 @@ data IntBoolBinOp
 instance ToJSON   IntBoolBinOp
 instance FromJSON IntBoolBinOp
 
-instance Pretty IntBoolBinOp where
-    pretty IntLT = "<"
-    pretty IntLE = "<="
-    pretty IntGT = ">"
-    pretty IntGE = ">="
-    pretty IntEQ = "=="
-    pretty IntNEQ = "/="
-
 data IntE
     = IntLit Integer
     | IntVar Name
@@ -147,12 +170,6 @@ data IntE
 
 instance ToJSON   IntE
 instance FromJSON IntE
-
-instance Pretty IntE where
-    pretty (IntLit i) = show i
-    pretty (IntVar v) = v
-    pretty (IntUnOp IntNeg ie) = "- " ++ pretty ie
-    pretty (IntOp ibo ie1 ie2) = unwords [pretty ie1, pretty ibo, pretty ie2]
 
 data IntUnOp
     = IntNeg
@@ -171,14 +188,6 @@ data IntBinOp
 
 instance ToJSON   IntBinOp
 instance FromJSON IntBinOp
-
-instance Pretty IntBinOp where
-    pretty IntPlus = "+"
-    pretty IntTimes = "*"
-    pretty IntMinus = "-"
-    pretty IntDiv = "`div`"
-    pretty IntMod = "`mod`"
-
 
 data Guard
     = ConstraintGuard BoolE
@@ -208,7 +217,7 @@ instance FromJSON Expression
 
 instance Pretty Expression where
     pretty (UnknownExp s) = s
-    pretty (BExp be) = pretty be
+    pretty (BExp be) = show be -- TODO Actually show pretty be
 
 -- | Replaces the previous attemps to provide maps between types and constructors
 -- | Since all the translations are isomorphisms (hopefully), all we need is the type

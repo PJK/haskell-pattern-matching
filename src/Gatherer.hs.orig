@@ -24,11 +24,19 @@ signFact :: Num a => Sign -> a
 signFact Signless = 1
 signFact Negative = -1
 
+
 -- | Transforms all patterns into the standard form (See figure 7)
+<<<<<<< HEAD
 -- | This is a vector because we need to handle guards
+=======
+-- TODO @Pavel, do we also need to make them really fresh or not? are you REALLY sure this var doesn't have to be fresh?
+--  Also, put everything in the analyzer monad to get access to fresh var generation
+-- TODO @Pavel, why is this a vector?
+>>>>>>> sk-oracle
 desugarPattern :: Pattern -> PatternVector
 desugarPattern (LiteralPattern sign (Frac f))
-    = VariablePattern var:desugarGuard (ConstraintGuard $ BoolVar $ var ++ "==" ++ show f) -- We don't check fractionals well
+    -- We cannot actually handle frac's correctly
+    = VariablePattern var:desugarGuard (ConstraintGuard $ BoolVar $ var ++ " == " ++ show f) -- (ConstraintGuard $ FracBoolOp FracEQ (FracVar var) (FracLit f))
     where
         var = "__x"
 
@@ -239,7 +247,6 @@ mkIntE e = IntVar $ show $ traceShowId e
 
 snoc :: [a] -> a -> [a]
 snoc as a = as ++ [a]
-
 
 mkQname :: H.QName -> MayFail Name
 mkQname (UnQual n) = mkName n

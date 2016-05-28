@@ -553,8 +553,14 @@ extractValueAbstractions = id
 iteratedVecProc :: [PatternVector] -> ConditionedValueAbstractionSet -> Analyzer ExecutionTrace
 iteratedVecProc [] _ = return []
 iteratedVecProc (ps:pss) s = do
+    -- debug $ "Clause processing pattern vector ps = " ++ Pr.ppShow ps
     res <- patVecProc ps s
+<<<<<<< HEAD
+    -- debug $ "Resulting conditioned value abstraction set res = " ++ Pr.ppShow res
+    rest <- iteratedVecProc pss (capU res)
+=======
     rest <- iteratedVecProc pss $ capU res
+>>>>>>> sk-oracle
     return $ res : rest
 
 -- | Coverage vector concatenation
@@ -617,7 +623,7 @@ lookupType EmptyListPattern _ = return $ ListType (VariableType "a")
 lookupType (TuplePattern pats) binding = do
     types <- forM pats (`lookupType` binding)
     return $ TupleType types
--- lookupType x _ = trace (show x) (error "Cannot lookup non-contructors or variables")
+lookupType x _ = trace (show x) (error "Cannot lookup non-contructors or variables")
 
 lookupDataType :: Pattern -> Analyzer DataType
 lookupDataType constructor@(ConstructorPattern constructorName _) = do

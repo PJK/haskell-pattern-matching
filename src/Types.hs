@@ -126,3 +126,4 @@ data OracleResult
     = DefinitelySatisfiable
     | DefinitelyUnsatisfiable
     | DontReallyKnow
+  deriving (Show, Eq)

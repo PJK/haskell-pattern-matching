@@ -1,0 +1,76 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "odd",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        {
+                            "tag": "WildcardPattern",
+                            "contents": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        [
+            "odd",
+            {
+                "tag": "Redundant",
+                "contents": [
+                    {
+                        "tag": "LiteralPattern",
+                        "contents": [
+                            "Signless",
+                            {
+                                "tag": "Int",
+                                "contents": 1
+                            }
+                        ]
+                    },
+                    {
+                        "tag": "GuardPattern",
+                        "contents": [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "True",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "BExp",
+                                "contents": {
+                                    "tag": "IntBoolOp",
+                                    "contents": [
+                                        "IntGT",
+                                        {
+                                            "tag": "IntOp",
+                                            "contents": [
+                                                "IntPlus",
+                                                {
+                                                    "tag": "IntLit",
+                                                    "contents": 1
+                                                },
+                                                {
+                                                    "tag": "IntLit",
+                                                    "contents": 1
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "tag": "IntLit",
+                                            "contents": 4
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    ]
+}
