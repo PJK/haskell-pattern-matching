@@ -7,8 +7,8 @@ import qualified Data.Foldable         as DFo
 import qualified Data.Map              as Map
 import           Data.Maybe            (fromJust)
 import           DataDefs
-import           Gatherer
 import           Debug.Trace
+import           Gatherer
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
 import qualified Text.Show.Pretty      as Pr
@@ -74,7 +74,7 @@ refreshGuard
     = do
         x <- freshVar
         let gamma' = Map.insert (varName x) (TypeConstructor "Int") gamma
-        ap (x:GuardPattern (ConstructorPattern "True" []) (BExp (IntBoolOp IntEQ (IntVar (varName x)) (IntLit val))):ps) (CVAV {valueAbstraction=us, delta=delta, gamma=gamma'})
+        ap (x:GuardPattern (ConstructorPattern "True" []) (BExp (IntBoolOp IntEQ (IntVar (varName x)) (IntLit val))):ps) CVAV {valueAbstraction=us, delta=delta, gamma=gamma'}
 refreshGuard _ _ _ = error "Only IntVariablePatterns are refreshable"
 
 -- Based on Figure 3 of 'GADTs meet their match'
