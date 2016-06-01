@@ -8,6 +8,7 @@ import qualified Data.Map              as Map
 import           Data.Maybe            (fromJust)
 import           DataDefs
 import           Gatherer
+import           Debug.Trace
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
 import qualified Text.Show.Pretty      as Pr
@@ -64,6 +65,18 @@ addEqualityConstraint (VariablePattern aName) (VariablePattern bName) delta
 addEqualityConstraint a b delta
     = addConstraint (Uncheckable (show a ++ " ~~ " ++ show b)) delta
 
+-- Integers have 'Infinitely many constructors' => perform guard magic variable substitution
+refreshGuard :: AnalysisProcessor -> PatternVector -> ConditionedValueAbstractionVector -> Analyzer ConditionedValueAbstractionSet
+refreshGuard
+    ap
+    (IntVariablePattern:GuardPattern (ConstructorPattern "True" []) (BExp (IntBoolOp IntEQ (IntVar "__placeholder__") (IntLit val))):ps)
+    CVAV {valueAbstraction=us, delta=delta, gamma=gamma}
+    = do
+        x <- freshVar
+        let gamma' = Map.insert (varName x) (TypeConstructor "Int") gamma
+        ap (x:GuardPattern (ConstructorPattern "True" []) (BExp (IntBoolOp IntEQ (IntVar (varName x)) (IntLit val))):ps) (CVAV {valueAbstraction=us, delta=delta, gamma=gamma'})
+refreshGuard _ _ _ = error "Only IntVariablePatterns are refreshable"
+
 -- Based on Figure 3 of 'GADTs meet their match'
 
 --
@@ -76,6 +89,10 @@ coveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyzer 
 -- CNil
 coveredValues [] vav@CVAV {valueAbstraction=[]}
     = return [vav] -- Important: one empty set to start with, keep constraints
+
+
+-- Integers magic dust
+coveredValues (IntVariablePattern:gp:ps) cvav = refreshGuard coveredValues (IntVariablePattern:gp:ps) cvav
 
 -- CConCon
 coveredValues
@@ -208,6 +225,10 @@ uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyze
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
     = return [] -- Important! This is different than coveredValues
 
+-- uncoveredValues x y | trace (Pr.ppShow (x, y)) False = undefined
+
+-- Integers magic dust
+uncoveredValues (IntVariablePattern:gp:ps) cvav = refreshGuard uncoveredValues (IntVariablePattern:gp:ps) cvav
 
 -- UConCon
 uncoveredValues
@@ -363,6 +384,9 @@ divergentValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyze
 -- DNil
 divergentValues [] CVAV {valueAbstraction=[]}
     = return [] -- Important! This is different than coveredValues
+
+-- Integers magic dust
+divergentValues (IntVariablePattern:gp:ps) cvav = refreshGuard divergentValues (IntVariablePattern:gp:ps) cvav
 
 -- DConCon
 divergentValues

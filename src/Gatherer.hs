@@ -31,12 +31,8 @@ desugarPattern (LiteralPattern sign (Frac f))
     = VariablePattern var:desugarGuard (ConstraintGuard $ BoolVar $ var ++ "==" ++ show f) -- We don't check fractionals well
     where
         var = "__x"
-
 desugarPattern (LiteralPattern sign (Int i))
-    = VariablePattern var:desugarGuard (ConstraintGuard $ IntBoolOp IntEQ (IntVar var) (IntLit i))
-    where
-        var = "__x"
-
+    = IntVariablePattern:desugarGuard (ConstraintGuard $ IntBoolOp IntEQ (IntVar "__placeholder__") (IntLit i))
 desugarPattern (ConstructorPattern name patterns)
     = [ConstructorPattern name (concatMap desugarPattern patterns)]
 desugarPattern (TuplePattern patterns)

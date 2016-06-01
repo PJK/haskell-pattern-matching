@@ -194,6 +194,7 @@ data Pattern
     | EmptyListPattern -- ^ List: [a, b, ..., z]
     | InfixConstructorPattern Pattern Name Pattern -- Name will be a symbol, this is used for lists, for example.
     | WildcardPattern
+    | IntVariablePattern -- ^ Will be replaced by a fresh integer variable during processing
     -- | PlaceHolderPattern -- ^ Represents Pattern parameter that should be substituted
     | GuardPattern Pattern Expression
   deriving (Show, Eq, Generic, Ord)
