@@ -7,6 +7,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 
 import           Data.Aeson            (FromJSON, ToJSON)
+import           Data.SBV.Internals    (SMTModel (..))
 import           GHC.Generics          (Generic)
 
 import           DataDefs
@@ -36,7 +37,7 @@ instance ToJSON   Recommendation
 instance FromJSON Recommendation
 
 data RecommendationReason
-    = NonExhaustive [Clause] -- Missing clause, namely these
+    = NonExhaustive [(Clause, String)] -- Missing clause, namely these (and a string-based representation of SAT model)
     | Redundant Clause -- Redundant Clause
     | InaccessibleRhs Clause -- Clause with inaccessible right-hand side
     deriving (Show, Eq, Generic)
@@ -67,18 +68,12 @@ data FunctionResult
     = FunctionResult ExecutionTrace
     deriving (Show, Eq, Generic)
 
-instance ToJSON   FunctionResult
-instance FromJSON FunctionResult
-
 type ExecutionTrace = [ClauseCoverage]
 
 -- TODO rename to Function result once the todo on line 65 is resolved
 data SolvedFunctionResult
     = SolvedFunctionResult SolvedExecutionTrace
-    deriving (Show, Eq, Generic)
-
-instance ToJSON   SolvedFunctionResult
-instance FromJSON SolvedFunctionResult
+    deriving (Show, Generic)
 
 type SolvedExecutionTrace = [SolvedClauseCoverage]
 
@@ -88,18 +83,19 @@ data ClauseCoverage = ClauseCoverage
     , capD :: ConditionedValueAbstractionSet
     } deriving (Show, Eq, Generic)
 
-
-instance ToJSON   ClauseCoverage
-instance FromJSON ClauseCoverage
-
 data SolvedClauseCoverage = SolvedClauseCoverage
-    { scapC :: ValueAbstractionSet
-    , scapU :: ValueAbstractionSet
-    , scapD :: ValueAbstractionSet
-    } deriving (Show, Eq, Generic)
+    { scapC :: SolvedValueAbstractionSet
+    , scapU :: SolvedValueAbstractionSet
+    , scapD :: SolvedValueAbstractionSet
+    } deriving (Show, Generic)
 
-instance ToJSON   SolvedClauseCoverage
-instance FromJSON SolvedClauseCoverage
+type SolvedValueAbstractionSet = [SolvedValueAbstractionVector]
+
+data SolvedValueAbstractionVector
+    = SolvedValueAbstractionVector
+      { svav   :: ValueAbstractionVector
+      , mmodel :: Maybe SMTModel
+      } deriving (Show, Generic)
 
 
 type Analyzer = ExceptT AnalyzerError (StateT AnalyzerState (Reader AnalyzerContext))
@@ -123,7 +119,7 @@ type AnalyzerContext = TypeUniverse
 
 
 data OracleResult
-    = DefinitelySatisfiable
+    = DefinitelySatisfiable SMTModel
     | DefinitelyUnsatisfiable
     | DontReallyKnow
-  deriving (Show, Eq)
+  deriving (Show)

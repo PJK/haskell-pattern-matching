@@ -12,6 +12,7 @@ import qualified Data.ByteString.Lazy.Char8 as LB8
 import           Data.Either                (lefts, rights)
 import qualified Data.Map                   as Map
 import           Data.Maybe                 (mapMaybe)
+import           Data.SBV
 import           DataDefs
 import           Debug.Trace
 import           Gatherer
@@ -92,7 +93,11 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunction
     findNonExhaustives tr
         = case scapU $ last tr of
             [] -> []
-            cvavs ->  [NonExhaustive $ map (makePrettyClause . Clause) cvavs]
+            cvavs ->  [NonExhaustive $ map (\scvav -> (makePrettyClause . Clause . svav $ scvav, showMModel $ mmodel scvav)) cvavs]
+
+      where
+        showMModel Nothing = ""
+        showMModel (Just m) = show $ SatResult $ Satisfiable z3 m
 
     findRedundants :: SolvedExecutionTrace -> [RecommendationReason]
     findRedundants tr = mapMaybe checkRedundant $ zip tr clss
@@ -137,7 +142,9 @@ prettyOutput (AnalysisSuccess recs) = forM_ recs $ \(Recommendation n r) -> do
             printClause n c
         NonExhaustive cs -> do
             putStrLn "The patterns may not be exhaustive, the following clauses are missing"
-            mapM_ (printClause n) cs
+            forM_ cs $ \(c, s) -> do
+                printClause n c
+                putStrLn s
     putStrLn ""
   where
     printClause :: Name -> Clause -> IO ()

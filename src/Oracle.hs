@@ -25,16 +25,17 @@ runCoverageOracle cc
     <*> runCoverageSetOracle (capU cc)
     <*> runCoverageSetOracle (capD cc)
 
-runCoverageSetOracle :: ConditionedValueAbstractionSet -> IO ValueAbstractionSet
+runCoverageSetOracle :: ConditionedValueAbstractionSet -> IO SolvedValueAbstractionSet
 runCoverageSetOracle cvas = catMaybes <$> mapM runSingleVectorOracle cvas
 
-runSingleVectorOracle :: ConditionedValueAbstractionVector -> IO (Maybe ValueAbstractionVector)
+runSingleVectorOracle :: ConditionedValueAbstractionVector -> IO (Maybe SolvedValueAbstractionVector)
 runSingleVectorOracle cvav = do
     let oracle = myOracle
     satisfiable <- queryOracle oracle cvav
     case satisfiable of
         DefinitelyUnsatisfiable -> return Nothing
-        _ -> return $ Just $ valueAbstraction cvav
+        DontReallyKnow -> return $ Just $ SolvedValueAbstractionVector (valueAbstraction cvav) Nothing
+        DefinitelySatisfiable model -> return $ Just $ SolvedValueAbstractionVector (valueAbstraction cvav) (Just model)
 
 
 trivialOracle :: Oracle
@@ -59,11 +60,11 @@ oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}
             Unknown _ _ -> return DontReallyKnow
             ProofError _ _ -> return DontReallyKnow
             TimeOut _ -> return DontReallyKnow
-            Satisfiable _ _ ->
+            Satisfiable _ model ->
                 -- Only if term constraints are definitely satisfiable, then we solve type constraints
                 -- Currently we only do trivial type constraint checking
                 return $ if null $ resolveTrivialTypeEqualities $ typeConstraints delta
-                            then DefinitelySatisfiable
+                            then DefinitelySatisfiable model
                             else DontReallyKnow
 
 
