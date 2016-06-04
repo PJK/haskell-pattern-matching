@@ -232,7 +232,7 @@ uncoveredValues (IntVariablePattern:gp:ps) cvav = refreshGuard uncoveredValues (
 
 -- UConCon
 uncoveredValues
-    (k@(ConstructorPattern pname pargs):ps)`
+    (k@(ConstructorPattern pname pargs):ps)
     CVAV {valueAbstraction=(kv@(ConstructorPattern vname up):us), delta=delta, gamma=gamma}
         | pname == vname = do
             uvs <- uncoveredValues (pargs ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
