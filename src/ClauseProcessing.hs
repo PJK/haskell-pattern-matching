@@ -42,18 +42,18 @@ guardHandler func p constraint ps us delta gamma
         return $ patMap tail recurse
 
 -- | Creates CVar, UVar, DVar implementations
-varHandler :: AnalysisProcessor -> PatternVector -> Pattern -> PatternVector -> ConstraintSet-> Binding -> Analyzer ConditionedValueAbstractionSet
-varHandler func ps u us delta gamma
+varHandler :: AnalysisProcessor -> Pattern -> PatternVector -> Pattern -> PatternVector -> ConstraintSet-> Binding -> Analyzer ConditionedValueAbstractionSet
+varHandler func x ps u us delta gamma
     = do
         -- Substitute x (which depends on the type definition and may occur many times)
         -- with a fresh variable (must have the same meaning)
-        x' <- freshVar
+        -- x' <- freshVar
         uType <- lookupType u gamma
 
-        let delta' = addEqualityConstraint x' u delta
-        let gamma' = Map.insert (varName x') uType gamma
+        let delta' = addEqualityConstraint x u delta
+--         let gamma' = Map.insert (varName x') uType gamma
 
-        cvs <- func ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma'}
+        cvs <- func ps CVAV {valueAbstraction = us, delta = delta', gamma = gamma}
         return $ patMap (ucon u) cvs
 
 -- | We are not able to add all types of equalities. This function takes any variable and
@@ -200,9 +200,9 @@ coveredValues
 
 -- CVar
 coveredValues
-    (VariablePattern _:ps)
+    (x@(VariablePattern _):ps)
     CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
-    = varHandler coveredValues ps u us delta gamma
+    = varHandler coveredValues x ps u us delta gamma
 
 
 -- CGuard
@@ -225,14 +225,14 @@ uncoveredValues :: PatternVector -> ConditionedValueAbstractionVector -> Analyze
 uncoveredValues [] CVAV {valueAbstraction=[], delta=_}
     = return [] -- Important! This is different than coveredValues
 
--- uncoveredValues x y | trace (Pr.ppShow (x, y)) False = undefined
+-- uncoveredValues x y | trace ("U: " ++ Pr.ppShow (x, y)) False = undefined
 
 -- Integers magic dust
 uncoveredValues (IntVariablePattern:gp:ps) cvav = refreshGuard uncoveredValues (IntVariablePattern:gp:ps) cvav
 
 -- UConCon
 uncoveredValues
-    (k@(ConstructorPattern pname pargs):ps)
+    (k@(ConstructorPattern pname pargs):ps)`
     CVAV {valueAbstraction=(kv@(ConstructorPattern vname up):us), delta=delta, gamma=gamma}
         | pname == vname = do
             uvs <- uncoveredValues (pargs ++ ps) CVAV {valueAbstraction = up ++ us, delta = delta, gamma = gamma}
@@ -357,9 +357,9 @@ uncoveredValues
 
 -- UVar
 uncoveredValues
-    (VariablePattern _:ps)
+    (x@(VariablePattern _):ps)
     CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
-    = varHandler uncoveredValues ps u us delta gamma
+    = varHandler uncoveredValues x ps u us delta gamma
 
 
 -- UGuard
@@ -524,9 +524,9 @@ divergentValues
 
 -- DVar
 divergentValues
-    (VariablePattern _:ps)
+    (x@(VariablePattern _):ps)
     CVAV {valueAbstraction=(u:us), delta=delta, gamma=gamma}
-    = varHandler divergentValues ps u us delta gamma
+    = varHandler divergentValues x ps u us delta gamma
 
 -- DGuard
 divergentValues
