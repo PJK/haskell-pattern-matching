@@ -22,6 +22,7 @@ import           Language.Haskell.Exts      (fromParseResult, parseFile)
 import           OptParse
 import           OptParse.Types
 import           Oracle
+import           Oracle.SBVQueries
 import qualified Text.Show.Pretty           as Pr
 import           Types
 import           Util
@@ -93,18 +94,37 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunction
     findNonExhaustives tr
         = case scapU $ last tr of
             [] -> []
-            cvavs ->  [NonExhaustive $ map (\scvav -> (Clause . svav $ scvav, showMModel $ mmodel scvav)) cvavs]
+            cvavs ->  [NonExhaustive $ map formatResult cvavs]
 
       where
-        showMModel Nothing = ""
-        showMModel (Just (bes, m)) = unlines ["Constraints:\n" ++ unlines (map (("  " ++) . pretty) bes), show $ SatResult $ Satisfiable z3 m]
+        formatResult (SolvedValueAbstractionVector vec Nothing) = (makePrettyClause [] (Clause vec), "")
+        formatResult (SolvedValueAbstractionVector vec (Just (bes, m)))
+            = if null $ varsInVAV vec
+              then (makePrettyClause []   $ Clause vec, "")
+              else (makePrettyClause vars $ Clause vec, str)
+          where
+            varsInVAV :: ValueAbstractionVector -> [Name]
+            varsInVAV = concatMap varsInPattern
+              where
+                varsInPattern :: Pattern -> [Name]
+                varsInPattern (VariablePattern n) = [n]
+                varsInPattern (LiteralPattern _ _) = []
+                varsInPattern (ConstructorPattern _ ps) = concatMap varsInPattern ps
+                varsInPattern (TuplePattern ps) = concatMap varsInPattern ps
+                varsInPattern EmptyListPattern = []
+                varsInPattern (InfixConstructorPattern p1 _ p2) = concatMap varsInPattern [p1, p2]
+                varsInPattern WildcardPattern = []
+                varsInPattern IntVariablePattern = []
+                varsInPattern (GuardPattern p _) = varsInPattern p
+            vars = concatMap varsInBE bes
+            str = unlines ["Constraints:\n" ++ unlines (map (("  " ++) . pretty) bes), show $ SatResult $ Satisfiable z3 m]
 
     findRedundants :: SolvedExecutionTrace -> [RecommendationReason]
     findRedundants tr = mapMaybe checkRedundant $ zip tr clss
         where
             checkRedundant :: (SolvedClauseCoverage, Clause) -> Maybe RecommendationReason
             checkRedundant (cc, c)
-                | null (scapC cc) && null (scapD cc) = Just $ Redundant $ makePrettyClause c
+                | null (scapC cc) && null (scapD cc) = Just $ Redundant $ makePrettyClause [] c
                 | otherwise = Nothing
 
     findInaccessibleRhss :: SolvedExecutionTrace -> [RecommendationReason]
@@ -112,21 +132,21 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunction
         where
             checkInaccessibleRhs :: (SolvedClauseCoverage, Clause) -> Maybe RecommendationReason
             checkInaccessibleRhs (cc, c)
-                | null (scapC cc) && (not . null) (scapD cc) = Just $ InaccessibleRhs $ makePrettyClause c
+                | null (scapC cc) && (not . null) (scapD cc) = Just $ InaccessibleRhs $ makePrettyClause [] c
                 | otherwise = Nothing
 
-    makePrettyClause :: Clause -> Clause
-    makePrettyClause (Clause ps) = Clause $ map makeVarsWildcards ps
+    makePrettyClause :: [Name] -> Clause -> Clause
+    makePrettyClause ns (Clause ps) = Clause $ map (makeVarsWildcards ns) ps
 
-    makeVarsWildcards :: Pattern -> Pattern
-    makeVarsWildcards (VariablePattern n) = WildcardPattern
-    makeVarsWildcards l@(LiteralPattern _ _) = l
-    makeVarsWildcards (ConstructorPattern n ps) = ConstructorPattern n $ map makeVarsWildcards ps
-    makeVarsWildcards (TuplePattern ps) = TuplePattern $ map makeVarsWildcards ps
-    makeVarsWildcards EmptyListPattern = EmptyListPattern
-    makeVarsWildcards WildcardPattern = WildcardPattern
-    makeVarsWildcards (GuardPattern p e) = GuardPattern (makeVarsWildcards p) e
-    makeVarsWildcards (InfixConstructorPattern p1 name p2) = InfixConstructorPattern (makeVarsWildcards p1) name (makeVarsWildcards p2)
+    makeVarsWildcards :: [Name] -> Pattern -> Pattern
+    makeVarsWildcards ns (VariablePattern n) = if n `elem` ns then VariablePattern n else WildcardPattern
+    makeVarsWildcards ns l@(LiteralPattern _ _) = l
+    makeVarsWildcards ns (ConstructorPattern n ps) = ConstructorPattern n $ map (makeVarsWildcards ns) ps
+    makeVarsWildcards ns (TuplePattern ps) = TuplePattern $ map (makeVarsWildcards ns) ps
+    makeVarsWildcards ns EmptyListPattern = EmptyListPattern
+    makeVarsWildcards ns WildcardPattern = WildcardPattern
+    makeVarsWildcards ns (GuardPattern p e) = GuardPattern (makeVarsWildcards ns p) e
+    makeVarsWildcards ns (InfixConstructorPattern p1 name p2) = InfixConstructorPattern (makeVarsWildcards ns p1) name (makeVarsWildcards ns p2)
 
 
 prettyOutput :: AnalysisResult -> IO ()
@@ -141,10 +161,10 @@ prettyOutput (AnalysisSuccess recs) = forM_ recs $ \(Recommendation n r) -> do
             putStrLn "The following clause has an inaccesible right hand side:"
             printClause n c
         NonExhaustive cs -> do
-            putStrLn "The patterns may not be exhaustive, the following clauses are missing"
+            putStrLn "The patterns may not be exhaustive, the following clauses are missing:"
             forM_ cs $ \(c, s) -> do
                 printClause n c
-                putStrLn s
+                putStr s
     putStrLn ""
   where
     printClause :: Name -> Clause -> IO ()

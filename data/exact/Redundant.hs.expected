@@ -1,0 +1,40 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "func",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "True",
+                                    []
+                                ]
+                            }
+                        ],
+                        ""
+                    ]
+                ]
+            }
+        ],
+        [
+            "func",
+            {
+                "tag": "Redundant",
+                "contents": [
+                    {
+                        "tag": "ConstructorPattern",
+                        "contents": [
+                            "False",
+                            []
+                        ]
+                    }
+                ]
+            }
+        ]
+    ]
+}

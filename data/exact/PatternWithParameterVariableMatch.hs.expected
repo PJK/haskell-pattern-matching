@@ -1,0 +1,86 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "partialExtract",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Nothing",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Nothing",
+                                    []
+                                ]
+                            }
+                        ],
+                        ""
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Nothing",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "A",
+                                                []
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            }
+                        ],
+                        ""
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Nothing",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "B",
+                                                []
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            }
+                        ],
+                        ""
+                    ]
+                ]
+            }
+        ]
+    ]
+}

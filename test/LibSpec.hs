@@ -35,4 +35,4 @@ blackBoxExactTests = describe "Black box tests" $ do
                 actual <- flip runReaderT defaultSettings $ processTarget fp
                 Right actual `shouldBe` eitherDecode eC -- This implicitly checks that decoding succeeds.
             else
-                pendingWith $ "results for " ++ fp ++ " are missing, generate them with 'patterns dump-results " ++ fp ++ " > " ++ rfp ++ "'"
+                pendingWith $ "results for " ++ fp ++ " are missing,\nCheck the result with 'cat " ++ fp ++ " && patterns " ++ fp ++ "'\nand generate the results with 'patterns dump-results " ++ fp ++ " > " ++ rfp ++ "'"

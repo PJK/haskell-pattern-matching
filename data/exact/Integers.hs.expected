@@ -1,0 +1,79 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "odd",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "fresh0"
+                            }
+                        ],
+                        "Constraints:\n  fresh37 == False\n  fresh37 == fresh0 == 2\n  fresh17 == False\n  fresh17 == fresh0 == 1\n  fresh5 == False\n  fresh5 == fresh0 == 1\n\nSatisfiable. Model:\n  fresh37 = False :: Bool\n  fresh0  =     3 :: Integer\n  fresh17 = False :: Bool\n  fresh5  = False :: Bool\n"
+                    ]
+                ]
+            }
+        ],
+        [
+            "odd",
+            {
+                "tag": "Redundant",
+                "contents": [
+                    {
+                        "tag": "LiteralPattern",
+                        "contents": [
+                            "Signless",
+                            {
+                                "tag": "Int",
+                                "contents": 1
+                            }
+                        ]
+                    },
+                    {
+                        "tag": "GuardPattern",
+                        "contents": [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "True",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "BExp",
+                                "contents": {
+                                    "tag": "IntBoolOp",
+                                    "contents": [
+                                        "IntGT",
+                                        {
+                                            "tag": "IntOp",
+                                            "contents": [
+                                                "IntPlus",
+                                                {
+                                                    "tag": "IntLit",
+                                                    "contents": 1
+                                                },
+                                                {
+                                                    "tag": "IntLit",
+                                                    "contents": 1
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "tag": "IntLit",
+                                            "contents": 4
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    ]
+}

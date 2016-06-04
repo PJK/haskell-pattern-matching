@@ -1,0 +1,88 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "f",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "EmptyListPattern",
+                                        "contents": []
+                                    }
+                                ]
+                            }
+                        ],
+                        ""
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "EmptyListPattern",
+                                "contents": []
+                            }
+                        ],
+                        ""
+                    ]
+                ]
+            }
+        ],
+        [
+            "g",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "InfixConstructorPattern",
+                                        "contents": [
+                                            {
+                                                "tag": "WildcardPattern",
+                                                "contents": []
+                                            },
+                                            ":",
+                                            {
+                                                "tag": "InfixConstructorPattern",
+                                                "contents": [
+                                                    {
+                                                        "tag": "WildcardPattern",
+                                                        "contents": []
+                                                    },
+                                                    ":",
+                                                    {
+                                                        "tag": "WildcardPattern",
+                                                        "contents": []
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        ""
+                    ]
+                ]
+            }
+        ]
+    ]
+}

@@ -6,3 +6,4 @@ data Container a = ContainerC a | Nope
 unpack :: Container a -> a
 unpack (ContainerC x) = x
 unpack (ContainerC x) = x
+

@@ -1,0 +1,22 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "length",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "EmptyListPattern",
+                                "contents": []
+                            }
+                        ],
+                        ""
+                    ]
+                ]
+            }
+        ]
+    ]
+}

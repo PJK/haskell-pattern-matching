@@ -1,22 +1,16 @@
 module Variables where
 
--- f :: MyBool -> MyBool -> Integer
--- f True y = 4
--- f x y = 3
---
--- incompleteF :: MyBool -> MyBool -> Integer
--- incompleteF True y = 4
--- incompleteF x False = 3
+f :: Bool -> Bool -> Integer
+f True y = 1
+f x y = 2
+
+incompleteF :: Bool -> Bool -> Integer
+incompleteF True  y = 1
+incompleteF x False = 2
 
 data MyTrinary = A | B | C
 
--- incompleteFT :: MyTrinary -> MyTrinary -> Integer
--- incompleteFT A y = 4
--- incompleteFT x B = 3
+extract :: Maybe MyTrinary -> Bool -> MyTrinary
+extract (Just x) False = x
+extract (Just C) True = C
 
-data MyMaybe = Sum MyTrinary | Nope
-data FooBar = FooBar
-
-extract :: MyMaybe -> Bool -> MyTrinary
-extract (Sum x) False = x
-extract (Sum C) True = C

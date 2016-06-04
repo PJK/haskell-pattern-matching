@@ -266,10 +266,16 @@ instance Pretty Pattern where
     pretty (LiteralPattern Negative l) = '-' : H.prettyPrint l
     pretty (ConstructorPattern n []) = n
     pretty (ConstructorPattern n pats) = pars $ unwords $ n : map pretty pats
-    pretty l@(InfixConstructorPattern _ ":" _)
-        = "(" ++ intercalate ":" items ++ ")"
-        where
-            items = map pretty (collectListItems l)
+    pretty l@(InfixConstructorPattern i ":" is)
+        = if endsWithEmptyListPattern l
+          then let items = map pretty (collectListItems l)
+               in "[" ++ intercalate ", " items ++ "]"
+          else "(" ++ pretty i ++ ":" ++ pretty is ++ ")"
+      where
+        endsWithEmptyListPattern :: Pattern -> Bool
+        endsWithEmptyListPattern (InfixConstructorPattern i ":" is) = endsWithEmptyListPattern is
+        endsWithEmptyListPattern EmptyListPattern = True
+        endsWithEmptyListPattern _ = False
     pretty (InfixConstructorPattern p1 name p2) = pretty p1 ++ name ++ pretty p2
     pretty (TuplePattern pats) = tup $ map pretty pats
     pretty EmptyListPattern = "[]"

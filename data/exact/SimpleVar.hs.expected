@@ -1,0 +1,108 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "fun",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "A",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "B",
+                                    []
+                                ]
+                            }
+                        ],
+                        ""
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "C",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "B",
+                                    []
+                                ]
+                            }
+                        ],
+                        ""
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "A",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "C",
+                                    []
+                                ]
+                            }
+                        ],
+                        ""
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "B",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "C",
+                                    []
+                                ]
+                            }
+                        ],
+                        ""
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "C",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "C",
+                                    []
+                                ]
+                            }
+                        ],
+                        ""
+                    ]
+                ]
+            }
+        ]
+    ]
+}

@@ -1,0 +1,110 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "incompleteF",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "False",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "True",
+                                    []
+                                ]
+                            }
+                        ],
+                        ""
+                    ]
+                ]
+            }
+        ],
+        [
+            "extract",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Nothing",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ],
+                        ""
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "A",
+                                                []
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "True",
+                                    []
+                                ]
+                            }
+                        ],
+                        ""
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "B",
+                                                []
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "True",
+                                    []
+                                ]
+                            }
+                        ],
+                        ""
+                    ]
+                ]
+            }
+        ]
+    ]
+}

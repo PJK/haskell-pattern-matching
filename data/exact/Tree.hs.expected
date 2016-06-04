@@ -1,0 +1,70 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "func",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Fork",
+                                    [
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        },
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "Fork",
+                                                [
+                                                    {
+                                                        "tag": "WildcardPattern",
+                                                        "contents": []
+                                                    },
+                                                    {
+                                                        "tag": "WildcardPattern",
+                                                        "contents": []
+                                                    },
+                                                    {
+                                                        "tag": "WildcardPattern",
+                                                        "contents": []
+                                                    }
+                                                ]
+                                            ]
+                                        },
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "Fork",
+                                                [
+                                                    {
+                                                        "tag": "WildcardPattern",
+                                                        "contents": []
+                                                    },
+                                                    {
+                                                        "tag": "WildcardPattern",
+                                                        "contents": []
+                                                    },
+                                                    {
+                                                        "tag": "WildcardPattern",
+                                                        "contents": []
+                                                    }
+                                                ]
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            }
+                        ],
+                        ""
+                    ]
+                ]
+            }
+        ]
+    ]
+}

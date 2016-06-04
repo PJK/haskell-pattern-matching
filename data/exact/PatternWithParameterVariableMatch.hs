@@ -2,15 +2,15 @@ module PatternWithParameterVariableMatch where
 
 data MyTrinary = A | B | C
 
-data MyMaybe = Sum MyTrinary | Nope
-
-extract :: MyMaybe -> MyMaybe -> MyTrinary
-extract (Sum C) (Sum A) = A
-extract (Sum x)  y      = B -- This should catch Sum a, Sum B, _
-extract  Nope    x      = B
+extract :: Maybe MyTritary -> Maybe MyTritary -> MyTrinary
+extract (Just C) (Just A) = A
+extract (Just x)  y       = B -- This should catch Just A, Just B, _
+extract  Nothing  x       = B
 
 
-partialExtract :: MyMaybe -> MyMaybe -> MyTrinary
-partialExtract (Sum C) (Sum A) = A
-partialExtract (Sum x)  y      = B -- This should catch Sum a, Sum B, _
-partialExtract  Nope   (Sum C) = B
+partialExtract :: Maybe MyTritary -> Maybe MyTritary -> MyTrinary
+partialExtract (Just C) (Just A) = A
+partialExtract (Just x)  y       = B -- This should catch Just A, Just B, _
+partialExtract  Nothing (Just C) = B
+
+
