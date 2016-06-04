@@ -43,9 +43,9 @@ spec = do
                 , Uncheckable "teehee"
                 ]
               `shouldBe`
-                [ IsBottom "x"
-                , VarEqualsBool "x" (BoolOp BoolOr (LitBool True) (BoolVar "x"))
-                , VarEqualsCons "x" "True" []
+                [ IsBottom "z"
+                , VarEqualsBool "z" (BoolOp BoolOr (LitBool True) (BoolVar "z"))
+                , VarEqualsCons "z" "True" []
                 , Uncheckable "teehee"
                 ]
 

@@ -7,6 +7,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 
 import           Data.Aeson            (FromJSON, ToJSON)
+import           Data.SBV
 import           Data.SBV.Internals    (SMTModel (..))
 import           GHC.Generics          (Generic)
 
@@ -37,7 +38,7 @@ instance ToJSON   Recommendation
 instance FromJSON Recommendation
 
 data RecommendationReason
-    = NonExhaustive [(Clause, String)] -- Missing clause, namely these (and a string-based representation of SAT model)
+    = NonExhaustive [(Clause, String)] -- Missing clause, namely these (and a set of constraints with its SAT model)
     | Redundant Clause -- Redundant Clause
     | InaccessibleRhs Clause -- Clause with inaccessible right-hand side
     deriving (Show, Eq, Generic)

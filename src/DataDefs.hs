@@ -102,9 +102,6 @@ instance Pretty BoolE where
     pretty (BoolOp bo be1 be2) = unwords [pretty be1, pretty bo, pretty be2]
     pretty (IntBoolOp ibo ie1 ie2) = unwords [pretty ie1, pretty ibo, pretty ie2]
 
-instance Pretty [BoolE] where
-    pretty = unlines . map pretty
-
 
 data BoolBinOp
     = BoolAnd

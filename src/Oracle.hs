@@ -82,6 +82,15 @@ convertToBoolE (VarEqualsCons v "False" []) = BoolOp BoolEQ (BoolVar v) (LitBool
 convertToBoolE (VarEqualsCons _ _ _) = error "cannot occur either"
 convertToBoolE (Uncheckable _) = error "cannot occur either"
 
+resolveSatBools :: [Constraint] -> IO SatResult
+resolveSatBools cs
+    | not (sattable cs) = return $ SatResult (Unknown undefined undefined) -- It should have been sattable by now
+    | otherwise = do
+        let clauses = map convertToBoolE cs
+        let be = foldl (BoolOp BoolAnd) (LitBool True) clauses
+        boolESatResult $ BoolOp BoolEQ (LitBool True) be
+
+
 
 sattable :: [Constraint] -> Bool
 sattable = all convertibleToSat
@@ -119,7 +128,7 @@ resolveVariableEqualities vs
 
     replaceVars v1 v2 = map $ replaceVar v1 v2
     replaceVar :: Name -> Name -> (Constraint -> Constraint)
-    replaceVar v1 v2 = mapVarConstraint (\v -> if v == v2 then v1 else v)
+    replaceVar v1 v2 = mapVarConstraint (\v -> if v == v1 then v2 else v)
 
 -- | Figure out whether the bottoms are satisfiable
 -- That is, for every @IsBottom var@ constraint, it is satisfiable if @var@ does not occur in other constraints.
