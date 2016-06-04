@@ -93,11 +93,11 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunction
     findNonExhaustives tr
         = case scapU $ last tr of
             [] -> []
-            cvavs ->  [NonExhaustive $ map (\scvav -> (makePrettyClause . Clause . svav $ scvav, showMModel $ mmodel scvav)) cvavs]
+            cvavs ->  [NonExhaustive $ map (\scvav -> (Clause . svav $ scvav, showMModel $ mmodel scvav)) cvavs]
 
       where
         showMModel Nothing = ""
-        showMModel (Just m) = show $ SatResult $ Satisfiable z3 m
+        showMModel (Just (bes, m)) = unlines ["Constraints:\n" ++ unlines (map (("  " ++) . pretty) bes), show $ SatResult $ Satisfiable z3 m]
 
     findRedundants :: SolvedExecutionTrace -> [RecommendationReason]
     findRedundants tr = mapMaybe checkRedundant $ zip tr clss

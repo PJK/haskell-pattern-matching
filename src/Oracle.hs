@@ -35,7 +35,7 @@ runSingleVectorOracle cvav = do
     case satisfiable of
         DefinitelyUnsatisfiable -> return Nothing
         DontReallyKnow -> return $ Just $ SolvedValueAbstractionVector (valueAbstraction cvav) Nothing
-        DefinitelySatisfiable model -> return $ Just $ SolvedValueAbstractionVector (valueAbstraction cvav) (Just model)
+        DefinitelySatisfiable be model -> return $ Just $ SolvedValueAbstractionVector (valueAbstraction cvav) (Just (be, model))
 
 
 trivialOracle :: Oracle
@@ -53,20 +53,50 @@ oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}
     if any isBottom firstRound
     then return DefinitelyUnsatisfiable
     else do
+        let cs = firstRound
         -- We solve term constraints first
-        SatResult satResult <- resolveSatBools firstRound
-        case satResult of
-            Unsatisfiable _ -> return DefinitelyUnsatisfiable
-            Unknown _ _ -> return DontReallyKnow
-            ProofError _ _ -> return DontReallyKnow
-            TimeOut _ -> return DontReallyKnow
-            Satisfiable _ model ->
-                -- Only if term constraints are definitely satisfiable, then we solve type constraints
-                -- Currently we only do trivial type constraint checking
-                return $ if null $ resolveTrivialTypeEqualities $ typeConstraints delta
-                            then DefinitelySatisfiable model
-                            else DontReallyKnow
+        if not (sattable cs)
+        then return DontReallyKnow
+        else do
+            let bes = map convertToBoolE cs
+            let be = foldl (BoolOp BoolAnd) (LitBool True) bes
+            SatResult satResult <- boolESatResult $ BoolOp BoolEQ (LitBool True) be
+            case satResult of
+                Unsatisfiable _ -> return DefinitelyUnsatisfiable
+                Unknown _ _ -> return DontReallyKnow
+                ProofError _ _ -> return DontReallyKnow
+                TimeOut _ -> return DontReallyKnow
+                Satisfiable _ model ->
+                    -- Only if term constraints are definitely satisfiable, then we solve type constraints
+                    -- Currently we only do trivial type constraint checking
+                    return $ if null $ resolveTrivialTypeEqualities $ typeConstraints delta
+                                then DefinitelySatisfiable bes model
+                                else DontReallyKnow
 
+-- The most literal translation possible, for now.
+convertToBoolE (IsBottom be) = error "cannot occur as per 'not (sattable cs)'"
+convertToBoolE (VarsEqual v1 v2) = BoolOp BoolEQ (BoolVar v1) (BoolVar v2)
+convertToBoolE (VarEqualsBool v be) = BoolOp BoolEQ (BoolVar v) be
+convertToBoolE (VarEqualsCons v "True" []) = BoolOp BoolEQ (BoolVar v) (LitBool True)
+convertToBoolE (VarEqualsCons v "False" []) = BoolOp BoolEQ (BoolVar v) (LitBool False)
+convertToBoolE (VarEqualsCons _ _ _) = error "cannot occur either"
+convertToBoolE (Uncheckable _) = error "cannot occur either"
+
+
+sattable :: [Constraint] -> Bool
+sattable = all convertibleToSat
+  where
+    convertibleToSat (IsBottom _) = False
+    convertibleToSat (VarsEqual _ _) = True
+    convertibleToSat (VarEqualsBool _ _) = True
+    convertibleToSat (VarEqualsCons _ "True" []) = True
+    convertibleToSat (VarEqualsCons _ "False" []) = True
+    convertibleToSat (VarEqualsCons _ _ _) = False
+    convertibleToSat (VarEqualsPat _ _) = False
+    convertibleToSat (Uncheckable _) = False
+
+isVarsEqualBoolConstraint (VarEqualsBool var boolE) = True
+isVarsEqualBoolConstraint _ = False
 
 resolveTrivialTypeEqualities :: [TypeConstraint] -> [TypeConstraint]
 resolveTrivialTypeEqualities = filter (uncurry (/=))
@@ -125,39 +155,6 @@ otherOccurrenceOf var = any occurrence
             | ovar == var = True
             | otherwise   = False
 
-
-resolveSatBools :: [Constraint] -> IO SatResult
-resolveSatBools cs
-    | not (sattable cs) = return $ SatResult (Unknown undefined undefined) -- It should have been sattable by now
-    | otherwise = do
-        let clauses = map convertToBoolE cs
-        let be = foldl (BoolOp BoolAnd) (LitBool True) clauses
-        boolESatResult $ BoolOp BoolEQ (LitBool True) be
-  where
-    -- The most literal translation possible, for now.
-    convertToBoolE (IsBottom be) = error "cannot occur as per 'not (sattable cs)'"
-    convertToBoolE (VarsEqual v1 v2) = BoolOp BoolEQ (BoolVar v1) (BoolVar v2)
-    convertToBoolE (VarEqualsBool v be) = BoolOp BoolEQ (BoolVar v) be
-    convertToBoolE (VarEqualsCons v "True" []) = BoolOp BoolEQ (BoolVar v) (LitBool True)
-    convertToBoolE (VarEqualsCons v "False" []) = BoolOp BoolEQ (BoolVar v) (LitBool False)
-    convertToBoolE (VarEqualsCons _ _ _) = error "cannot occur either"
-    convertToBoolE (Uncheckable _) = error "cannot occur either"
-
-
-sattable :: [Constraint] -> Bool
-sattable = all convertibleToSat
-  where
-    convertibleToSat (IsBottom _) = False
-    convertibleToSat (VarsEqual _ _) = True
-    convertibleToSat (VarEqualsBool _ _) = True
-    convertibleToSat (VarEqualsCons _ "True" []) = True
-    convertibleToSat (VarEqualsCons _ "False" []) = True
-    convertibleToSat (VarEqualsCons _ _ _) = False
-    convertibleToSat (VarEqualsPat _ _) = False
-    convertibleToSat (Uncheckable _) = False
-
-isVarsEqualBoolConstraint (VarEqualsBool var boolE) = True
-isVarsEqualBoolConstraint _ = False
 
 -- TODO move these to Oracle.Utils
 

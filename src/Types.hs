@@ -94,7 +94,7 @@ type SolvedValueAbstractionSet = [SolvedValueAbstractionVector]
 data SolvedValueAbstractionVector
     = SolvedValueAbstractionVector
       { svav   :: ValueAbstractionVector
-      , mmodel :: Maybe SMTModel
+      , mmodel :: Maybe ([BoolE], SMTModel)
       } deriving (Show, Generic)
 
 
@@ -119,7 +119,7 @@ type AnalyzerContext = TypeUniverse
 
 
 data OracleResult
-    = DefinitelySatisfiable SMTModel
+    = DefinitelySatisfiable [BoolE] SMTModel
     | DefinitelyUnsatisfiable
     | DontReallyKnow
   deriving (Show)
