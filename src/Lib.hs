@@ -183,15 +183,35 @@ gammaVAV gamma = CVAV { valueAbstraction = []
                         , gamma = gamma
                         }
 
+
+patAppend :: Pattern -> ConditionedValueAbstractionVector -> ConditionedValueAbstractionVector
+patAppend p cvav = CVAV (p:valueAbstraction cvav) (gamma cvav) (delta cvav)
+
 extractTypingConstraints :: Binding -> ValueAbstractionVector -> Analyzer ConditionedValueAbstractionVector
 extractTypingConstraints gamma []
     = return $ gammaVAV gamma
 
-extractTypingConstraints gamma ((VariablePattern name):vs) = do
+extractTypingConstraints gamma (vp@(VariablePattern name):vs) = do
     subVAV <- extractTypingConstraints gamma vs
-    return $ case Map.lookup name gamma of
-        Just (TypeConstructor "Word8") -> subVAV
-        _                       -> subVAV
+    case Map.lookup name gamma of
+        Just (TypeConstructor "Word8") -> do
+                                            falseVar <- freshVar
+                                            let gamma' = Map.insert (varName falseVar) (TypeConstructor "Bool") gamma
+                                            let boundsContraint
+                                                    = VarEqualsBool
+                                                        (varName falseVar)
+                                                        (BoolOp
+                                                            BoolAnd
+                                                            (IntBoolOp IntGE (IntVar name) (IntLit 0))
+                                                            (IntBoolOp IntLT (IntVar name) (IntLit 256)))
+                                            let d = delta subVAV
+                                            let d' = addConstraint boundsContraint d
+                                            let d'' = addConstraint (VarEqualsCons (varName falseVar) "True" []) d'
+                                            return $ CVAV (vp:valueAbstraction subVAV) gamma' d''
+        _                              -> return $ patAppend vp subVAV
+extractTypingConstraints gamma (v:vs) = do
+    subVAV <- extractTypingConstraints gamma vs
+    return $ patAppend v subVAV
 
 -- | Constructs ConditionedValueAbstractionSet without any conditions on each abstraction, apart from
 -- | those imposed by gamma
