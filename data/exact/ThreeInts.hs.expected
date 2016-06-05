@@ -1,0 +1,52 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "f",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "fresh0"
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ],
+                        "Constraints:\n  fresh23 == False\n  fresh23 == fresh0 == 1\n  fresh7 == False\n  fresh7 == fresh0 == 0\n\nSatisfiable. Model:\n  fresh23 = False :: Bool\n  fresh0  =     2 :: Integer\n  fresh7  = False :: Bool\n"
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "fresh0"
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "fresh1"
+                            }
+                        ],
+                        "Constraints:\n  fresh25 == False\n  fresh25 == fresh1 == 2\n  fresh23 == True\n  fresh23 == fresh0 == 1\n  fresh7 == False\n  fresh7 == fresh0 == 0\n\nSatisfiable. Model:\n  fresh25 = False :: Bool\n  fresh1  =     3 :: Integer\n  fresh23 =  True :: Bool\n  fresh0  =     1 :: Integer\n  fresh7  = False :: Bool\n"
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "fresh0"
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "fresh1"
+                            }
+                        ],
+                        "Constraints:\n  fresh27 == False\n  fresh27 == fresh0 == 1\n  fresh9 == False\n  fresh9 == fresh1 == 1\n  fresh7 == True\n  fresh7 == fresh0 == 0\n\nSatisfiable. Model:\n  fresh27 = False :: Bool\n  fresh0  =     0 :: Integer\n  fresh9  = False :: Bool\n  fresh1  =     2 :: Integer\n  fresh7  =  True :: Bool\n"
+                    ]
+                ]
+            }
+        ]
+    ]
+}
