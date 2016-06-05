@@ -187,6 +187,23 @@ gammaVAV gamma = CVAV { valueAbstraction = []
 patAppend :: Pattern -> ConditionedValueAbstractionVector -> ConditionedValueAbstractionVector
 patAppend p cvav = CVAV (p:valueAbstraction cvav) (gamma cvav) (delta cvav)
 
+
+addIntegerBound :: Pattern -> Name -> Binding -> ConditionedValueAbstractionVector -> Int -> Analyzer ConditionedValueAbstractionVector
+addIntegerBound vp name gamma subVAV bound = do
+    falseVar <- freshVar
+    let gamma' = Map.insert (varName falseVar) (TypeConstructor "Bool") gamma
+    let boundsContraint
+            = VarEqualsBool
+                (varName falseVar)
+                (BoolOp
+                    BoolAnd
+                    (IntBoolOp IntGE (IntVar name) (IntLit 0))
+                    (IntBoolOp IntLT (IntVar name) (IntLit 256)))
+    let d = delta subVAV
+    let d' = addConstraint boundsContraint d
+    let d'' = addConstraint (VarEqualsCons (varName falseVar) "True" []) d'
+    return $ CVAV (vp:valueAbstraction subVAV) gamma' d''
+
 extractTypingConstraints :: Binding -> ValueAbstractionVector -> Analyzer ConditionedValueAbstractionVector
 extractTypingConstraints gamma []
     = return $ gammaVAV gamma
@@ -194,20 +211,9 @@ extractTypingConstraints gamma []
 extractTypingConstraints gamma (vp@(VariablePattern name):vs) = do
     subVAV <- extractTypingConstraints gamma vs
     case Map.lookup name gamma of
-        Just (TypeConstructor "Word8") -> do
-                                            falseVar <- freshVar
-                                            let gamma' = Map.insert (varName falseVar) (TypeConstructor "Bool") gamma
-                                            let boundsContraint
-                                                    = VarEqualsBool
-                                                        (varName falseVar)
-                                                        (BoolOp
-                                                            BoolAnd
-                                                            (IntBoolOp IntGE (IntVar name) (IntLit 0))
-                                                            (IntBoolOp IntLT (IntVar name) (IntLit 256)))
-                                            let d = delta subVAV
-                                            let d' = addConstraint boundsContraint d
-                                            let d'' = addConstraint (VarEqualsCons (varName falseVar) "True" []) d'
-                                            return $ CVAV (vp:valueAbstraction subVAV) gamma' d''
+        Just (TypeConstructor "Word8") -> addIntegerBound vp name gamma subVAV (2^8)
+        Just (TypeConstructor "Word16") -> addIntegerBound vp name gamma subVAV (2^16)
+        Just (TypeConstructor "Word32") -> addIntegerBound vp name gamma subVAV (2^32)
         _                              -> return $ patAppend vp subVAV
 extractTypingConstraints gamma (v:vs) = do
     subVAV <- extractTypingConstraints gamma vs
