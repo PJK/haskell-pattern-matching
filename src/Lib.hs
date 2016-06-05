@@ -173,22 +173,38 @@ prettyOutput (AnalysisSuccess recs) = forM_ recs $ \(Recommendation n r) -> do
         putStr " "
         prettyPrint c
 
--- | Constructs ConditionedValueAbstractionSet without any conditions on each abstraction
-withNoConstraints :: ValueAbstractionSet -> Binding -> ConditionedValueAbstractionSet
+
+gammaVAV :: Binding -> ConditionedValueAbstractionVector
+gammaVAV gamma = CVAV { valueAbstraction = []
+                        , delta = ConstraintSet {
+                                 termConstraints = [],
+                                 typeConstraints = []
+                        }
+                        , gamma = gamma
+                        }
+
+extractTypingConstraints :: Binding -> ValueAbstractionVector -> Analyzer ConditionedValueAbstractionVector
+extractTypingConstraints gamma []
+    = return $ gammaVAV gamma
+
+extractTypingConstraints gamma ((VariablePattern name):vs) = do
+    subVAV <- extractTypingConstraints gamma vs
+    return $ case Map.lookup name gamma of
+        Just (TypeConstructor "Word8") -> subVAV
+        _                       -> subVAV
+
+-- | Constructs ConditionedValueAbstractionSet without any conditions on each abstraction, apart from
+-- | those imposed by gamma
+withNoConstraints :: ValueAbstractionSet -> Binding -> Analyzer ConditionedValueAbstractionSet
 withNoConstraints vas gamma
-    = map
-        (\vector -> CVAV {valueAbstraction = vector
-                         , delta = ConstraintSet {termConstraints = [], typeConstraints = []}
-                         , gamma = gamma
-                         })
-        vas
+    = mapM (extractTypingConstraints gamma) vas
 
 
 analyzeFunction :: FunctionTarget -> Analyzer FunctionResult
 analyzeFunction (FunctionTarget fun) = do
     freshVars <- {- trace (Pr.ppShow fun) $ -} replicateM (arity (head clauses)) freshVar
     let Right gamma = initialGamma fun freshVars
-    let initialAbstraction = withNoConstraints [freshVars] gamma
+    initialAbstraction <- withNoConstraints [freshVars] gamma
     executionTrace <- {- trace (Pr.ppShow desugaredPatterns) $ -} iteratedVecProc desugaredPatterns initialAbstraction
     return $ FunctionResult executionTrace
     where
