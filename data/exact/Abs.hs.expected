@@ -1,0 +1,22 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "abs",
+            {
+                "tag": "NonExhaustive",
+                "contents": [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "fresh0"
+                            }
+                        ],
+                        "Constraints:\n  fresh5 == False\n  fresh5 == fresh0 > 0\n  fresh2 == False\n  fresh2 == fresh0 < 0\n\nSatisfiable. Model:\n  fresh5 = False :: Bool\n  fresh0 =     0 :: Integer\n  fresh2 = False :: Bool\n"
+                    ]
+                ]
+            }
+        ]
+    ]
+}
