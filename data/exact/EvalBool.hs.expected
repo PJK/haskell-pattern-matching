@@ -1,0 +1,27 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "func",
+            {
+                "tag": "InaccessibleRhs",
+                "contents": [
+                    {
+                        "tag": "ConstructorPattern",
+                        "contents": [
+                            "True",
+                            []
+                        ]
+                    },
+                    {
+                        "tag": "ConstructorPattern",
+                        "contents": [
+                            "False",
+                            []
+                        ]
+                    }
+                ]
+            }
+        ]
+    ]
+}

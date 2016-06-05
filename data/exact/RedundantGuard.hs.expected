@@ -1,0 +1,46 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "func",
+            {
+                "tag": "Redundant",
+                "contents": [
+                    {
+                        "tag": "WildcardPattern",
+                        "contents": []
+                    },
+                    {
+                        "tag": "GuardPattern",
+                        "contents": [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "True",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "BExp",
+                                "contents": {
+                                    "tag": "IntBoolOp",
+                                    "contents": [
+                                        "IntEQ",
+                                        {
+                                            "tag": "IntVar",
+                                            "contents": "x"
+                                        },
+                                        {
+                                            "tag": "IntLit",
+                                            "contents": 3
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    ]
+}

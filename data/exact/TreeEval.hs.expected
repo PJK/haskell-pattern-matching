@@ -1,0 +1,39 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            "func'",
+            {
+                "tag": "InaccessibleRhs",
+                "contents": [
+                    {
+                        "tag": "ConstructorPattern",
+                        "contents": [
+                            "Node",
+                            [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "Leaf",
+                                        []
+                                    ]
+                                },
+                                {
+                                    "tag": "WildcardPattern",
+                                    "contents": []
+                                }
+                            ]
+                        ]
+                    },
+                    {
+                        "tag": "ConstructorPattern",
+                        "contents": [
+                            "Leaf",
+                            []
+                        ]
+                    }
+                ]
+            }
+        ]
+    ]
+}
