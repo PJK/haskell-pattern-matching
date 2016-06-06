@@ -9,7 +9,6 @@ import qualified Data.Map              as Map
 import           Data.Maybe            (catMaybes, fromJust)
 import qualified Data.Set              as Set
 import           DataDefs
-import           Debug.Trace
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
                                         Pretty, Type (..), prettyPrint)
 import qualified Language.Haskell.Exts as H
@@ -214,9 +213,9 @@ mkBoolE e@(InfixApp e1 (QVarOp (UnQual (H.Symbol binop))) e2)
         ">"  -> IntBoolOp IntGT (mkIntE e1) (mkIntE e2)
         "<=" -> IntBoolOp IntLE (mkIntE e1) (mkIntE e2)
         ">=" -> IntBoolOp IntGE (mkIntE e1) (mkIntE e2)
-        _    -> BoolVar $ show $ traceShowId e
+        _    -> BoolVar $ H.prettyPrint e
 
-mkBoolE e = BoolVar $ show $ traceShowId e
+mkBoolE e = BoolVar $ H.prettyPrint e
 
 mkIntE :: Exp -> IntE
 mkIntE (Lit (Int x)) = IntLit x
@@ -230,8 +229,8 @@ mkIntE e@(InfixApp e1 (QVarOp (UnQual binop)) e2)
         (H.Ident "rem")  -> IntOp IntMod (mkIntE e1) (mkIntE e2)
         (H.Ident "quot") -> IntOp IntDiv (mkIntE e1) (mkIntE e2)
         (H.Ident "div")  -> IntOp IntDiv (mkIntE e1) (mkIntE e2)
-        _ -> IntVar $ show $ traceShowId e
-mkIntE e = IntVar $ show $ traceShowId e
+        _ -> IntVar $ H.prettyPrint e
+mkIntE e = IntVar $ H.prettyPrint e
 
 snoc :: [a] -> a -> [a]
 snoc as a = as ++ [a]

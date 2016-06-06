@@ -17,11 +17,6 @@ spec = do
         it "leaves empty lists alone" $ do
             resolveTrivialTypeEqualities [] `shouldBe` []
 
-        it "clears any list of only trivial constraints" $ do
-            pending
-            -- property $ \vs -> --
-            --     resolveTrivialTypeEqualities (map (\t -> (t, t)) vs) `shouldBe` []
-
     describe "resolveVaribleEqualities" $ do
         it "leaves empty lists alone" $ do
             resolveVariableEqualities [] `shouldBe` []
