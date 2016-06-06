@@ -4,9 +4,7 @@ import           Data.List         (find)
 import           Data.Maybe        (catMaybes)
 import           Data.SBV
 import           DataDefs
-import           Debug.Trace
 import           Oracle.SBVQueries
-import qualified Text.Show.Pretty  as Pr
 import           Types
 
 data Oracle
@@ -74,13 +72,15 @@ oracleOracleIsThisConditionedValueAbstractionVectorSatisfiable (CVAV _ {-gamma-}
                                 else DontReallyKnow
 
 -- The most literal translation possible, for now.
-convertToBoolE (IsBottom be) = error "cannot occur as per 'not (sattable cs)'"
+convertToBoolE :: Constraint -> BoolE
+convertToBoolE (IsBottom _) = error "cannot occur as per 'not (sattable cs)'"
 convertToBoolE (VarsEqual v1 v2) = BoolOp BoolEQ (BoolVar v1) (BoolVar v2)
 convertToBoolE (VarEqualsBool v be) = BoolOp BoolEQ (BoolVar v) be
 convertToBoolE (VarEqualsCons v "True" []) = BoolOp BoolEQ (BoolVar v) (LitBool True)
 convertToBoolE (VarEqualsCons v "False" []) = BoolOp BoolEQ (BoolVar v) (LitBool False)
 convertToBoolE (VarEqualsCons _ _ _) = error "cannot occur either"
 convertToBoolE (Uncheckable _) = error "cannot occur either"
+convertToBoolE (VarEqualsPat _ _) = error "cannot occur"
 
 resolveSatBools :: [Constraint] -> IO SatResult
 resolveSatBools cs
@@ -104,7 +104,8 @@ sattable = all convertibleToSat
     convertibleToSat (VarEqualsPat _ _) = False
     convertibleToSat (Uncheckable _) = False
 
-isVarsEqualBoolConstraint (VarEqualsBool var boolE) = True
+isVarsEqualBoolConstraint :: Constraint -> Bool
+isVarsEqualBoolConstraint (VarEqualsBool _ _) = True
 isVarsEqualBoolConstraint _ = False
 
 resolveTrivialTypeEqualities :: [TypeConstraint] -> [TypeConstraint]
@@ -120,9 +121,8 @@ resolveVariableEqualities vs
         Just c@(VarsEqual v1 v2) ->
             let filtered = filter (/= c) vs
             in resolveVariableEqualities $ replaceVars v1 v2 filtered
+        _ -> error  "cannot occur as per 'isVarEquality'."
   where
-    vareqs = filter isVarEquality vs
-
     isVarEquality (VarsEqual _ _) = True
     isVarEquality _ = False
 
@@ -143,7 +143,9 @@ resolveBottoms cs =
             if otherOccurrenceOf var filtered
             then c : resolveBottoms filtered
             else resolveBottoms filtered
+        _ -> error "cannot occur as per 'isBottom'."
 
+isBottom :: Constraint -> Bool
 isBottom (IsBottom _) = True
 isBottom _ = False
 
@@ -163,6 +165,9 @@ otherOccurrenceOf var = any occurrence
     occurrence (VarEqualsCons ovar _ _)
             | ovar == var = True
             | otherwise   = False
+    occurrence (VarEqualsPat ovar _)
+            | ovar == var = True
+            | otherwise   = False
 
 
 -- TODO move these to Oracle.Utils
@@ -173,7 +178,7 @@ mapVarConstraint f (IsBottom var) = IsBottom $ f var
 mapVarConstraint f (VarsEqual v1 v2) = VarsEqual (f v1) (f v2)
 mapVarConstraint f (VarEqualsBool n be) = VarEqualsBool (f n) (mapVarBE f be)
 mapVarConstraint f (VarEqualsCons n1 n2 ps) = VarEqualsCons (f n1) n2 ps
-mapVarConstraint f uc@(VarEqualsPat n p) = uc -- TODO @Syd can we do better here?
+mapVarConstraint f (VarEqualsPat n p) = VarEqualsPat (f n) p
 mapVarConstraint _ uc@(Uncheckable _) = uc
 
 mapVarBE :: (Name -> Name) -> BoolE -> BoolE

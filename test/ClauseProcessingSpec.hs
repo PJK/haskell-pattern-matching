@@ -1,16 +1,13 @@
 module ClauseProcessingSpec (spec) where
 
 import           ClauseProcessing
-import           Control.Monad.Except  (runExceptT)
-import           Control.Monad.Reader  (runReader)
-import           Control.Monad.State   (evalStateT)
-import           Data.Either           (isLeft, isRight)
-import qualified Data.Set              as S
+import           Control.Monad.Except (runExceptT)
+import           Control.Monad.Reader (runReader)
+import           Control.Monad.State  (evalStateT)
+import qualified Data.Set             as S
 import           DataDefs
-import           Language.Haskell.Exts (fromParseResult, parseFile)
 import           Test.Hspec
 import           Test.QuickCheck
-import           TestUtils
 import           Types
 
 runAnalyzer :: AnalyzerContext -> AnalyzerState -> Analyzer a -> Either AnalyzerError a

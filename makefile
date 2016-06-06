@@ -16,6 +16,7 @@ pedantic: FORCE
         -fwarn-unused-imports \
         -fwarn-incomplete-patterns \
         -fwarn-unused-do-bind \
+				-fno-warn-type-defaults \
         -fno-warn-name-shadowing \
         -fno-warn-overlapping-patterns \
         -fno-warn-orphans"

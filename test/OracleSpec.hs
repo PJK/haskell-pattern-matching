@@ -1,15 +1,10 @@
 module OracleSpec (spec) where
 
-import           Data.Either           (isLeft, isRight)
-import qualified Data.Set              as S
 import           DataDefs
-import           Language.Haskell.Exts (fromParseResult, parseFile)
 import           Oracle
 import           Oracle.TestUtils
 import           Test.Hspec
 import           Test.QuickCheck
-import           TestUtils
-import           Types
 
 spec :: Spec
 spec = do

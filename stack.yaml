@@ -2,6 +2,7 @@ flags: {}
 extra-package-dbs: []
 packages:
 - '.'
+# Make this a regular dependency once sbv is released for GHC 8
 - location:
     git: https://github.com/NorfairKing/sbv
     commit: d33afdbf9517ca29b2dcfc9895bdc53bb26b8044

@@ -1,16 +1,10 @@
 module Oracle.TestUtils where
 
-import           Data.Either           (isLeft, isRight)
-import           Data.SBV              hiding (forAll)
-import qualified Data.Set              as S
+import           Data.SBV          hiding (forAll)
 import           DataDefs
-import           Language.Haskell.Exts (fromParseResult, parseFile)
 import           Oracle
 import           Oracle.SBVQueries
 import           Test.Hspec
-import           Test.QuickCheck
-import           TestUtils
-import           Types
 
 constraintsShouldBeSatisfiable :: [Constraint] -> IO ()
 constraintsShouldBeSatisfiable cs = do

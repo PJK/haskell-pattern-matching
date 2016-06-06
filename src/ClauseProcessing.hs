@@ -3,17 +3,12 @@ module ClauseProcessing where
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
-import qualified Data.Foldable         as DFo
-import qualified Data.Map              as Map
-import           Data.Maybe            (fromJust)
+import qualified Data.Foldable        as DFo
+import qualified Data.Map             as Map
+import           Data.Maybe           (fromJust)
 import           DataDefs
-import           Debug.Trace
 import           Gatherer
-import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
-                                        Pretty, Type (..), prettyPrint)
-import qualified Text.Show.Pretty      as Pr
 import           Types
-import           Util
 
 
 
@@ -48,7 +43,7 @@ varHandler func x ps u us delta gamma
         -- Substitute x (which depends on the type definition and may occur many times)
         -- with a fresh variable (must have the same meaning)
         -- x' <- freshVar
-        uType <- lookupType u gamma
+        -- uType <- lookupType u gamma
 
         let delta' = addEqualityConstraint x u delta
 --         let gamma' = Map.insert (varName x') uType gamma
@@ -158,7 +153,7 @@ coveredValues
     (k@(TuplePattern _):ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
-        substituted@(TuplePattern conspats) <- substituteFreshParameters k
+        substituted@(TuplePattern _) <- substituteFreshParameters k
 
         varType <- lookupVariableType varName gamma
         let patternGamma = substitutedPatternContext substituted varType
@@ -171,10 +166,10 @@ coveredValues
         coveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta', gamma = gamma'}
 
 coveredValues
-    (k@(InfixConstructorPattern p1 ":" p2):ps)
+    (k@(InfixConstructorPattern _ ":" _):ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
-        substituted@(InfixConstructorPattern s1 ":" s2) <- substituteFreshParameters k
+        substituted@(InfixConstructorPattern _ ":" _) <- substituteFreshParameters k
 
         varType <- lookupVariableType varName gamma
         let patternGamma = substitutedPatternContext substituted varType
@@ -191,7 +186,7 @@ coveredValues
     (EmptyListPattern:ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
-        varType <- lookupVariableType varName gamma
+        -- varType <- lookupVariableType varName gamma
 
         let delta' = addConstraint (VarEqualsPat varName EmptyListPattern) delta
 
@@ -273,7 +268,7 @@ uncoveredValues
 
 -- UConVar
 uncoveredValues
-    (pat@(ConstructorPattern consname conspats):ps)
+    (pat@(ConstructorPattern _ _):ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
         constructorType <- lookupDataType pat
@@ -298,7 +293,7 @@ uncoveredValues
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
         -- There is only one constructor for tuples, saving our asses
-        substituted@(TuplePattern conspats) <- substituteFreshParameters k
+        substituted@(TuplePattern _) <- substituteFreshParameters k
 
         varType <- lookupVariableType varName gamma
         let patternGamma = substitutedPatternContext substituted varType
@@ -312,10 +307,10 @@ uncoveredValues
         uncoveredValues (k:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
 
 uncoveredValues
-    (k@(InfixConstructorPattern p1 ":" p2):ps)
+    (k@(InfixConstructorPattern _ ":" _):ps)
     CVAV {valueAbstraction=(VariablePattern varName:us), delta=delta, gamma=gamma}
     = do
-        substituted@(InfixConstructorPattern s1 ":" s2) <- substituteFreshParameters k
+        substituted@(InfixConstructorPattern _ ":" _) <- substituteFreshParameters k
 
         varType <- lookupVariableType varName gamma
         let patternGamma = substitutedPatternContext substituted varType
@@ -410,7 +405,7 @@ divergentValues
     (k@(InfixConstructorPattern p1 ":" p2):ps)
     CVAV {valueAbstraction=(InfixConstructorPattern u1 ":" u2:us), delta=delta, gamma=gamma}
         = do
-            dvs <- divergentValues (p1:p1:ps) CVAV {valueAbstraction = u1:u2:us, delta = delta, gamma = gamma}
+            dvs <- divergentValues (p1:p2:ps) CVAV {valueAbstraction = u1:u2:us, delta = delta, gamma = gamma}
             return $ patMap (kcon k) dvs
 
 divergentValues
@@ -466,7 +461,7 @@ divergentValues
        constructorType <- lookupType substituted gamma'
 
        let delta' = addConstraint (VarEqualsPat varName substituted) delta
-       let delta'' = addTypeConstraint (varType, constructorType) delta
+       let delta'' = addTypeConstraint (varType, constructorType) delta'
 
        let deltaBot = addConstraint (IsBottom varName) delta
 
@@ -474,7 +469,7 @@ divergentValues
        return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
 
 divergentValues
-    (p@(InfixConstructorPattern p1 ":" p2):ps)
+    (p@(InfixConstructorPattern _ ":" _):ps)
     CVAV {valueAbstraction=(var@(VariablePattern varName):us), delta=delta, gamma=gamma}
     = do
         substituted <- substituteFreshParameters p
@@ -486,7 +481,7 @@ divergentValues
         constructorType <- lookupType substituted gamma'
 
         let delta' = addConstraint (VarEqualsPat varName substituted) delta
-        let delta'' = addTypeConstraint (varType, constructorType) delta
+        let delta'' = addTypeConstraint (varType, constructorType) delta'
 
         let deltaBot = addConstraint (IsBottom varName) delta
 
@@ -494,7 +489,7 @@ divergentValues
 
         let gamma' = Map.union gamma patternGamma
 
-        dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta, gamma = gamma'}
+        dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
         return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
 
 divergentValues
@@ -510,7 +505,7 @@ divergentValues
         constructorType <- lookupType substituted gamma'
 
         let delta' = addConstraint (VarEqualsPat varName substituted) delta
-        let delta'' = addTypeConstraint (varType, constructorType) delta
+        let delta'' = addTypeConstraint (varType, constructorType) delta'
 
         let deltaBot = addConstraint (IsBottom varName) delta
 
@@ -518,7 +513,7 @@ divergentValues
 
         let gamma' = Map.union gamma patternGamma
 
-        dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta, gamma = gamma'}
+        dvs <- divergentValues (p:ps) CVAV {valueAbstraction = substituted:us, delta = delta'', gamma = gamma'}
         return $ CVAV {valueAbstraction = var:us, delta = deltaBot, gamma = gamma}:dvs
 
 
@@ -544,7 +539,7 @@ addGuardConstraint :: Pattern -> Expression -> ConstraintSet -> ConstraintSet
 addGuardConstraint (VariablePattern varName) expression ConstraintSet {termConstraints=termC, typeConstraints=typeC}
     = let cons
             = case expression of
-                UnknownExp exp -> Uncheckable $ varName ++ " ~~ " ++ show expression
+                UnknownExp _ -> Uncheckable $ varName ++ " ~~ " ++ show expression
                 BExp be -> VarEqualsBool varName be
       in
         ConstraintSet { termConstraints = cons:termC
@@ -644,6 +639,8 @@ lookupType EmptyListPattern _ = return $ ListType (VariableType "a")
 lookupType (TuplePattern pats) binding = do
     types <- forM pats (`lookupType` binding)
     return $ TupleType types
+lookupType (LiteralPattern _ _) _ = undefined
+lookupType _ _ = undefined
 -- lookupType x _ = trace (show x) (error "Cannot lookup non-contructors or variables")
 
 lookupDataType :: Pattern -> Analyzer DataType
@@ -656,6 +653,7 @@ lookupDataType constructor@(ConstructorPattern constructorName _) = do
         containsConstructor :: DataType -> Bool
         containsConstructor (DataType _ _ constructors)
             = any (\(Constructor name _) -> name == constructorName) constructors
+lookupDataType _ = undefined
 
 dataTypeToType :: DataType -> Type
 dataTypeToType (DataType name _ _) = TypeConstructor name
@@ -671,6 +669,7 @@ lookupConstructorDefinition constructor@(ConstructorPattern constructorName _) =
     return $ fromJust (DFo.find sameName constructors)
     where
         sameName (Constructor name _) = name == constructorName
+lookupConstructorDefinition _ = undefined
 
 
 constructorToPattern :: Constructor -> Analyzer Pattern
@@ -681,10 +680,11 @@ constructorToPattern (Constructor name types) = do
 
 -- | Takes a pattern with freshly substituted parameters and produces a binding map for them
 substitutedConstructorContext :: Pattern -> Analyzer Binding
-substitutedConstructorContext construtorPattern@(ConstructorPattern name vars) = do
+substitutedConstructorContext construtorPattern@(ConstructorPattern _ vars) = do
     Constructor _ types <- lookupConstructorDefinition construtorPattern
     let varNames = map varName vars
     return $ Map.fromList (zip varNames types)
+substitutedConstructorContext _ = undefined
 
 substitutedPatternContext :: Pattern -> Type -> Binding
 substitutedPatternContext (TuplePattern varsToAnnotate) (TupleType types)
@@ -695,6 +695,7 @@ substitutedPatternContext (InfixConstructorPattern p1 _ p2) lt@(ListType t)
     = Map.fromList [(varName p1, t), (varName p2, lt)]
 substitutedPatternContext EmptyListPattern _
     = Map.empty
+substitutedPatternContext _ _ = undefined
 
 
 lookupVariableType :: String -> Binding -> Analyzer Type

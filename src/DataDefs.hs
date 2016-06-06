@@ -81,6 +81,8 @@ instance Pretty Constraint where
     pretty (VarsEqual n1 n2)    = n1 ++ " = " ++ n2
     pretty (Uncheckable s)      = s
     pretty (VarEqualsBool v be) = v ++ " = " ++ pretty be
+    pretty (VarEqualsCons v n as) = v ++ " = (" ++ n ++ unwords (map show as) ++ ")"
+    pretty (VarEqualsPat v p) = v ++ " = " ++ show p
 
 data BoolE
     = LitBool Bool
@@ -273,7 +275,7 @@ instance Pretty Pattern where
           else "(" ++ pretty i ++ ":" ++ pretty is ++ ")"
       where
         endsWithEmptyListPattern :: Pattern -> Bool
-        endsWithEmptyListPattern (InfixConstructorPattern i ":" is) = endsWithEmptyListPattern is
+        endsWithEmptyListPattern (InfixConstructorPattern _ ":" is) = endsWithEmptyListPattern is
         endsWithEmptyListPattern EmptyListPattern = True
         endsWithEmptyListPattern _ = False
     pretty (InfixConstructorPattern p1 name p2) = pretty p1 ++ name ++ pretty p2
@@ -282,6 +284,7 @@ instance Pretty Pattern where
     pretty WildcardPattern = "_"
     pretty (GuardPattern (ConstructorPattern "True" []) const) = "| " ++ pretty const
     pretty (GuardPattern pat const) = "| " ++ pretty pat ++ " <- " ++ pretty const
+    pretty IntVariablePattern = "Int variable"
 
 
 collectListItems :: Pattern -> [Pattern]

@@ -1,13 +1,9 @@
 module Oracle.SBVQueries where
 
-import           Control.Monad.State       (MonadState (..), StateT, evalStateT,
-                                            gets, modify)
+import           Control.Monad.State       (StateT, evalStateT, gets, modify)
 import           Control.Monad.Trans.Class (MonadTrans (..))
-import           Data.Maybe                (catMaybes)
 import           Data.SBV
 import           DataDefs
-import qualified Text.Show.Pretty          as Pr
-import           Types
 
 
 -- boolESat :: BoolE -> IO Bool
@@ -105,6 +101,7 @@ varsInBE (BoolOp _ be1 be2)     = varsInBE be1 ++ varsInBE be2
 varsInBE (IntBoolOp _ ie1 ie2)  = varsInIE ie1 ++ varsInIE ie2
 -- varsInBE (FracBoolOp _ fe1 fe2) = varsInFE fe1 ++ varsInFE fe2
 varsInBE (BoolVar var)          = [var]
+varsInBE Otherwise = []
 
 varsInIE :: IntE -> [Name]
 varsInIE (IntLit _)             = []

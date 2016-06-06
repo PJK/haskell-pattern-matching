@@ -3,10 +3,9 @@ module Gatherer where
 
 import           Control.Applicative   (liftA2)
 import           Control.Monad         (forM)
-import           Data.Foldable         (find)
 import           Data.List             (nub)
 import qualified Data.Map              as Map
-import           Data.Maybe            (catMaybes, fromJust)
+import           Data.Maybe            (catMaybes)
 import qualified Data.Set              as Set
 import           DataDefs
 import           Language.Haskell.Exts hiding (DataOrNew (..), Name (..),
@@ -25,13 +24,14 @@ signFact Negative = -1
 
 -- | Transforms all patterns into the standard form (See figure 7)
 -- | This is a vector because we need to handle guards
+-- TODO handle signs!!
 desugarPattern :: Pattern -> PatternVector
 desugarPattern (LiteralPattern sign (Frac f))
-    = VariablePattern var:desugarGuard (ConstraintGuard $ BoolVar $ var ++ "==" ++ show f) -- We don't check fractionals well
+    = VariablePattern var:desugarGuard (ConstraintGuard $ BoolVar $ var ++ "==" ++ show (signFact sign * f)) -- We don't check fractionals well
     where
         var = "__x"
 desugarPattern (LiteralPattern sign (Int i))
-    = IntVariablePattern:desugarGuard (ConstraintGuard $ IntBoolOp IntEQ (IntVar "__placeholder__") (IntLit i))
+    = IntVariablePattern:desugarGuard (ConstraintGuard $ IntBoolOp IntEQ (IntVar "__placeholder__") (IntLit $ signFact sign * i))
 desugarPattern (ConstructorPattern name patterns)
     = [ConstructorPattern name (concatMap desugarPattern patterns)]
 desugarPattern (TuplePattern patterns)
@@ -59,7 +59,7 @@ desugarGuard (ConstraintGuard constraint)
 desugarGuard _ = error "FIXME: implement lets and patternGuards"
 
 getPatternVectors :: Function -> MayFail [PatternVector]
-getPatternVectors (Function _ functionType patterns) = Right $ patternsList patterns
+getPatternVectors (Function _ _ patterns) = Right $ patternsList patterns
 
 
 desugarPatternVector :: PatternVector -> PatternVector
@@ -80,7 +80,7 @@ extractType t = case t of
 -- | have to be assigned a type.
 initialGamma :: Function -> [Pattern] -> MayFail Binding
 initialGamma
-    (Function _ functionType patterns)
+    (Function _ functionType _)
     freshVariables
     = Right $ Map.fromList (zip variableNames (init functionTypes))
     where

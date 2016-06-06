@@ -14,16 +14,12 @@ import qualified Data.Map                   as Map
 import           Data.Maybe                 (mapMaybe)
 import           Data.SBV
 import           DataDefs
-import           Debug.Trace
 import           Gatherer
-import           Language.Haskell.Exts      hiding (DataOrNew (..), Name (..),
-                                             Pretty, Type (..), prettyPrint)
 import           Language.Haskell.Exts      (fromParseResult, parseFile)
 import           OptParse
 import           OptParse.Types
 import           Oracle
 import           Oracle.SBVQueries
-import qualified Text.Show.Pretty           as Pr
 import           Types
 import           Util
 
@@ -83,7 +79,7 @@ processAssignment (AnalysisAssigment _ ast)
 
 -- TODO replace FunctionResult with (solved Conditioned)ValueAbstractionSet.
 produceRecommendations :: FunctionTarget -> SolvedFunctionResult -> [Recommendation]
-produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunctionResult tr)
+produceRecommendations (FunctionTarget (Function name _ clss)) (SolvedFunctionResult tr)
     =  map (Recommendation name)
     $  findNonExhaustives tr
     ++ findRedundants tr
@@ -140,13 +136,14 @@ produceRecommendations t@(FunctionTarget (Function name _ clss)) (SolvedFunction
 
     makeVarsWildcards :: [Name] -> Pattern -> Pattern
     makeVarsWildcards ns (VariablePattern n) = if n `elem` ns then VariablePattern n else WildcardPattern
-    makeVarsWildcards ns l@(LiteralPattern _ _) = l
+    makeVarsWildcards _ l@(LiteralPattern _ _) = l
     makeVarsWildcards ns (ConstructorPattern n ps) = ConstructorPattern n $ map (makeVarsWildcards ns) ps
     makeVarsWildcards ns (TuplePattern ps) = TuplePattern $ map (makeVarsWildcards ns) ps
-    makeVarsWildcards ns EmptyListPattern = EmptyListPattern
-    makeVarsWildcards ns WildcardPattern = WildcardPattern
+    makeVarsWildcards _ EmptyListPattern = EmptyListPattern
+    makeVarsWildcards _ WildcardPattern = WildcardPattern
     makeVarsWildcards ns (GuardPattern p e) = GuardPattern (makeVarsWildcards ns p) e
     makeVarsWildcards ns (InfixConstructorPattern p1 name p2) = InfixConstructorPattern (makeVarsWildcards ns p1) name (makeVarsWildcards ns p2)
+    makeVarsWildcards _ IntVariablePattern = IntVariablePattern
 
 
 prettyOutput :: AnalysisResult -> IO ()
@@ -188,7 +185,7 @@ patAppend :: Pattern -> ConditionedValueAbstractionVector -> ConditionedValueAbs
 patAppend p cvav = CVAV (p:valueAbstraction cvav) (gamma cvav) (delta cvav)
 
 
-addIntegerBound :: Pattern -> Name -> Binding -> ConditionedValueAbstractionVector -> Int -> Analyzer ConditionedValueAbstractionVector
+addIntegerBound :: Pattern -> Name -> Binding -> ConditionedValueAbstractionVector -> Integer -> Analyzer ConditionedValueAbstractionVector
 addIntegerBound vp name gamma subVAV bound = do
     falseVar <- freshVar
     let gamma' = Map.insert (varName falseVar) (TypeConstructor "Bool") gamma
@@ -198,7 +195,7 @@ addIntegerBound vp name gamma subVAV bound = do
                 (BoolOp
                     BoolAnd
                     (IntBoolOp IntGE (IntVar name) (IntLit 0))
-                    (IntBoolOp IntLT (IntVar name) (IntLit 256)))
+                    (IntBoolOp IntLT (IntVar name) (IntLit bound)))
     let d = delta subVAV
     let d' = addConstraint boundsContraint d
     let d'' = addConstraint (VarEqualsCons (varName falseVar) "True" []) d'
@@ -211,9 +208,10 @@ extractTypingConstraints gamma []
 extractTypingConstraints gamma (vp@(VariablePattern name):vs) = do
     subVAV <- extractTypingConstraints gamma vs
     case Map.lookup name gamma of
-        Just (TypeConstructor "Word8") -> addIntegerBound vp name gamma subVAV (2^8)
-        Just (TypeConstructor "Word16") -> addIntegerBound vp name gamma subVAV (2^16)
-        Just (TypeConstructor "Word32") -> addIntegerBound vp name gamma subVAV (2^32)
+        Just (TypeConstructor "Word8")  -> addIntegerBound vp name gamma subVAV (2 ^ 8 )
+        Just (TypeConstructor "Word16") -> addIntegerBound vp name gamma subVAV (2 ^ 16)
+        Just (TypeConstructor "Word32") -> addIntegerBound vp name gamma subVAV (2 ^ 32)
+        Just (TypeConstructor "Word64") -> addIntegerBound vp name gamma subVAV (2 ^ 64)
         _                              -> return $ patAppend vp subVAV
 extractTypingConstraints gamma (v:vs) = do
     subVAV <- extractTypingConstraints gamma vs

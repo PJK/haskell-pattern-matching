@@ -1,13 +1,12 @@
 module LibSpec (spec) where
 
-import           Control.Monad            (forM_, unless)
-import           Control.Monad.Reader     (runReaderT)
-import           Data.Aeson               (eitherDecode)
-import           Data.Aeson.Encode.Pretty (encodePretty)
-import qualified Data.ByteString.Lazy     as LB
+import           Control.Monad        (forM_)
+import           Control.Monad.Reader (runReaderT)
+import           Data.Aeson           (eitherDecode)
+import qualified Data.ByteString.Lazy as LB
 import           Lib
 import           OptParse
-import           System.Directory         (doesFileExist, withCurrentDirectory)
+import           System.Directory     (doesFileExist)
 import           Test.Hspec
 import           TestUtils
 

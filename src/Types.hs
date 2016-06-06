@@ -7,7 +7,6 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 
 import           Data.Aeson            (FromJSON, ToJSON)
-import           Data.SBV
 import           Data.SBV.Internals    (SMTModel (..))
 import           GHC.Generics          (Generic)
 

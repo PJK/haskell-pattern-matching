@@ -1,16 +1,9 @@
 module Oracle.SBVQueriesSpec (spec) where
 
-import           Data.Either           (isLeft, isRight)
-import           Data.SBV              hiding (forAll)
-import qualified Data.Set              as S
 import           DataDefs
-import           Language.Haskell.Exts (fromParseResult, parseFile)
-import           Oracle.SBVQueries
 import           Oracle.TestUtils
 import           Test.Hspec
 import           Test.QuickCheck
-import           TestUtils
-import           Types
 
 spec :: Spec
 spec = do
