@@ -1,28 +1,17 @@
 module Evaluatedness where
 
-import           ClauseProcessing
-import qualified Data.Foldable    as DFo
-import qualified Data.Map         as Map
 import           DataDefs
-import           Debug.Trace
-import qualified Text.Show.Pretty as Pr
 import           Types
 
 for :: [a] -> (a -> b) -> [b]
 for = flip map
 
-produceEvaluatednesses :: FunctionTarget -> FunctionResult -> SolvedFunctionResult -> Evaluatedness
-produceEvaluatednesses ft@(FunctionTarget (Function name _ _)) (FunctionResult et) (SolvedFunctionResult sccs)
-    =
-    --   trace (Pr.ppShow ft)
-    -- $ trace (Pr.ppShow $ map capD et)
-    -- $ trace (Pr.ppShow $ map (map svav . scapD) sccs)
-    -- $
-    --   (\e -> trace (Pr.ppShow e) e) $
-      Evaluatedness name
+produceEvaluatednesses :: FunctionTarget -> FunctionResult -> Evaluatedness
+produceEvaluatednesses (FunctionTarget (Function name _ _)) (FunctionResult et)
+    = Evaluatedness name
     $ concat
         $ for et $ \cc ->
-            for (capD cc) $ \(CVAV {valueAbstraction = va, gamma = g, delta = d}) ->
+            for (capD cc) $ \CVAV {valueAbstraction = va, delta = d} ->
                 -- trace (unlines $ map (\(v, vt) -> v ++ " :: " ++ pretty vt) $ Map.toList g) $
                 ( va
                 , for va $ evalness $ bottomAssertedVariables d

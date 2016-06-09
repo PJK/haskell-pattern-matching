@@ -10,7 +10,6 @@ import           Control.Monad.State        (evalStateT)
 import           Data.Aeson.Encode.Pretty   (encodePretty)
 import qualified Data.ByteString.Lazy.Char8 as LB8
 import           Data.Either                (lefts, rights)
-import           Data.List                  (intercalate)
 import qualified Data.Map                   as Map
 import           Data.Maybe                 (mapMaybe)
 import           Data.SBV
@@ -75,7 +74,7 @@ processAssignment (AnalysisAssigment _ ast)
                         debugShow sres
                         return $ Right
                             ( produceRecommendations target sres
-                            , produceEvaluatednesses target res sres
+                            , produceEvaluatednesses target res
                             )
             case lefts ress of
                 [] -> do

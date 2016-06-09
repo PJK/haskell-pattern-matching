@@ -602,7 +602,14 @@ freshVar :: Analyzer Pattern
 freshVar = do
     i <- gets nextFreshVarName
     modify (\s -> s { nextFreshVarName = i + 1 })
-    return $ VariablePattern $ "fresh" ++ show i
+    return $ VariablePattern $ "~" ++ varnames !! i
+  where
+    varnames :: [String]
+    varnames = go 0
+      where
+        go 0 = map (:[]) alphabet ++ go 1
+        go n = [ as ++ [a] | a <- alphabet, as <- go (n - 1)]
+    alphabet = ['a'..'z']
 
 -- | Replace PlaceHolderPatterns with appropriate fresh variables
 substituteFreshParameters :: Pattern -> Analyzer Pattern
