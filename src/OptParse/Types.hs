@@ -21,5 +21,6 @@ data Configuration = Configuration
 
 data Command
     = Analyze
+    | AnalyzeEvaluatedness
     | DumpResults
     deriving (Show, Eq)

@@ -14,12 +14,14 @@ import qualified Data.Map                   as Map
 import           Data.Maybe                 (mapMaybe)
 import           Data.SBV
 import           DataDefs
+import           Evaluatedness
 import           Gatherer
 import           Language.Haskell.Exts      (fromParseResult, parseFile)
 import           OptParse
 import           OptParse.Types
 import           Oracle
 import           Oracle.SBVQueries
+import qualified Text.Show.Pretty           as Pr
 import           Types
 import           Util
 
@@ -32,6 +34,7 @@ patterns = do
     res <- flip runReaderT sets $ processTarget (setsTargetFile sets)
     case setsCommand sets of
         Analyze -> prettyOutput res
+        AnalyzeEvaluatedness -> prettyOutputEvaluatedness res
         DumpResults -> LB8.putStrLn $ encodePretty res
 
 type Configured = ReaderT Settings IO
@@ -70,14 +73,17 @@ processAssignment (AnalysisAssigment _ ast)
                         sres <- liftIO $ runOracle res
                         debug "Result oracle consultation:"
                         debugShow sres
-                        return $ Right $ produceRecommendations target sres
+                        return $ Right
+                            ( produceRecommendations target sres
+                            , produceEvaluatednesses target res sres
+                            )
             case lefts ress of
-                [] -> return $ AnalysisSuccess $ concat $ rights ress
+                [] -> do
+                    let rss = concatMap fst $ rights ress
+                        evs = map snd $ rights ress
+                    return $ AnalysisSuccess rss evs
                 rs -> return $ AnalysisError $ map ProcessError rs
 
--- TODO actually solve the constraints, now I'm just ignoring them, which is like having an oracle that returns true.
-
--- TODO replace FunctionResult with (solved Conditioned)ValueAbstractionSet.
 produceRecommendations :: FunctionTarget -> SolvedFunctionResult -> [Recommendation]
 produceRecommendations (FunctionTarget (Function name _ clss)) (SolvedFunctionResult tr)
     =  map (Recommendation name)
@@ -148,7 +154,7 @@ produceRecommendations (FunctionTarget (Function name _ clss)) (SolvedFunctionRe
 
 prettyOutput :: AnalysisResult -> IO ()
 prettyOutput (AnalysisError err) = print err
-prettyOutput (AnalysisSuccess recs) = forM_ recs $ \(Recommendation n r) -> do
+prettyOutput (AnalysisSuccess recs _) = forM_ recs $ \(Recommendation n r) -> do
     putStrLn $ "In function " ++ n ++ ":"
     case r of
         Redundant c -> do
@@ -170,15 +176,21 @@ prettyOutput (AnalysisSuccess recs) = forM_ recs $ \(Recommendation n r) -> do
         putStr " "
         prettyPrint c
 
+prettyOutputEvaluatedness :: AnalysisResult -> IO ()
+prettyOutputEvaluatedness (AnalysisError err) = print err
+prettyOutputEvaluatedness (AnalysisSuccess _ evs) = forM_ evs $ putStr . Pr.ppShow
+
 
 gammaVAV :: Binding -> ConditionedValueAbstractionVector
-gammaVAV gamma = CVAV { valueAbstraction = []
-                        , delta = ConstraintSet {
-                                 termConstraints = [],
-                                 typeConstraints = []
-                        }
-                        , gamma = gamma
-                        }
+gammaVAV gamma
+    = CVAV
+    { valueAbstraction = []
+    , delta = ConstraintSet
+        { termConstraints = []
+        , typeConstraints = []
+        }
+    , gamma = gamma
+    }
 
 
 patAppend :: Pattern -> ConditionedValueAbstractionVector -> ConditionedValueAbstractionVector

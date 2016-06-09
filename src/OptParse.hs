@@ -10,6 +10,7 @@ getSettings = do
     argv <- getArgs
     let (command, argss) = case argv of
             ("dump-results":as) -> (DumpResults, as)
+            ("evaluatedness":as) -> (AnalyzeEvaluatedness, as)
             _ -> (Analyze, argv)
     args <- parseArgs argss
     conf <- getConfig args

@@ -13,6 +13,7 @@ pedantic: FORCE
         -fforce-recomp \
         -O0 \
         -Wall \
+				-Werror \
         -fwarn-unused-imports \
         -fwarn-incomplete-patterns \
         -fwarn-unused-do-bind \

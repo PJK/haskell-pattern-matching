@@ -21,7 +21,7 @@ data AnalysisAssigment
 
 data AnalysisResult
     = AnalysisError [AnalysisError]
-    | AnalysisSuccess [Recommendation] -- TODO add the evaluatedness of functions
+    | AnalysisSuccess [Recommendation] [Evaluatedness]
     deriving (Show, Eq, Generic)
 
 instance ToJSON   AnalysisResult
@@ -123,3 +123,21 @@ data OracleResult
     | DefinitelyUnsatisfiable
     | DontReallyKnow
   deriving (Show)
+
+data Evaluatedness
+    = Evaluatedness
+        Name -- ^ Name of the function
+        [ -- ^ For a list of (exhaustive) ValueAbstractionVectors
+          (ValueAbstractionVector
+          , [ -- ^ For each argument,
+              [ -- The list of constructors that will be evaluated
+                Pattern
+              ]
+            ]
+          )
+        ]
+      deriving (Show, Eq, Generic)
+
+instance FromJSON Evaluatedness
+instance ToJSON Evaluatedness
+
