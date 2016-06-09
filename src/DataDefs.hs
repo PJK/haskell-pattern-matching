@@ -31,8 +31,6 @@ data Constructor
 data Type
     = FunctionType Type Type -- ^ Function: a -> b
     | TupleType [Type] -- ^ Tuple: (a, b, ..., z)
-        -- TODO Determine whether we really want to view this as a special case instead of as a constructor
-        --   Answer(?): Yes, for better error messages.
     | ListType Type -- ^ List: [a]
     | TypeApplication Type Type -- ^ Application of type constructor: Tree a
     | VariableType Name -- ^ Type variable: a
@@ -42,6 +40,13 @@ data Type
 instance ToJSON   Type
 instance FromJSON Type
 
+instance Pretty Type where
+    pretty (FunctionType t1 t2) = "(" ++ pretty t1 ++ " -> " ++ pretty t2 ++ ")"
+    pretty (TupleType ts) = "(" ++ intercalate ", " (map pretty ts) ++ ")"
+    pretty (ListType t) = "[" ++ pretty t ++ "]"
+    pretty (TypeApplication t1 t2) = unwords [pretty t1, pretty t2]
+    pretty (VariableType v) = v
+    pretty (TypeConstructor n) = n
 
 data Function
     = Function

@@ -23,6 +23,7 @@ produceEvaluatednesses ft@(FunctionTarget (Function name _ _)) (FunctionResult e
     $ concat
         $ for et $ \cc ->
             for (capD cc) $ \(CVAV {valueAbstraction = va, gamma = g, delta = d}) ->
+                -- trace (unlines $ map (\(v, vt) -> v ++ " :: " ++ pretty vt) $ Map.toList g) $
                 ( va
                 , for va $ evalness $ bottomAssertedVariables d
                 )

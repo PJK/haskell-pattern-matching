@@ -201,7 +201,7 @@ evaluatednessInstructions = unlines
     , ""
     , "The output is a list of results for each function"
     , "A result is of the following form:"
-    , "<pattern of the input> <evaluatednesses for each argument>"
+    , "<pattern of the input> <evaluatedness for each argument>"
     , ""
     , "func x y means: 'when func is evaluated with two arbitrary inputs called x and y'"
     , "_        means: 'will not be evaluated'"
