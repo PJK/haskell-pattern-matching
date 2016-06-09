@@ -171,7 +171,7 @@ prettyOutput (AnalysisSuccess recs) = forM_ recs $ \(Recommendation n r) -> do
         prettyPrint c
 
 
-gammaVAV :: Binding -> ConditionedValueAbstractionVectorq
+gammaVAV :: Binding -> ConditionedValueAbstractionVector
 gammaVAV gamma = CVAV { valueAbstraction = []
                         , delta = ConstraintSet {
                                  termConstraints = [],
