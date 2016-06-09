@@ -222,6 +222,10 @@ type TypeUniverse = Set.Set DataType
 type PatternVector = [Pattern]
 
 type ValueAbstractionVector = [Pattern]
+
+instance Pretty [Pattern] where
+    pretty = unwords . map pretty
+
 type ValueAbstractionSet = [ValueAbstractionVector]
 
 -- | Type equality constraint, e.g. Tree a ~ Tree (Maybe Int)

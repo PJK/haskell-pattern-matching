@@ -10,6 +10,7 @@ import           Control.Monad.State        (evalStateT)
 import           Data.Aeson.Encode.Pretty   (encodePretty)
 import qualified Data.ByteString.Lazy.Char8 as LB8
 import           Data.Either                (lefts, rights)
+import           Data.List                  (intercalate)
 import qualified Data.Map                   as Map
 import           Data.Maybe                 (mapMaybe)
 import           Data.SBV
@@ -21,7 +22,6 @@ import           OptParse
 import           OptParse.Types
 import           Oracle
 import           Oracle.SBVQueries
-import qualified Text.Show.Pretty           as Pr
 import           Types
 import           Util
 
@@ -178,8 +178,40 @@ prettyOutput (AnalysisSuccess recs _) = forM_ recs $ \(Recommendation n r) -> do
 
 prettyOutputEvaluatedness :: AnalysisResult -> IO ()
 prettyOutputEvaluatedness (AnalysisError err) = print err
-prettyOutputEvaluatedness (AnalysisSuccess _ evs) = forM_ evs $ putStr . Pr.ppShow
+prettyOutputEvaluatedness (AnalysisSuccess _ evs) = forM_ evs $ \(Evaluatedness name es) -> do
+    putStrLn $ "Evaluatedness of function \"" ++ name ++ "\""
+    putStrLn ""
+    forM_ es $ \(inp, oup) -> do
+        putStr $ name ++ " "
+        prettyPrint inp
+        putStrLn ""
+        let ll = (+2) $ maximum $ map (length . pretty) inp
+        forM_ (zip inp oup) $ \(ip, p) -> do
+            putStr $ pad ' ' ll $ pretty ip ++ ": "
+            putStrLn $ pretty p
+        putStrLn ""
+        putStrLn ""
+    putStrLn ""
 
+    putStrLn evaluatednessInstructions
+
+evaluatednessInstructions :: String
+evaluatednessInstructions = unlines
+    [ "HOW TO READ EVALUATEDNESS RESULTS: "
+    , ""
+    , "The output is a list of results for each function"
+    , "A result is of the following form:"
+    , "<pattern of the input> <evaluatednesses for each argument>"
+    , ""
+    , "func x y means: 'when func is evaluated with two arbitrary inputs called x and y'"
+    , "_        means: 'will not be evaluated'"
+    , "<var>    means: '<var>'s topmost constructor will be evaluated'"
+    ]
+
+pad :: Char -> Int -> String -> String
+pad c i s
+    | length s < i = s ++ replicate (i - length s) c
+    | otherwise = s
 
 gammaVAV :: Binding -> ConditionedValueAbstractionVector
 gammaVAV gamma

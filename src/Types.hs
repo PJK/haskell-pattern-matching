@@ -99,6 +99,7 @@ data SolvedValueAbstractionVector
 
 
 type Analyzer = ExceptT AnalyzerError (StateT AnalyzerState (Reader AnalyzerContext))
+type EvaluatednessAnalyzer = ExceptT AnalyzerError (Reader AnalyzerContext)
 
 data AnalyzerError
     = TypeNotFound String
@@ -129,10 +130,8 @@ data Evaluatedness
         Name -- ^ Name of the function
         [ -- ^ For a list of (exhaustive) ValueAbstractionVectors
           (ValueAbstractionVector
-          , [ -- ^ For each argument,
-              [ -- The list of constructors that will be evaluated
-                Pattern
-              ]
+          , [ -- ^ For each argument, a pattern representing how it input will be evaluated
+              Pattern
             ]
           )
         ]
