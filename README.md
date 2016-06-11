@@ -15,15 +15,6 @@ To build/install, you will need a copy of the repository:
 git clone https://github.com/PJK/paps-pattern-matching
 ```
 
-### Assignment and Report
-
-The assignment and report for the project are written in standard LaTeX.
-To build them, you will need `latexmk`.
-
-```
-make -C assignment
-make -C report
-```
 
 ### Code
 
