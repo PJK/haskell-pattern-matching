@@ -2,10 +2,65 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "extract",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "extract",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "Sum",
+                                        [
+                                            {
+                                                "tag": "ConstructorPattern",
+                                                "contents": [
+                                                    "B",
+                                                    []
+                                                ]
+                                            }
+                                        ]
+                                    ]
+                                }
+                            ],
+                            ""
+                        ],
+                        [
+                            [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "Nope",
+                                        []
+                                    ]
+                                }
+                            ],
+                            ""
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "extract",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ]
+                    ],
                     [
                         [
                             {
@@ -14,32 +69,30 @@
                                     "Sum",
                                     [
                                         {
-                                            "tag": "ConstructorPattern",
-                                            "contents": [
-                                                "B",
-                                                []
-                                            ]
+                                            "tag": "VariablePattern",
+                                            "contents": "~e"
                                         }
                                     ]
                                 ]
                             }
                         ],
-                        ""
-                    ],
-                    [
                         [
                             {
                                 "tag": "ConstructorPattern",
                                 "contents": [
-                                    "Nope",
-                                    []
+                                    "Sum",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~e"
+                                        }
+                                    ]
                                 ]
                             }
-                        ],
-                        ""
+                        ]
                     ]
                 ]
-            }
+            ]
         ]
     ]
 }

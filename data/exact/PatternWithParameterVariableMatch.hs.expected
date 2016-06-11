@@ -2,38 +2,154 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "partialExtract",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "partialExtract",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "Nothing",
+                                        []
+                                    ]
+                                },
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "Nothing",
+                                        []
+                                    ]
+                                }
+                            ],
+                            ""
+                        ],
+                        [
+                            [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "Nothing",
+                                        []
+                                    ]
+                                },
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "Just",
+                                        [
+                                            {
+                                                "tag": "ConstructorPattern",
+                                                "contents": [
+                                                    "A",
+                                                    []
+                                                ]
+                                            }
+                                        ]
+                                    ]
+                                }
+                            ],
+                            ""
+                        ],
+                        [
+                            [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "Nothing",
+                                        []
+                                    ]
+                                },
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "Just",
+                                        [
+                                            {
+                                                "tag": "ConstructorPattern",
+                                                "contents": [
+                                                    "B",
+                                                    []
+                                                ]
+                                            }
+                                        ]
+                                    ]
+                                }
+                            ],
+                            ""
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "extract",
+                [
                     [
                         [
                             {
-                                "tag": "ConstructorPattern",
-                                "contents": [
-                                    "Nothing",
-                                    []
-                                ]
+                                "tag": "VariablePattern",
+                                "contents": "~a"
                             },
                             {
-                                "tag": "ConstructorPattern",
-                                "contents": [
-                                    "Nothing",
-                                    []
-                                ]
+                                "tag": "VariablePattern",
+                                "contents": "~b"
                             }
                         ],
-                        ""
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
                     ],
                     [
                         [
                             {
                                 "tag": "ConstructorPattern",
                                 "contents": [
-                                    "Nothing",
-                                    []
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~i"
+                                        }
+                                    ]
                                 ]
                             },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~i"
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
                             {
                                 "tag": "ConstructorPattern",
                                 "contents": [
@@ -42,25 +158,19 @@
                                         {
                                             "tag": "ConstructorPattern",
                                             "contents": [
-                                                "A",
+                                                "C",
                                                 []
                                             ]
                                         }
                                     ]
                                 ]
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
                             }
                         ],
-                        ""
-                    ],
-                    [
                         [
-                            {
-                                "tag": "ConstructorPattern",
-                                "contents": [
-                                    "Nothing",
-                                    []
-                                ]
-                            },
                             {
                                 "tag": "ConstructorPattern",
                                 "contents": [
@@ -69,18 +179,322 @@
                                         {
                                             "tag": "ConstructorPattern",
                                             "contents": [
-                                                "B",
+                                                "C",
                                                 []
                                             ]
                                         }
                                     ]
                                 ]
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "C",
+                                                []
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~j"
+                                        }
+                                    ]
+                                ]
                             }
                         ],
-                        ""
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "C",
+                                                []
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~j"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ]
                     ]
                 ]
-            }
+            ],
+            [
+                "partialExtract",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~i"
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~i"
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "C",
+                                                []
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "C",
+                                                []
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "C",
+                                                []
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~j"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "C",
+                                                []
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~j"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Nothing",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Nothing",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Nothing",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~n"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Nothing",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Just",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~n"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ]
+                    ]
+                ]
+            ]
         ]
     ]
 }

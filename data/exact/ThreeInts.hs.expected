@@ -2,51 +2,192 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "f",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "f",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "VariablePattern",
+                                    "contents": "~a"
+                                },
+                                {
+                                    "tag": "WildcardPattern",
+                                    "contents": []
+                                }
+                            ],
+                            "Constraints:\n  ~x == False\n  ~x == ~a == 1\n  ~h == False\n  ~h == ~a == 0\n\nSatisfiable. Model:\n  ~x = False :: Bool\n  ~a =     2 :: Integer\n  ~h = False :: Bool\n"
+                        ],
+                        [
+                            [
+                                {
+                                    "tag": "VariablePattern",
+                                    "contents": "~a"
+                                },
+                                {
+                                    "tag": "VariablePattern",
+                                    "contents": "~b"
+                                }
+                            ],
+                            "Constraints:\n  ~z == False\n  ~z == ~b == 2\n  ~x == True\n  ~x == ~a == 1\n  ~h == False\n  ~h == ~a == 0\n\nSatisfiable. Model:\n  ~z = False :: Bool\n  ~b =     3 :: Integer\n  ~x =  True :: Bool\n  ~a =     1 :: Integer\n  ~h = False :: Bool\n"
+                        ],
+                        [
+                            [
+                                {
+                                    "tag": "VariablePattern",
+                                    "contents": "~a"
+                                },
+                                {
+                                    "tag": "VariablePattern",
+                                    "contents": "~b"
+                                }
+                            ],
+                            "Constraints:\n  ~ba == False\n  ~ba == ~a == 1\n  ~j == False\n  ~j == ~b == 1\n  ~h == True\n  ~h == ~a == 0\n\nSatisfiable. Model:\n  ~ba = False :: Bool\n  ~a  =     0 :: Integer\n  ~j  = False :: Bool\n  ~b  =     2 :: Integer\n  ~h  =  True :: Bool\n"
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "f",
+                [
                     [
                         [
                             {
                                 "tag": "VariablePattern",
-                                "contents": "fresh0"
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
                             },
                             {
                                 "tag": "WildcardPattern",
                                 "contents": []
                             }
-                        ],
-                        "Constraints:\n  fresh23 == False\n  fresh23 == fresh0 == 1\n  fresh7 == False\n  fresh7 == fresh0 == 0\n\nSatisfiable. Model:\n  fresh23 = False :: Bool\n  fresh0  =     2 :: Integer\n  fresh7  = False :: Bool\n"
+                        ]
                     ],
                     [
                         [
                             {
                                 "tag": "VariablePattern",
-                                "contents": "fresh0"
+                                "contents": "~a"
                             },
                             {
                                 "tag": "VariablePattern",
-                                "contents": "fresh1"
+                                "contents": "~b"
                             }
                         ],
-                        "Constraints:\n  fresh25 == False\n  fresh25 == fresh1 == 2\n  fresh23 == True\n  fresh23 == fresh0 == 1\n  fresh7 == False\n  fresh7 == fresh0 == 0\n\nSatisfiable. Model:\n  fresh25 = False :: Bool\n  fresh1  =     3 :: Integer\n  fresh23 =  True :: Bool\n  fresh0  =     1 :: Integer\n  fresh7  = False :: Bool\n"
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
                     ],
                     [
                         [
                             {
                                 "tag": "VariablePattern",
-                                "contents": "fresh0"
+                                "contents": "~a"
                             },
                             {
                                 "tag": "VariablePattern",
-                                "contents": "fresh1"
+                                "contents": "~b"
                             }
                         ],
-                        "Constraints:\n  fresh27 == False\n  fresh27 == fresh0 == 1\n  fresh9 == False\n  fresh9 == fresh1 == 1\n  fresh7 == True\n  fresh7 == fresh0 == 0\n\nSatisfiable. Model:\n  fresh27 = False :: Bool\n  fresh0  =     0 :: Integer\n  fresh9  = False :: Bool\n  fresh1  =     2 :: Integer\n  fresh7  =  True :: Bool\n"
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
                     ]
                 ]
-            }
+            ]
         ]
     ]
 }

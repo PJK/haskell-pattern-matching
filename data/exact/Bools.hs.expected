@@ -2,10 +2,60 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "and'",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "and'",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "True",
+                                        []
+                                    ]
+                                },
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "False",
+                                        []
+                                    ]
+                                }
+                            ],
+                            ""
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "and'",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
                     [
                         [
                             {
@@ -16,17 +66,26 @@
                                 ]
                             },
                             {
-                                "tag": "ConstructorPattern",
-                                "contents": [
-                                    "False",
-                                    []
-                                ]
+                                "tag": "VariablePattern",
+                                "contents": "~b"
                             }
                         ],
-                        ""
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "True",
+                                    []
+                                ]
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ]
                     ]
                 ]
-            }
+            ]
         ]
     ]
 }

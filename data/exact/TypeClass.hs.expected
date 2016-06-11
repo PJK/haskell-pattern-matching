@@ -1,4 +1,41 @@
 {
     "tag": "AnalysisSuccess",
-    "contents": []
+    "contents": [
+        [],
+        [
+            [
+                "unsound",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ]
 }

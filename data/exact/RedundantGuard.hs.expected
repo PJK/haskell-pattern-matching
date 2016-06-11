@@ -2,45 +2,110 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "func",
-            {
-                "tag": "Redundant",
-                "contents": [
-                    {
-                        "tag": "WildcardPattern",
-                        "contents": []
-                    },
-                    {
-                        "tag": "GuardPattern",
-                        "contents": [
-                            {
-                                "tag": "ConstructorPattern",
-                                "contents": [
-                                    "True",
-                                    []
-                                ]
-                            },
-                            {
-                                "tag": "BExp",
-                                "contents": {
-                                    "tag": "IntBoolOp",
+            [
+                "func",
+                {
+                    "tag": "Redundant",
+                    "contents": [
+                        {
+                            "tag": "WildcardPattern",
+                            "contents": []
+                        },
+                        {
+                            "tag": "GuardPattern",
+                            "contents": [
+                                {
+                                    "tag": "ConstructorPattern",
                                     "contents": [
-                                        "IntEQ",
-                                        {
-                                            "tag": "IntVar",
-                                            "contents": "x"
-                                        },
-                                        {
-                                            "tag": "IntLit",
-                                            "contents": 3
-                                        }
+                                        "True",
+                                        []
                                     ]
+                                },
+                                {
+                                    "tag": "BExp",
+                                    "contents": {
+                                        "tag": "IntBoolOp",
+                                        "contents": [
+                                            "IntEQ",
+                                            {
+                                                "tag": "IntVar",
+                                                "contents": "x"
+                                            },
+                                            {
+                                                "tag": "IntLit",
+                                                "contents": 3
+                                            }
+                                        ]
+                                    }
                                 }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "func",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
                             }
                         ]
-                    }
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ]
                 ]
-            }
+            ]
         ]
     ]
 }

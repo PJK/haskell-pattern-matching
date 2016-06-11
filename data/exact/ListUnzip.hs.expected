@@ -2,11 +2,83 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "unzip",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "unzip",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "InfixConstructorPattern",
+                                    "contents": [
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        },
+                                        ":",
+                                        {
+                                            "tag": "EmptyListPattern",
+                                            "contents": []
+                                        }
+                                    ]
+                                }
+                            ],
+                            ""
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "unzip",
+                [
                     [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "EmptyListPattern",
+                                "contents": []
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "EmptyListPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~b"
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~c"
+                                    }
+                                ]
+                            }
+                        ],
                         [
                             {
                                 "tag": "InfixConstructorPattern",
@@ -17,16 +89,15 @@
                                     },
                                     ":",
                                     {
-                                        "tag": "EmptyListPattern",
-                                        "contents": []
+                                        "tag": "VariablePattern",
+                                        "contents": "~c"
                                     }
                                 ]
                             }
-                        ],
-                        ""
+                        ]
                     ]
                 ]
-            }
+            ]
         ]
     ]
 }

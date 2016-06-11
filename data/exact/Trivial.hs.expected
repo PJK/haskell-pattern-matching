@@ -1,4 +1,27 @@
 {
     "tag": "AnalysisSuccess",
-    "contents": []
+    "contents": [
+        [],
+        [
+            [
+                "i",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ]
 }

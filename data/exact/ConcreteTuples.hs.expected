@@ -2,10 +2,233 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "quadrupleAnd",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "quadrupleAnd",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "TuplePattern",
+                                    "contents": [
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "True",
+                                                []
+                                            ]
+                                        },
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "True",
+                                                []
+                                            ]
+                                        },
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "True",
+                                                []
+                                            ]
+                                        },
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "False",
+                                                []
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ],
+                            ""
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "quadrupleAnd",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "TuplePattern",
+                                "contents": [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~j"
+                                    },
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~k"
+                                    },
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~l"
+                                    },
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~m"
+                                    }
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "TuplePattern",
+                                "contents": [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~j"
+                                    },
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    },
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    },
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    }
+                                ]
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "TuplePattern",
+                                "contents": [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "True",
+                                            []
+                                        ]
+                                    },
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~k"
+                                    },
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~l"
+                                    },
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~m"
+                                    }
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "TuplePattern",
+                                "contents": [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "True",
+                                            []
+                                        ]
+                                    },
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~k"
+                                    },
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    },
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    }
+                                ]
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "TuplePattern",
+                                "contents": [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "True",
+                                            []
+                                        ]
+                                    },
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "True",
+                                            []
+                                        ]
+                                    },
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~l"
+                                    },
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~m"
+                                    }
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "TuplePattern",
+                                "contents": [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "True",
+                                            []
+                                        ]
+                                    },
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "True",
+                                            []
+                                        ]
+                                    },
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~l"
+                                    },
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    }
+                                ]
+                            }
+                        ]
+                    ],
                     [
                         [
                             {
@@ -33,19 +256,47 @@
                                         ]
                                     },
                                     {
-                                        "tag": "ConstructorPattern",
-                                        "contents": [
-                                            "False",
-                                            []
-                                        ]
+                                        "tag": "VariablePattern",
+                                        "contents": "~m"
                                     }
                                 ]
                             }
                         ],
-                        ""
+                        [
+                            {
+                                "tag": "TuplePattern",
+                                "contents": [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "True",
+                                            []
+                                        ]
+                                    },
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "True",
+                                            []
+                                        ]
+                                    },
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "True",
+                                            []
+                                        ]
+                                    },
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~m"
+                                    }
+                                ]
+                            }
+                        ]
                     ]
                 ]
-            }
+            ]
         ]
     ]
 }

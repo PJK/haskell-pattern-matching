@@ -3,31 +3,22 @@
     "contents": [
         [
             [
-                "bguard",
+                "f",
                 {
-                    "tag": "Redundant",
+                    "tag": "InaccessibleRhs",
                     "contents": [
                         {
-                            "tag": "WildcardPattern",
-                            "contents": []
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "True",
+                                []
+                            ]
                         },
                         {
-                            "tag": "GuardPattern",
+                            "tag": "ConstructorPattern",
                             "contents": [
-                                {
-                                    "tag": "ConstructorPattern",
-                                    "contents": [
-                                        "True",
-                                        []
-                                    ]
-                                },
-                                {
-                                    "tag": "BExp",
-                                    "contents": {
-                                        "tag": "Otherwise",
-                                        "contents": []
-                                    }
-                                }
+                                "True",
+                                []
                             ]
                         }
                     ]
@@ -36,19 +27,27 @@
         ],
         [
             [
-                "bguard",
+                "f",
                 [
                     [
                         [
                             {
                                 "tag": "VariablePattern",
                                 "contents": "~a"
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
                             }
                         ],
                         [
                             {
                                 "tag": "WildcardPattern",
                                 "contents": []
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
                             }
                         ]
                     ],
@@ -57,26 +56,26 @@
                             {
                                 "tag": "VariablePattern",
                                 "contents": "~a"
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "False",
+                                    []
+                                ]
                             }
                         ],
-                        [
-                            {
-                                "tag": "WildcardPattern",
-                                "contents": []
-                            }
-                        ]
-                    ],
-                    [
                         [
                             {
                                 "tag": "VariablePattern",
                                 "contents": "~a"
-                            }
-                        ],
-                        [
+                            },
                             {
-                                "tag": "WildcardPattern",
-                                "contents": []
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "False",
+                                    []
+                                ]
                             }
                         ]
                     ]

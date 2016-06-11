@@ -7,7 +7,6 @@ import           Control.Monad.State  (evalStateT)
 import qualified Data.Set             as S
 import           DataDefs
 import           Test.Hspec
-import           Test.QuickCheck
 import           Types
 
 runAnalyzer :: AnalyzerContext -> AnalyzerState -> Analyzer a -> Either AnalyzerError a
@@ -17,13 +16,8 @@ runAnalyzer c s func = flip runReader c $ flip evalStateT s $ runExceptT $ func
 spec :: Spec
 spec = do
     describe "freshVar" $ do
-        it "should return variable pattern 0 when asked for the first fresh variable" $ do
+        it "should return variable pattern ~a when asked for the first fresh variable" $ do
             runAnalyzer (S.fromList []) (AnalyzerState 0) freshVar
-                `shouldBe` Right (VariablePattern $ "fresh" ++ show 0)
-
-        it "should return the contained integer fresh value" $ do
-            property $ \i ->
-                (runAnalyzer (S.fromList []) (AnalyzerState i) freshVar)
-                    `shouldBe` Right (VariablePattern $ "fresh" ++ show i)
+                `shouldBe` Right (VariablePattern $ "~a")
 
 

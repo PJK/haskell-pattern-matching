@@ -2,21 +2,44 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "f",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "f",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "WildcardPattern",
+                                    "contents": []
+                                }
+                            ],
+                            "Constraints:\n  ~c == False\n  ~c == 5 > 1 && isPrime 2\n\nSatisfiable. Model:\n  ~c        = False :: Bool\n  isPrime 2 = False :: Bool\n"
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "f",
+                [
                     [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
                         [
                             {
                                 "tag": "WildcardPattern",
                                 "contents": []
                             }
-                        ],
-                        "Constraints:\n  fresh2 == False\n  fresh2 == 5 > 1 && isPrime 2\n\nSatisfiable. Model:\n  fresh2    = False :: Bool\n  isPrime 2 = False :: Bool\n"
+                        ]
                     ]
                 ]
-            }
+            ]
         ]
     ]
 }

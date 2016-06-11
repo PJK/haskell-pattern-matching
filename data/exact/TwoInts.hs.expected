@@ -2,21 +2,58 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "f",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "f",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "VariablePattern",
+                                    "contents": "~a"
+                                }
+                            ],
+                            "Constraints:\n  ~k == False\n  ~k == ~a == 1\n  ~e == False\n  ~e == ~a == 0\n\nSatisfiable. Model:\n  ~k = False :: Bool\n  ~a =     2 :: Integer\n  ~e = False :: Bool\n"
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "f",
+                [
                     [
                         [
                             {
                                 "tag": "VariablePattern",
-                                "contents": "fresh0"
+                                "contents": "~a"
                             }
                         ],
-                        "Constraints:\n  fresh10 == False\n  fresh10 == fresh0 == 1\n  fresh4 == False\n  fresh4 == fresh0 == 0\n\nSatisfiable. Model:\n  fresh10 = False :: Bool\n  fresh0  =     2 :: Integer\n  fresh4  = False :: Bool\n"
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
                     ]
                 ]
-            }
+            ]
         ]
     ]
 }

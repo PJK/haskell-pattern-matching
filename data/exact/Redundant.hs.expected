@@ -2,39 +2,62 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "func",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "func",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "True",
+                                        []
+                                    ]
+                                }
+                            ],
+                            ""
+                        ]
+                    ]
+                }
+            ],
+            [
+                "func",
+                {
+                    "tag": "Redundant",
+                    "contents": [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "False",
+                                []
+                            ]
+                        }
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "func",
+                [
                     [
                         [
                             {
-                                "tag": "ConstructorPattern",
-                                "contents": [
-                                    "True",
-                                    []
-                                ]
+                                "tag": "VariablePattern",
+                                "contents": "~a"
                             }
                         ],
-                        ""
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ]
                     ]
                 ]
-            }
-        ],
-        [
-            "func",
-            {
-                "tag": "Redundant",
-                "contents": [
-                    {
-                        "tag": "ConstructorPattern",
-                        "contents": [
-                            "False",
-                            []
-                        ]
-                    }
-                ]
-            }
+            ]
         ]
     ]
 }

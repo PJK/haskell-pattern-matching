@@ -2,44 +2,67 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "unpack",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "unpack",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "Nope",
+                                        []
+                                    ]
+                                }
+                            ],
+                            ""
+                        ]
+                    ]
+                }
+            ],
+            [
+                "unpack",
+                {
+                    "tag": "Redundant",
+                    "contents": [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "ContainerC",
+                                [
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    }
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "unpack",
+                [
                     [
                         [
                             {
-                                "tag": "ConstructorPattern",
-                                "contents": [
-                                    "Nope",
-                                    []
-                                ]
+                                "tag": "VariablePattern",
+                                "contents": "~a"
                             }
                         ],
-                        ""
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ]
                     ]
                 ]
-            }
-        ],
-        [
-            "unpack",
-            {
-                "tag": "Redundant",
-                "contents": [
-                    {
-                        "tag": "ConstructorPattern",
-                        "contents": [
-                            "ContainerC",
-                            [
-                                {
-                                    "tag": "WildcardPattern",
-                                    "contents": []
-                                }
-                            ]
-                        ]
-                    }
-                ]
-            }
+            ]
         ]
     ]
 }

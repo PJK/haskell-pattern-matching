@@ -2,25 +2,67 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "snd",
-            {
-                "tag": "Redundant",
-                "contents": [
-                    {
-                        "tag": "TuplePattern",
-                        "contents": [
+            [
+                "snd",
+                {
+                    "tag": "Redundant",
+                    "contents": [
+                        {
+                            "tag": "TuplePattern",
+                            "contents": [
+                                {
+                                    "tag": "WildcardPattern",
+                                    "contents": []
+                                },
+                                {
+                                    "tag": "WildcardPattern",
+                                    "contents": []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "fst",
+                [
+                    [
+                        [
                             {
-                                "tag": "WildcardPattern",
-                                "contents": []
-                            },
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
                             {
-                                "tag": "WildcardPattern",
-                                "contents": []
+                                "tag": "VariablePattern",
+                                "contents": "~a"
                             }
                         ]
-                    }
+                    ]
                 ]
-            }
+            ],
+            [
+                "snd",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ]
+                    ]
+                ]
+            ]
         ]
     ]
 }

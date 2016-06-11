@@ -2,11 +2,226 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "f",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "f",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "InfixConstructorPattern",
+                                    "contents": [
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        },
+                                        ":",
+                                        {
+                                            "tag": "EmptyListPattern",
+                                            "contents": []
+                                        }
+                                    ]
+                                }
+                            ],
+                            ""
+                        ],
+                        [
+                            [
+                                {
+                                    "tag": "EmptyListPattern",
+                                    "contents": []
+                                }
+                            ],
+                            ""
+                        ]
+                    ]
+                }
+            ],
+            [
+                "g",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "InfixConstructorPattern",
+                                    "contents": [
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        },
+                                        ":",
+                                        {
+                                            "tag": "InfixConstructorPattern",
+                                            "contents": [
+                                                {
+                                                    "tag": "WildcardPattern",
+                                                    "contents": []
+                                                },
+                                                ":",
+                                                {
+                                                    "tag": "InfixConstructorPattern",
+                                                    "contents": [
+                                                        {
+                                                            "tag": "WildcardPattern",
+                                                            "contents": []
+                                                        },
+                                                        ":",
+                                                        {
+                                                            "tag": "WildcardPattern",
+                                                            "contents": []
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ],
+                            ""
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "f",
+                [
                     [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~j"
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~k"
+                                    }
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~k"
+                                    }
+                                ]
+                            }
+                        ]
+                    ]
+                ]
+            ],
+            [
+                "g",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "EmptyListPattern",
+                                "contents": []
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "EmptyListPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~b"
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~c"
+                                    }
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~c"
+                                    }
+                                ]
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~b"
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "EmptyListPattern",
+                                        "contents": []
+                                    }
+                                ]
+                            }
+                        ],
                         [
                             {
                                 "tag": "InfixConstructorPattern",
@@ -22,27 +237,35 @@
                                     }
                                 ]
                             }
-                        ],
-                        ""
+                        ]
                     ],
                     [
                         [
                             {
-                                "tag": "EmptyListPattern",
-                                "contents": []
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~b"
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "InfixConstructorPattern",
+                                        "contents": [
+                                            {
+                                                "tag": "VariablePattern",
+                                                "contents": "~d"
+                                            },
+                                            ":",
+                                            {
+                                                "tag": "VariablePattern",
+                                                "contents": "~e"
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ],
-                        ""
-                    ]
-                ]
-            }
-        ],
-        [
-            "g",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
-                    [
                         [
                             {
                                 "tag": "InfixConstructorPattern",
@@ -61,28 +284,71 @@
                                             },
                                             ":",
                                             {
-                                                "tag": "InfixConstructorPattern",
-                                                "contents": [
-                                                    {
-                                                        "tag": "WildcardPattern",
-                                                        "contents": []
-                                                    },
-                                                    ":",
-                                                    {
-                                                        "tag": "WildcardPattern",
-                                                        "contents": []
-                                                    }
-                                                ]
+                                                "tag": "VariablePattern",
+                                                "contents": "~e"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~b"
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "InfixConstructorPattern",
+                                        "contents": [
+                                            {
+                                                "tag": "VariablePattern",
+                                                "contents": "~d"
+                                            },
+                                            ":",
+                                            {
+                                                "tag": "EmptyListPattern",
+                                                "contents": []
                                             }
                                         ]
                                     }
                                 ]
                             }
                         ],
-                        ""
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "InfixConstructorPattern",
+                                        "contents": [
+                                            {
+                                                "tag": "WildcardPattern",
+                                                "contents": []
+                                            },
+                                            ":",
+                                            {
+                                                "tag": "EmptyListPattern",
+                                                "contents": []
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
                     ]
                 ]
-            }
+            ]
         ]
     ]
 }

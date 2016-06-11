@@ -2,21 +2,112 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "length",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "length",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "EmptyListPattern",
+                                    "contents": []
+                                }
+                            ],
+                            ""
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "length",
+                [
                     [
                         [
                             {
-                                "tag": "EmptyListPattern",
-                                "contents": []
+                                "tag": "VariablePattern",
+                                "contents": "~a"
                             }
                         ],
-                        ""
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~h"
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~i"
+                                    }
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~i"
+                                    }
+                                ]
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "VariablePattern",
+                                        "contents": "~h"
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "EmptyListPattern",
+                                        "contents": []
+                                    }
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "InfixConstructorPattern",
+                                "contents": [
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    },
+                                    ":",
+                                    {
+                                        "tag": "EmptyListPattern",
+                                        "contents": []
+                                    }
+                                ]
+                            }
+                        ]
                     ]
                 ]
-            }
+            ]
         ]
     ]
 }

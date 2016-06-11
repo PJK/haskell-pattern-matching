@@ -2,11 +2,227 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "func",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "func",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "Fork",
+                                        [
+                                            {
+                                                "tag": "WildcardPattern",
+                                                "contents": []
+                                            },
+                                            {
+                                                "tag": "ConstructorPattern",
+                                                "contents": [
+                                                    "Fork",
+                                                    [
+                                                        {
+                                                            "tag": "WildcardPattern",
+                                                            "contents": []
+                                                        },
+                                                        {
+                                                            "tag": "WildcardPattern",
+                                                            "contents": []
+                                                        },
+                                                        {
+                                                            "tag": "WildcardPattern",
+                                                            "contents": []
+                                                        }
+                                                    ]
+                                                ]
+                                            },
+                                            {
+                                                "tag": "ConstructorPattern",
+                                                "contents": [
+                                                    "Fork",
+                                                    [
+                                                        {
+                                                            "tag": "WildcardPattern",
+                                                            "contents": []
+                                                        },
+                                                        {
+                                                            "tag": "WildcardPattern",
+                                                            "contents": []
+                                                        },
+                                                        {
+                                                            "tag": "WildcardPattern",
+                                                            "contents": []
+                                                        }
+                                                    ]
+                                                ]
+                                            }
+                                        ]
+                                    ]
+                                }
+                            ],
+                            ""
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "func",
+                [
                     [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Fork",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~e"
+                                        },
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~f"
+                                        },
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~g"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Fork",
+                                    [
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        },
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~f"
+                                        },
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        }
+                                    ]
+                                ]
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Fork",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~e"
+                                        },
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "Nil",
+                                                []
+                                            ]
+                                        },
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~g"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Fork",
+                                    [
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        },
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "Nil",
+                                                []
+                                            ]
+                                        },
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~g"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Fork",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~e"
+                                        },
+                                        {
+                                            "tag": "ConstructorPattern",
+                                            "contents": [
+                                                "Fork",
+                                                [
+                                                    {
+                                                        "tag": "VariablePattern",
+                                                        "contents": "~k"
+                                                    },
+                                                    {
+                                                        "tag": "VariablePattern",
+                                                        "contents": "~l"
+                                                    },
+                                                    {
+                                                        "tag": "VariablePattern",
+                                                        "contents": "~m"
+                                                    }
+                                                ]
+                                            ]
+                                        },
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~g"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ],
                         [
                             {
                                 "tag": "ConstructorPattern",
@@ -38,33 +254,16 @@
                                             ]
                                         },
                                         {
-                                            "tag": "ConstructorPattern",
-                                            "contents": [
-                                                "Fork",
-                                                [
-                                                    {
-                                                        "tag": "WildcardPattern",
-                                                        "contents": []
-                                                    },
-                                                    {
-                                                        "tag": "WildcardPattern",
-                                                        "contents": []
-                                                    },
-                                                    {
-                                                        "tag": "WildcardPattern",
-                                                        "contents": []
-                                                    }
-                                                ]
-                                            ]
+                                            "tag": "VariablePattern",
+                                            "contents": "~g"
                                         }
                                     ]
                                 ]
                             }
-                        ],
-                        ""
+                        ]
                     ]
                 ]
-            }
+            ]
         ]
     ]
 }

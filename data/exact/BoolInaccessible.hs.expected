@@ -2,26 +2,85 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "func",
-            {
-                "tag": "InaccessibleRhs",
-                "contents": [
-                    {
-                        "tag": "ConstructorPattern",
-                        "contents": [
-                            "True",
-                            []
+            [
+                "func",
+                {
+                    "tag": "InaccessibleRhs",
+                    "contents": [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "True",
+                                []
+                            ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "False",
+                                []
+                            ]
+                        }
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "func",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
                         ]
-                    },
-                    {
-                        "tag": "ConstructorPattern",
-                        "contents": [
-                            "False",
-                            []
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "True",
+                                    []
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "True",
+                                    []
+                                ]
+                            }
                         ]
-                    }
+                    ]
                 ]
-            }
+            ]
         ]
     ]
 }

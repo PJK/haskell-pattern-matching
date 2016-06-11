@@ -2,38 +2,185 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "func'",
-            {
-                "tag": "InaccessibleRhs",
-                "contents": [
-                    {
-                        "tag": "ConstructorPattern",
-                        "contents": [
-                            "Node",
-                            [
-                                {
-                                    "tag": "ConstructorPattern",
-                                    "contents": [
-                                        "Leaf",
-                                        []
-                                    ]
-                                },
-                                {
-                                    "tag": "WildcardPattern",
-                                    "contents": []
-                                }
+            [
+                "func'",
+                {
+                    "tag": "InaccessibleRhs",
+                    "contents": [
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Node",
+                                [
+                                    {
+                                        "tag": "ConstructorPattern",
+                                        "contents": [
+                                            "Leaf",
+                                            []
+                                        ]
+                                    },
+                                    {
+                                        "tag": "WildcardPattern",
+                                        "contents": []
+                                    }
+                                ]
                             ]
+                        },
+                        {
+                            "tag": "ConstructorPattern",
+                            "contents": [
+                                "Leaf",
+                                []
+                            ]
+                        }
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "func'",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            },
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~b"
+                            }
                         ]
-                    },
-                    {
-                        "tag": "ConstructorPattern",
-                        "contents": [
-                            "Leaf",
-                            []
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Node",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~e"
+                                        },
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~f"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Node",
+                                    [
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        },
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        }
+                                    ]
+                                ]
+                            }
                         ]
-                    }
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Node",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~q"
+                                        },
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~r"
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Node",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~e"
+                                        },
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~f"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Node",
+                                    [
+                                        {
+                                            "tag": "VariablePattern",
+                                            "contents": "~q"
+                                        },
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "tag": "ConstructorPattern",
+                                "contents": [
+                                    "Node",
+                                    [
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        },
+                                        {
+                                            "tag": "WildcardPattern",
+                                            "contents": []
+                                        }
+                                    ]
+                                ]
+                            }
+                        ]
+                    ]
                 ]
-            }
+            ]
         ]
     ]
 }

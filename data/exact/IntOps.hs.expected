@@ -2,134 +2,223 @@
     "tag": "AnalysisSuccess",
     "contents": [
         [
-            "f",
-            {
-                "tag": "NonExhaustive",
-                "contents": [
+            [
+                "f",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "WildcardPattern",
+                                    "contents": []
+                                }
+                            ],
+                            "Constraints:\n  ~c == False\n  ~c == 2 `div` 1 == 1\n\nSatisfiable. Model:\n  ~c = False :: Bool\n"
+                        ]
+                    ]
+                }
+            ],
+            [
+                "f",
+                {
+                    "tag": "Redundant",
+                    "contents": [
+                        {
+                            "tag": "WildcardPattern",
+                            "contents": []
+                        },
+                        {
+                            "tag": "GuardPattern",
+                            "contents": [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "True",
+                                        []
+                                    ]
+                                },
+                                {
+                                    "tag": "BExp",
+                                    "contents": {
+                                        "tag": "IntBoolOp",
+                                        "contents": [
+                                            "IntEQ",
+                                            {
+                                                "tag": "IntOp",
+                                                "contents": [
+                                                    "IntDiv",
+                                                    {
+                                                        "tag": "IntLit",
+                                                        "contents": 2
+                                                    },
+                                                    {
+                                                        "tag": "IntLit",
+                                                        "contents": 1
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "tag": "IntLit",
+                                                "contents": 1
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            [
+                "g",
+                {
+                    "tag": "Redundant",
+                    "contents": [
+                        {
+                            "tag": "WildcardPattern",
+                            "contents": []
+                        },
+                        {
+                            "tag": "GuardPattern",
+                            "contents": [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "True",
+                                        []
+                                    ]
+                                },
+                                {
+                                    "tag": "BExp",
+                                    "contents": {
+                                        "tag": "Otherwise",
+                                        "contents": []
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            [
+                "h",
+                {
+                    "tag": "Redundant",
+                    "contents": [
+                        {
+                            "tag": "WildcardPattern",
+                            "contents": []
+                        },
+                        {
+                            "tag": "GuardPattern",
+                            "contents": [
+                                {
+                                    "tag": "ConstructorPattern",
+                                    "contents": [
+                                        "True",
+                                        []
+                                    ]
+                                },
+                                {
+                                    "tag": "BExp",
+                                    "contents": {
+                                        "tag": "Otherwise",
+                                        "contents": []
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "f",
+                [
                     [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
                         [
                             {
                                 "tag": "WildcardPattern",
                                 "contents": []
                             }
-                        ],
-                        "Constraints:\n  fresh2 == False\n  fresh2 == 2 `div` 1 == 1\n\nSatisfiable. Model:\n  fresh2 = False :: Bool\n"
+                        ]
                     ]
                 ]
-            }
-        ],
-        [
-            "f",
-            {
-                "tag": "Redundant",
-                "contents": [
-                    {
-                        "tag": "WildcardPattern",
-                        "contents": []
-                    },
-                    {
-                        "tag": "GuardPattern",
-                        "contents": [
+            ],
+            [
+                "g",
+                [
+                    [
+                        [
                             {
-                                "tag": "ConstructorPattern",
-                                "contents": [
-                                    "True",
-                                    []
-                                ]
-                            },
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
                             {
-                                "tag": "BExp",
-                                "contents": {
-                                    "tag": "IntBoolOp",
-                                    "contents": [
-                                        "IntEQ",
-                                        {
-                                            "tag": "IntOp",
-                                            "contents": [
-                                                "IntDiv",
-                                                {
-                                                    "tag": "IntLit",
-                                                    "contents": 2
-                                                },
-                                                {
-                                                    "tag": "IntLit",
-                                                    "contents": 1
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "tag": "IntLit",
-                                            "contents": 1
-                                        }
-                                    ]
-                                }
+                                "tag": "WildcardPattern",
+                                "contents": []
                             }
                         ]
-                    }
-                ]
-            }
-        ],
-        [
-            "g",
-            {
-                "tag": "Redundant",
-                "contents": [
-                    {
-                        "tag": "WildcardPattern",
-                        "contents": []
-                    },
-                    {
-                        "tag": "GuardPattern",
-                        "contents": [
+                    ],
+                    [
+                        [
                             {
-                                "tag": "ConstructorPattern",
-                                "contents": [
-                                    "True",
-                                    []
-                                ]
-                            },
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
                             {
-                                "tag": "BExp",
-                                "contents": {
-                                    "tag": "Otherwise",
-                                    "contents": []
-                                }
+                                "tag": "WildcardPattern",
+                                "contents": []
                             }
                         ]
-                    }
+                    ]
                 ]
-            }
-        ],
-        [
-            "h",
-            {
-                "tag": "Redundant",
-                "contents": [
-                    {
-                        "tag": "WildcardPattern",
-                        "contents": []
-                    },
-                    {
-                        "tag": "GuardPattern",
-                        "contents": [
+            ],
+            [
+                "h",
+                [
+                    [
+                        [
                             {
-                                "tag": "ConstructorPattern",
-                                "contents": [
-                                    "True",
-                                    []
-                                ]
-                            },
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
                             {
-                                "tag": "BExp",
-                                "contents": {
-                                    "tag": "Otherwise",
-                                    "contents": []
-                                }
+                                "tag": "WildcardPattern",
+                                "contents": []
                             }
                         ]
-                    }
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ]
                 ]
-            }
+            ]
         ]
     ]
 }
