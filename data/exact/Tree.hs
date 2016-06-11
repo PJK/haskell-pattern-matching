@@ -2,11 +2,9 @@ module Tree where
 
 data Tree a = Fork a (Tree a) (Tree a) | Nil
 
-func :: Tree a -> String
-func Nil = "Empty tree"
-func (Fork _ Nil Nil) = "Leaf"
--- At this point, we need correct propagation of value abstraction to handle this precisely, i.e.
--- deduce that that the last parameter can only be Fork
-func (Fork _ Nil _) = "Right subtree only"
-func (Fork _ _ Nil) = "Left subtree only"
+func :: Tree a -> Int
+func Nil              = 1
+func (Fork _ Nil Nil) = 2
+func (Fork _ Nil _)   = 3
+func (Fork _ _ Nil)   = 4
 -- Fork _ F F missing

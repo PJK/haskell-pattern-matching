@@ -30,11 +30,16 @@ patterns = do
     -- svbTest
     sets <- getSettings
     -- print sets
-    res <- flip runReaderT sets $ processTarget (setsTargetFile sets)
     case setsCommand sets of
-        Analyze -> prettyOutput res
-        AnalyzeEvaluatedness -> prettyOutputEvaluatedness res
-        DumpResults -> LB8.putStrLn $ encodePretty res
+        Analyze file -> do
+            res <- flip runReaderT sets $ processTarget file
+            prettyOutput res
+        AnalyzeEvaluatedness file -> do
+            res <- flip runReaderT sets $ processTarget file
+            prettyOutputEvaluatedness res
+        DumpResults file -> do
+            res <- flip runReaderT sets $ processTarget file
+            LB8.putStrLn $ encodePretty res
 
 type Configured = ReaderT Settings IO
 
@@ -191,21 +196,6 @@ prettyOutputEvaluatedness (AnalysisSuccess _ evs) = forM_ evs $ \(Evaluatedness 
         putStrLn ""
         putStrLn ""
     putStrLn ""
-
-    putStrLn evaluatednessInstructions
-
-evaluatednessInstructions :: String
-evaluatednessInstructions = unlines
-    [ "HOW TO READ EVALUATEDNESS RESULTS: "
-    , ""
-    , "The output is a list of results for each function"
-    , "A result is of the following form:"
-    , "<pattern of the input> <evaluatedness for each argument>"
-    , ""
-    , "func x y means: 'when func is evaluated with two arbitrary inputs called x and y'"
-    , "_        means: 'will not be evaluated'"
-    , "<var>    means: '<var>'s topmost constructor will be evaluated'"
-    ]
 
 pad :: Char -> Int -> String -> String
 pad c i s

@@ -3,8 +3,8 @@ version:             0.1.0.0
 synopsis:            Pattern matching program analysis
 description:         Please see README.md
 homepage:            https://github.com/githubuser/patterns#readme
-license:             BSD3
-license-file:        LICENSE
+license:             OtherLicense
+license-file:        CRAPL-LICENSE.txt
 author:              Pavel Kalvoda and Tom Sydney Kerckhove
 maintainer:          syd.kerckhove@gmail.com
 copyright:           2016 Pavel Kalvoda and Tom Sydney Kerckhove
@@ -45,14 +45,14 @@ library
 executable patterns
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -package ghc -Wall -Werror -fno-warn-name-shadowing -fno-warn-orphans -fno-warn-type-defaults
+  ghc-options:         -package ghc -Wall -fno-warn-name-shadowing -fno-warn-orphans -fno-warn-type-defaults
   build-depends:       base
                      , patterns
   default-language:    Haskell2010
 
 test-suite patterns-test
   type:                exitcode-stdio-1.0
-  ghc-options:         -package ghc -Wall -Werror -fno-warn-name-shadowing -fno-warn-orphans -fno-warn-type-defaults
+  ghc-options:         -package ghc -Wall -fno-warn-name-shadowing -fno-warn-orphans -fno-warn-type-defaults
   hs-source-dirs:      test
   main-is:             MainTest.hs
   other-modules:       LibSpec
