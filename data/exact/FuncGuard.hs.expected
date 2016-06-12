@@ -1,0 +1,59 @@
+{
+    "tag": "AnalysisSuccess",
+    "contents": [
+        [
+            [
+                "isPrimeOrSmall",
+                {
+                    "tag": "NonExhaustive",
+                    "contents": [
+                        [
+                            [
+                                {
+                                    "tag": "VariablePattern",
+                                    "contents": "~a"
+                                }
+                            ],
+                            "Constraints:\n  ~f == False\n  ~f == not isPrime (x)\n  ~c == False\n  ~c == isPrime (x) && ~a < 10\n\nSatisfiable. Model:\n  ~f              = False :: Bool\n  not isPrime (x) = False :: Bool\n  ~c              = False :: Bool\n  isPrime (x)     = False :: Bool\n  ~a              =     9 :: Integer\n"
+                        ]
+                    ]
+                }
+            ]
+        ],
+        [
+            [
+                "isPrimeOrSmall",
+                [
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ],
+                    [
+                        [
+                            {
+                                "tag": "VariablePattern",
+                                "contents": "~a"
+                            }
+                        ],
+                        [
+                            {
+                                "tag": "WildcardPattern",
+                                "contents": []
+                            }
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ]
+}
