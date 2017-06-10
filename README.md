@@ -3,7 +3,7 @@
 [Pavel Kalvoda](https://github.com/PJK)
 [Tom Sydney Kerckhove](https://github.com/NorfairKing)
 
-Proof-of-concept implementation of the algorithm proposed by [Schrijvers, et al.](http://dl.acm.org/citation.cfm?id=2784748&CFID=628992486&CFTOKEN=93477105).
+Proof-of-concept implementation of the algorithm proposed by [Karachalias, et al.](http://dl.acm.org/citation.cfm?id=2784748&CFID=628992486&CFTOKEN=93477105).
 
 Detects common issues with pattern definitions on the structural level and integrates the [Z3 SMT solver](https://github.com/Z3Prover/z3) to provide a semantic insight into guards.
 
