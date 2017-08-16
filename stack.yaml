@@ -56,5 +56,4 @@ extra-deps:
 - transformers-compat-0.5.1.4
 - unordered-containers-0.2.7.0
 - vector-0.11.0.0
-compiler: ghc-8.0.0.20160421
-resolver: ghc-8.0.0.20160421
+resolver: lts-7.24

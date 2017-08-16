@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  ghc-options:         -package ghc -Wall -fno-warn-name-shadowing -fno-warn-orphans -fno-warn-type-defaults
+  ghc-options:         -Wall -fno-warn-name-shadowing -fno-warn-orphans -fno-warn-type-defaults
   exposed-modules:     Lib
                      , Util
                      , ClauseProcessing
@@ -45,14 +45,14 @@ library
 executable patterns
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -package ghc -Wall -fno-warn-name-shadowing -fno-warn-orphans -fno-warn-type-defaults
+  ghc-options:         -Wall -fno-warn-name-shadowing -fno-warn-orphans -fno-warn-type-defaults
   build-depends:       base
                      , patterns
   default-language:    Haskell2010
 
 test-suite patterns-test
   type:                exitcode-stdio-1.0
-  ghc-options:         -package ghc -Wall -fno-warn-name-shadowing -fno-warn-orphans -fno-warn-type-defaults
+  ghc-options:         -Wall -fno-warn-name-shadowing -fno-warn-orphans -fno-warn-type-defaults
   hs-source-dirs:      test
   main-is:             MainTest.hs
   other-modules:       LibSpec
